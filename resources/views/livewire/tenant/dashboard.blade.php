@@ -1,8 +1,10 @@
 <?php
-
-use function Livewire\Volt\{state, mount};
+// TODO: OPTIMIZE THESE QUERIES
+use function Livewire\Volt\{layout, state, mount};
 use App\Models\Booking;
 use Carbon\Carbon;
+
+layout('components.frontend.app');
 
 state([
     'tenant' => null,
@@ -91,10 +93,10 @@ $cancelBooking = function ($bookingId) {
                         <h1 class="text-4xl font-bold mb-2">🎾 Welcome back, {{ $tenant->name }}!</h1>
                         <p class="text-blue-100 text-lg">{{ $tenant->display_name }} • Manage your tennis court bookings</p>
                     </div>
-                    <div class="text-right">
+                    <!-- <div class="text-right">
                         <div class="text-sm text-blue-200">{{ Carbon::now()->format('l, F j, Y') }}</div>
                         <div class="text-lg font-semibold">{{ Carbon::now()->format('g:i A') }}</div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
@@ -198,7 +200,7 @@ $cancelBooking = function ($bookingId) {
                     </div>
                     <p class="text-4xl font-bold text-green-600 mb-3">{{ $quotaInfo['weekly_remaining'] }}</p>
                     <p class="text-sm text-green-600 mb-4">This week's balance</p>
-                    <a href="{{ route('court.booking') }}"
+                    <a href="{{ route('facilities') }}"
                         class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                         🎾 Book Now
                     </a>
@@ -246,17 +248,17 @@ $cancelBooking = function ($bookingId) {
                     <div class="space-y-4">
                         @foreach($upcomingBookings as $booking)
                         <div class="booking-card bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all duration-300">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-4">
+                            <div class="flex items-center flex-wrap gap-2 justify-between">
+                                <div class="flex flex-wrap items-center space-x-4">
                                     <div class="flex-shrink-0">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                                        <div class="py-2 px-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-md flex items-center justify-center text-white font-bold">
                                             {{ $booking->court->name }}
                                         </div>
                                     </div>
-                                    <div>
+                                    <div class="flex flex-col gap-2">
                                         <h3 class="text-lg font-semibold text-gray-900">
                                             Court {{ $booking->court->name }}
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ml-2
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium sm:ml-2
                                                             @if($booking->booking_type === 'free') bg-blue-100 text-blue-800 @else bg-purple-100 text-purple-800 @endif">
                                                 @if($booking->booking_type === 'free') 🆓 Free @else ⭐ Premium @endif
                                             </span>
@@ -273,11 +275,14 @@ $cancelBooking = function ($bookingId) {
                                         @endif
                                     </div>
                                 </div>
-                                <div class="flex items-center space-x-3">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                                                    @if($booking->status === 'confirmed') bg-green-100 text-green-800
-                                                    @elseif($booking->status === 'pending') bg-orange-100 text-orange-800
-                                                    @else bg-red-100 text-red-800 @endif">
+                                <div class="flex items-center flex-wrap gap-3">
+                                    <span
+                                        @class([ "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                                        , 'bg-green-100 text-green-800'=> $booking->status === 'confirmed',
+                                        'bg-orange-100 text-orange-800' => $booking->status === 'pending',
+                                        'bg-red-100 text-red-800' => $booking->status === 'cancelled',
+                                        ])
+                                        >
                                         @if($booking->status === 'confirmed') ✅ Confirmed
                                         @elseif($booking->status === 'pending') ⏳ Pending
                                         @else ❌ Cancelled @endif
@@ -286,7 +291,7 @@ $cancelBooking = function ($bookingId) {
                                     <button
                                         wire:click="cancelBooking({{ $booking->id }})"
                                         onclick="return confirm('Are you sure you want to cancel this booking?')"
-                                        class="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm">
+                                        class="px-3 py-1 bg-red-100  text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm">
                                         ❌ Cancel
                                     </button>
                                     @endif
@@ -300,7 +305,7 @@ $cancelBooking = function ($bookingId) {
                         <div class="text-6xl mb-4">🎾</div>
                         <h3 class="text-lg font-medium text-gray-900 mb-2">No upcoming bookings</h3>
                         <p class="text-gray-600 mb-6">Ready to book your next tennis session?</p>
-                        <a href="{{ route('court.booking') }}"
+                        <a href="{{ route('facilities') }}"
                             class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
                             🎾 Book a Court
                         </a>

@@ -9,11 +9,17 @@ Route::get('/', function () {
 })->name('home');
 
 
-Route::view('dashboard', 'dashboard')
+Volt::route('dashboard', 'tenant/dashboard')
     ->middleware([
         'auth:tenant',
     ])
-    ->name('dashboard');
+    ->name('tenant.dashboard');
+
+// Route::view('dashboard', 'dashboard')
+//     ->middleware([
+//         'auth:tenant',
+//     ])
+//     ->name('dashboard');
 
 Volt::route('facilities', 'facilities')
     ->name('facilities');

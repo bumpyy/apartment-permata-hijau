@@ -610,22 +610,20 @@ $redirectToLogin = function () {
                     <thead>
                         <tr>
                             @foreach($weekDays as $day)
-                            <th class="border-r border-gray-300 last:border-r-0 p-4 text-center relative
-                                    @if($day['is_today'])
-                                        bg-gradient-to-b from-blue-500 to-blue-600 text-white
-                                    @elseif($day['is_past'])
-                                        bg-gradient-to-b from-gray-400 to-gray-500 text-white
-                                    @elseif($day['is_free_period'])
-                                        bg-gradient-to-b from-blue-700 to-blue-800 text-white
-                                    @else
-                                        bg-gradient-to-b from-purple-600 to-purple-700 text-white
-                                    @endif">
+                            <th @class([ 'border-r border-gray-300 last:border-r-0 p-4 text-center relative' , 'bg-gradient-to-b from-blue-500 to-blue-600 text-white'=> $day['is_today'],
+                                'bg-gradient-to-b from-gray-400 to-gray-500 text-white' => $day['is_past'],
+                                'bg-gradient-to-b from-blue-700 to-blue-800 text-white' => $day['is_free_period'],
+                                'bg-gradient-to-b from-purple-600 to-purple-700 text-white' => !$day['is_today'] && !$day['is_past'] && !$day['is_free_period'],
+                                ])>
                                 <div class="flex flex-col items-center">
                                     <div class="text-sm font-bold">{{ $day['name'] }}</div>
                                     <div class="text-2xl font-bold">{{ $day['day_number'] }}</div>
                                     <div class="text-xs opacity-90">{{ $day['month_name'] }}</div>
                                     @if($day['is_today'])
-                                    <div class="text-xs bg-blue-400 px-2 py-0.5 rounded-full mt-1">TODAY</div>
+                                    <div class="text-xs bg-blue-400 px-2 py-0.5 rounded-full mt-1">
+
+
+                                        TODAY</div>
                                     @elseif(!$day['is_free_period'] && !$day['is_past'])
                                     <div class="text-xs bg-purple-500 px-2 py-0.5 rounded-full mt-1">PREMIUM</div>
                                     @endif

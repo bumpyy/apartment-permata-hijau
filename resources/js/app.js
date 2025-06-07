@@ -1,6 +1,9 @@
 import anchor from "@alpinejs/anchor";
 import collapse from "@alpinejs/collapse";
 import focus from "@alpinejs/focus";
+import { animate } from "animejs";
+
+window.animate = animate;
 
 document.addEventListener(
     "alpine:init",
