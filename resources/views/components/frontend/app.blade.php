@@ -76,17 +76,17 @@
             </div>
 
             <ul class="flex flex-col items-start justify-center gap-2">
-                <li class="flex items-center gap-2">
+                <li class="flex flex-wrap items-center gap-2">
                     <x-dynamic-component class="text-primary/90 size-6 mix-blend-screen"
                         component="lucide-message-circle" />
                     <a class="text-white" href="tel:+628161308888">+62 816 130 8888</a>
                 </li>
-                <li class="flex items-center gap-2">
+                <li class="flex flex-wrap items-center gap-2">
                     <x-dynamic-component class="text-primary/90 size-6 mix-blend-screen" component="lucide-mail" />
                     <a class="text-white"
                         href="mailto:pprs@apartmentpermatahijau.com">pprs@apartmentpermatahijau.com</a>
                 </li>
-                <li class="flex items-center gap-2">
+                <li class="flex flex-wrap items-center gap-2">
                     <x-dynamic-component class="text-primary/90 size-6 mix-blend-screen" component="lucide-phone" />
                     <a class="text-white" href="tel:(021) 5320809">(021) 5320809</a>
                 </li>

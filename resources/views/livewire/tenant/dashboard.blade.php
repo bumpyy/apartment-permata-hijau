@@ -101,7 +101,7 @@ $cancelBooking = function ($bookingId) {
             </div>
         </div>
 
-        <div class="max-w-7xl mx-auto px-6 py-8">
+        <div class="container py-8">
             <!-- Quick Stats -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div class="stat-card bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300">
