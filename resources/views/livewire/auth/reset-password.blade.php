@@ -64,7 +64,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         Session::flash('status', __($status));
 
-        $this->redirectRoute('login', navigate: true);
+        $this->redirectRoute('tenant.login', navigate: true);
     }
 }; ?>
 
@@ -81,8 +81,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             :label="__('Email')"
             type="email"
             required
-            autocomplete="email"
-        />
+            autocomplete="email" />
 
         <!-- Password -->
         <flux:input
@@ -92,8 +91,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             required
             autocomplete="new-password"
             :placeholder="__('Password')"
-            viewable
-        />
+            viewable />
 
         <!-- Confirm Password -->
         <flux:input
@@ -103,8 +101,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             required
             autocomplete="new-password"
             :placeholder="__('Confirm password')"
-            viewable
-        />
+            viewable />
 
         <div class="flex items-center justify-end">
             <flux:button type="submit" variant="primary" class="w-full">

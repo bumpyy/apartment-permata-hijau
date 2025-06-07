@@ -15,7 +15,10 @@ class RoleAndUserSeeder extends Seeder
         $roles = ['Admin', 'Frontliner', 'Accountant'];
 
         foreach ($roles as $roleName) {
-            Role::firstOrCreate(['name' => $roleName]);
+            Role::firstOrCreate([
+                'name' => $roleName,
+                'guard_name' => 'admin',
+            ]);
         }
 
         // Step 2: Seed users and assign roles

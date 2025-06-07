@@ -67,6 +67,6 @@ new #[Layout('components.backend.layouts.auth')] class extends Component {
 
     <div class="space-x-1 text-center text-sm text-zinc-600 rtl:space-x-reverse">
         {{ __('Already have an account?') }}
-        <flux:link :href="route('login')" wire:navigate>{{ __('Log in') }}</flux:link>
+        <flux:link :href="route('tenant.login')" wire:navigate>{{ __('Log in') }}</flux:link>
     </div>
 </div>

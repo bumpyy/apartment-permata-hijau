@@ -21,6 +21,18 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
 
+        // Create test tenant with explicit tenant_id
+        Tenant::create([
+            'tenant_id' => 'tenant#164',
+            'name' => 'John Doe',
+            'email' => 'tenant@example.com',
+            'phone' => '0818 888 8888',
+            'password' => bcrypt('password'),
+            'booking_limit' => 5,
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+
         Tenant::factory(10)->create();
 
         $this->call([
