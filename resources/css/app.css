@@ -1,5 +1,11 @@
-@import 'tailwindcss';
-@import '../../vendor/livewire/flux/dist/flux.css';
+@import "tailwindcss";
+@import "../../vendor/livewire/flux/dist/flux.css";
+
+/*  Required Glide.js Core Stylesheet */
+@import "../../node_modules/@glidejs/glide/dist/css/glide.core.min.css";
+
+/*  Optional Glide.js Theme Stylesheet */
+@import "../../node_modules/@glidejs/glide/dist/css/glide.theme.min.css";
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -9,7 +15,12 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
+
+    --color-primary: #9a7637;
+    --color-secondary: #f3efe7;
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -37,7 +48,6 @@
 }
 
 @layer base {
-
     *,
     ::after,
     ::before,
@@ -52,7 +62,7 @@
 }
 
 [data-flux-label] {
-    @apply  !mb-0 !leading-tight;
+    @apply !mb-0 !leading-tight;
 }
 
 input:focus[data-flux-control],
@@ -64,3 +74,20 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+@utility container {
+    padding-inline: 1rem;
+    margin-inline: auto;
+
+    @variant sm {
+        padding-inline: 2rem;
+    }
+
+    @variant lg {
+        padding-inline: 4rem;
+    }
+
+    @variant xl {
+        padding-inline: 8rem;
+    }
+}

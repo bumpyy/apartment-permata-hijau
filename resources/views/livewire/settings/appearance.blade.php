@@ -1,10 +1,15 @@
 <?php
 
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Volt\Component;
 
-new class extends Component {
-    //
-}; ?>
+new
+    #[Layout('components.backend.layouts.app')]
+    #[Title('Appearance')]
+    class extends Component {
+        //
+    }; ?>
 
 <section class="w-full">
     @include('partials.settings-heading')

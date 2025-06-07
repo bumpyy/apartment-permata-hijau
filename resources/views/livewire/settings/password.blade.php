@@ -4,9 +4,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Volt\Component;
 
-new class extends Component {
+new #[Layout('components.backend.layouts.app')] #[Title('Password')] class extends Component {
     public string $current_password = '';
     public string $password = '';
     public string $password_confirmation = '';
@@ -41,32 +43,17 @@ new class extends Component {
     @include('partials.settings-heading')
 
     <x-settings.layout :heading="__('Update password')" :subheading="__('Ensure your account is using a long, random password to stay secure')">
-        <form wire:submit="updatePassword" class="mt-6 space-y-6">
-            <flux:input
-                wire:model="current_password"
-                :label="__('Current password')"
-                type="password"
-                required
-                autocomplete="current-password"
-            />
-            <flux:input
-                wire:model="password"
-                :label="__('New password')"
-                type="password"
-                required
-                autocomplete="new-password"
-            />
-            <flux:input
-                wire:model="password_confirmation"
-                :label="__('Confirm Password')"
-                type="password"
-                required
-                autocomplete="new-password"
-            />
+        <form class="mt-6 space-y-6" wire:submit="updatePassword">
+            <flux:input wire:model="current_password" :label="__('Current password')" type="password" required
+                autocomplete="current-password" />
+            <flux:input wire:model="password" :label="__('New password')" type="password" required
+                autocomplete="new-password" />
+            <flux:input wire:model="password_confirmation" :label="__('Confirm Password')" type="password" required
+                autocomplete="new-password" />
 
             <div class="flex items-center gap-4">
                 <div class="flex items-center justify-end">
-                    <flux:button variant="primary" type="submit" class="w-full">{{ __('Save') }}</flux:button>
+                    <flux:button class="w-full" variant="primary" type="submit">{{ __('Save') }}</flux:button>
                 </div>
 
                 <x-action-message class="me-3" on="password-updated">

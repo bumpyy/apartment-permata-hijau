@@ -4,70 +4,75 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Volt\Component;
 
-new class extends Component {
-    public string $name = '';
-    public string $email = '';
+new
+    #[Layout('components.backend.layouts.app')]
+    #[Title('Profile')]
+    class extends Component {
+        public string $name = '';
+        public string $email = '';
 
-    /**
-     * Mount the component.
-     */
-    public function mount(): void
-    {
-        $this->name = Auth::user()->name;
-        $this->email = Auth::user()->email;
-    }
-
-    /**
-     * Update the profile information for the currently authenticated user.
-     */
-    public function updateProfileInformation(): void
-    {
-        $user = Auth::user();
-
-        $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255'],
-
-            'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'email',
-                'max:255',
-                Rule::unique(User::class)->ignore($user->id)
-            ],
-        ]);
-
-        $user->fill($validated);
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
+        /**
+         * Mount the component.
+         */
+        public function mount(): void
+        {
+            $this->name = Auth::user()->name;
+            $this->email = Auth::user()->email;
         }
 
-        $user->save();
+        /**
+         * Update the profile information for the currently authenticated user.
+         */
+        public function updateProfileInformation(): void
+        {
+            $user = Auth::user();
 
-        $this->dispatch('profile-updated', name: $user->name);
-    }
+            $validated = $this->validate([
+                'name' => ['required', 'string', 'max:255'],
 
-    /**
-     * Send an email verification notification to the current user.
-     */
-    public function resendVerificationNotification(): void
-    {
-        $user = Auth::user();
+                'email' => [
+                    'required',
+                    'string',
+                    'lowercase',
+                    'email',
+                    'max:255',
+                    Rule::unique(User::class)->ignore($user->id)
+                ],
+            ]);
 
-        if ($user->hasVerifiedEmail()) {
-            $this->redirectIntended(default: route('dashboard', absolute: false));
+            $user->fill($validated);
 
-            return;
+            if ($user->isDirty('email')) {
+                $user->email_verified_at = null;
+            }
+
+            $user->save();
+
+            $this->dispatch('profile-updated', name: $user->name);
         }
 
-        $user->sendEmailVerificationNotification();
+        /**
+         * Send an email verification notification to the current user.
+         */
+        public function resendVerificationNotification(): void
+        {
+            $user = Auth::user();
 
-        Session::flash('status', 'verification-link-sent');
-    }
-}; ?>
+            if ($user->hasVerifiedEmail()) {
+                $this->redirectIntended(default: route('dashboard', absolute: false));
+
+                return;
+            }
+
+            $user->sendEmailVerificationNotification();
+
+            Session::flash('status', 'verification-link-sent');
+        }
+    }; ?>
 
 <section class="w-full">
     @include('partials.settings-heading')
@@ -80,21 +85,21 @@ new class extends Component {
                 <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
 
                 @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail &&! auth()->user()->hasVerifiedEmail())
-                    <div>
-                        <flux:text class="mt-4">
-                            {{ __('Your email address is unverified.') }}
+                <div>
+                    <flux:text class="mt-4">
+                        {{ __('Your email address is unverified.') }}
 
-                            <flux:link class="text-sm cursor-pointer" wire:click.prevent="resendVerificationNotification">
-                                {{ __('Click here to re-send the verification email.') }}
-                            </flux:link>
-                        </flux:text>
+                        <flux:link class="text-sm cursor-pointer" wire:click.prevent="resendVerificationNotification">
+                            {{ __('Click here to re-send the verification email.') }}
+                        </flux:link>
+                    </flux:text>
 
-                        @if (session('status') === 'verification-link-sent')
-                            <flux:text class="mt-2 font-medium !dark:text-green-400 !text-green-600">
-                                {{ __('A new verification link has been sent to your email address.') }}
-                            </flux:text>
-                        @endif
-                    </div>
+                    @if (session('status') === 'verification-link-sent')
+                    <flux:text class="mt-2 font-medium !dark:text-green-400 !text-green-600">
+                        {{ __('A new verification link has been sent to your email address.') }}
+                    </flux:text>
+                    @endif
+                </div>
                 @endif
             </div>
 
