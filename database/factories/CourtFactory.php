@@ -12,14 +12,14 @@ class CourtFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => 'Court ' . $this->faker->unique()->numberBetween(1, 5),
+            'name' => 'Court '.$this->faker->unique()->numberBetween(1, 5),
             'description' => $this->faker->optional()->sentence(),
             'hourly_rate' => 0,
             'light_surcharge' => 50000,
             'is_active' => true,
             'operating_hours' => [
                 'open' => '08:00',
-                'close' => '23:00'
+                'close' => '23:00',
             ],
         ];
     }

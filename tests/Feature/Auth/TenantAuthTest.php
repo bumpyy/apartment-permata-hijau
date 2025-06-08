@@ -1,8 +1,6 @@
 <?php
 
-use App\Models\Booking;
 use App\Models\Tenant;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);

@@ -4,8 +4,8 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class UserOnlyAccess
 {
@@ -19,7 +19,7 @@ class UserOnlyAccess
         $user = Auth::user();
 
         // Check if user is logged in and is an instance of your User model
-        if (!$user || get_class($user) !== \App\Models\User::class) {
+        if (! $user || get_class($user) !== \App\Models\User::class) {
             abort(403, 'Access denied.');
         }
 

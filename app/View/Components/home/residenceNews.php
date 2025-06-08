@@ -23,7 +23,7 @@ class residenceNews extends Component
     public function render(): View
     {
         return view('components.home.residence-news', [
-            'data' => $this->residences_news
+            'data' => $this->residences_news,
         ]);
     }
 }

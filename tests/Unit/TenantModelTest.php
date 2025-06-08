@@ -1,8 +1,8 @@
 <?php
 
-use App\Models\Tenant;
 use App\Models\Booking;
 use App\Models\Court;
+use App\Models\Tenant;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -87,7 +87,6 @@ test('tenant can calculate remaining bookings correctly', function () {
 
     expect($tenant->remaining_weekly_quota)->toBe(3);
 });
-
 
 test('tenant can calculate remaining combined bookings', function () {
     $tenant = Tenant::factory()->create(['booking_limit' => 3]);

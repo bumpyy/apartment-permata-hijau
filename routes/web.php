@@ -1,13 +1,11 @@
 <?php
 
-use App\Http\Middleware\RoleCheck;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
-
 
 Volt::route('dashboard', 'tenant.dashboard')
     ->middleware([
@@ -32,6 +30,4 @@ Route::middleware(['auth:admin'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 });
 
-
-
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

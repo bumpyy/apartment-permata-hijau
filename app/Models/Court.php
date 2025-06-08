@@ -32,7 +32,7 @@ class Court extends Model
 
     public function isOperatingAt($time)
     {
-        if (!$this->operating_hours) {
+        if (! $this->operating_hours) {
             return true; // If no operating hours set, assume always open
         }
 

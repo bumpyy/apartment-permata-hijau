@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
-use Carbon\Carbon;
 use Illuminate\Support\Str;
-
+use Spatie\Permission\Traits\HasRoles;
 
 class Tenant extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
     protected $guard = 'tenant';
 
@@ -68,6 +67,7 @@ class Tenant extends Authenticatable
     public function getRemainingWeeklyQuotaAttribute()
     {
         $used = $this->getCurrentWeekQuotaUsage();
+
         return max(0, $this->booking_limit - $used);
     }
 
@@ -88,7 +88,7 @@ class Tenant extends Authenticatable
         return [
             'used' => $used,
             'total' => $this->booking_limit,
-            'remaining' => max(0, $this->booking_limit - $used)
+            'remaining' => max(0, $this->booking_limit - $used),
         ];
     }
 
@@ -110,7 +110,7 @@ class Tenant extends Authenticatable
         return [
             'used' => $used,
             'total' => $totalPremiumQuota,
-            'remaining' => max(0, $totalPremiumQuota - $used)
+            'remaining' => max(0, $totalPremiumQuota - $used),
         ];
     }
 
@@ -127,7 +127,7 @@ class Tenant extends Authenticatable
         return [
             'used' => $used,
             'total' => $this->booking_limit,
-            'remaining' => max(0, $this->booking_limit - $used)
+            'remaining' => max(0, $this->booking_limit - $used),
         ];
     }
 
@@ -153,7 +153,7 @@ class Tenant extends Authenticatable
             if ($bookingDate->gt($maxFreeDate)) {
                 return [
                     'can_book' => false,
-                    'reason' => 'Free booking only available up to 7 days in advance'
+                    'reason' => 'Free booking only available up to 7 days in advance',
                 ];
             }
         } else {
@@ -162,7 +162,7 @@ class Tenant extends Authenticatable
             if ($bookingDate->gt($maxPremiumDate)) {
                 return [
                     'can_book' => false,
-                    'reason' => 'Premium booking only available up to 1 month in advance'
+                    'reason' => 'Premium booking only available up to 1 month in advance',
                 ];
             }
         }
@@ -170,7 +170,7 @@ class Tenant extends Authenticatable
         return [
             'can_book' => $availableInWeek >= $slotsCount,
             'available_slots' => $availableInWeek,
-            'reason' => $availableInWeek < $slotsCount ? "Only {$availableInWeek} slots available for this week" : null
+            'reason' => $availableInWeek < $slotsCount ? "Only {$availableInWeek} slots available for this week" : null,
         ];
     }
 
@@ -185,14 +185,14 @@ class Tenant extends Authenticatable
             return [
                 'can_book' => false,
                 'available_slots' => $quota['remaining'],
-                'reason' => "Only {$quota['remaining']} slots available out of your limit of {$quota['total']}"
+                'reason' => "Only {$quota['remaining']} slots available out of your limit of {$quota['total']}",
             ];
         }
 
         return [
             'can_book' => true,
             'available_slots' => $quota['remaining'],
-            'reason' => null
+            'reason' => null,
         ];
     }
 
@@ -200,16 +200,17 @@ class Tenant extends Authenticatable
     {
         return Str::of($this->name)
             ->explode(' ')
-            ->map(fn(string $name) => Str::of($name)->substr(0, 1))
+            ->map(fn (string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
     }
+
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($tenant) {
             if (empty($tenant->tenant_id)) {
-                $tenant->tenant_id = 'tenant#' . str_pad(
+                $tenant->tenant_id = 'tenant#'.str_pad(
                     Tenant::max('id') + 1,
                     3,
                     '0',

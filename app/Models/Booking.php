@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class Booking extends Model
 {
@@ -56,7 +56,7 @@ class Booking extends Model
 
     public function generateReference()
     {
-        return 'A' . str_pad($this->id, 4, '0', STR_PAD_LEFT);
+        return 'A'.str_pad($this->id, 4, '0', STR_PAD_LEFT);
     }
 
     public function calculatePrice()
@@ -105,7 +105,7 @@ class Booking extends Model
             $booking->booking_week_start = $bookingDate->startOfWeek()->format('Y-m-d');
 
             // Determine booking type based on date
-            if (!$booking->booking_type) {
+            if (! $booking->booking_type) {
                 $daysFromNow = Carbon::now()->diffInDays($bookingDate, false);
                 $booking->booking_type = $daysFromNow <= 7 ? 'free' : 'premium';
             }

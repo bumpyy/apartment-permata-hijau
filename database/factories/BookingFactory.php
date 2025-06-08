@@ -29,7 +29,7 @@ class BookingFactory extends Factory
             'light_surcharge' => 0,
             'is_light_required' => false,
             'notes' => $this->faker->optional()->sentence(),
-            'booking_reference' => 'A' . str_pad($this->faker->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
+            'booking_reference' => 'A'.str_pad($this->faker->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
         ];
     }
 }

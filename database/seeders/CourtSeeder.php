@@ -18,8 +18,8 @@ class CourtSeeder extends Seeder
                 'is_active' => true,
                 'operating_hours' => [
                     'open' => '08:00',
-                    'close' => '23:00'
-                ]
+                    'close' => '23:00',
+                ],
             ],
             [
                 'name' => 'Court 2',
@@ -29,8 +29,8 @@ class CourtSeeder extends Seeder
                 'is_active' => true,
                 'operating_hours' => [
                     'open' => '08:00',
-                    'close' => '23:00'
-                ]
+                    'close' => '23:00',
+                ],
             ],
             [
                 'name' => 'Court 3',
@@ -40,9 +40,9 @@ class CourtSeeder extends Seeder
                 'is_active' => true,
                 'operating_hours' => [
                     'open' => '08:00',
-                    'close' => '23:00'
-                ]
-            ]
+                    'close' => '23:00',
+                ],
+            ],
         ];
 
         foreach ($courts as $court) {
