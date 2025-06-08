@@ -29,8 +29,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
 
       - name: Install Node Dependencies
         run: npm i
@@ -49,6 +49,12 @@ jobs:
 
       - name: Build Assets
         run: npm run build
+
+      - name: Clear view cache
+        run: php artisan view:clear
+
+      - name: Clear config/cache
+        run: php artisan config:clear && php artisan cache:clear
 
       - name: Run Tests
         run: ./vendor/bin/pest
