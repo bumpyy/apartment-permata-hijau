@@ -93,7 +93,7 @@
 
             </ul>
 
-            <a class="absolute -top-8 right-6 z-50 inline-block size-16 drop-shadow-lg transition-all duration-200 hover:scale-110"
+            <a class="absolute -top-8 right-6 inline-block size-16 drop-shadow-lg transition-all duration-200 hover:scale-110"
                 href="https://wa.me/1234567890" target="_blank">
                 <x-icons.wa />
             </a>
