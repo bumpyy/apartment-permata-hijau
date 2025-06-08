@@ -50,6 +50,11 @@ jobs:
       - name: Build Assets
         run: npm run build
 
+      - name: Create SQLite database
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+
       - name: Clear view cache
         run: php artisan view:clear
 
