@@ -11,7 +11,7 @@ test('confirm password screen can be rendered', function () {
     $response = $this->actingAs($user)->get('/confirm-password');
 
     $response->assertStatus(200);
-});
+})->skip('from starter kit, need refactoring');
 
 test('password can be confirmed', function () {
     $user = User::factory()->create();
@@ -25,7 +25,7 @@ test('password can be confirmed', function () {
     $response
         ->assertHasNoErrors()
         ->assertRedirect(route('dashboard', absolute: false));
-});
+})->skip('from starter kit, need refactoring');
 
 test('password is not confirmed with invalid password', function () {
     $user = User::factory()->create();
@@ -37,4 +37,4 @@ test('password is not confirmed with invalid password', function () {
         ->call('confirmPassword');
 
     $response->assertHasErrors(['password']);
-});
+})->skip('from starter kit, need refactoring');

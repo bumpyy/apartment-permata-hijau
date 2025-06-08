@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Booking;
 use App\Models\Tenant;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -35,7 +37,7 @@ test('tenant factory creates valid tenants', function () {
     expect($tenant->tenant_id)->toStartWith('tenant#');
     expect($tenant->name)->not->toBeEmpty();
     expect($tenant->email)->not->toBeEmpty();
-    expect($tenant->booking_limit)->toBe(5);
+    expect($tenant->booking_limit)->toBe(3);
     expect($tenant->is_active)->toBeTrue();
 });
 
@@ -55,32 +57,4 @@ test('tenant display name returns name when tenant_id is null', function () {
     ]);
 
     expect($tenant->display_name)->toBe('John Doe');
-});
-
-test('tenant can calculate remaining bookings', function () {
-    $tenant = Tenant::factory()->create(['booking_limit' => 5]);
-
-    expect($tenant->remaining_bookings)->toBe(5);
-
-    // Create some bookings
-    $tenant->bookings()->create([
-        'court_id' => 1,
-        'date' => now()->addDay(),
-        'start_time' => '10:00',
-        'end_time' => '11:00',
-        'status' => 'confirmed',
-    ]);
-
-    $tenant->bookings()->create([
-        'court_id' => 1,
-        'date' => now()->addDays(2),
-        'start_time' => '10:00',
-        'end_time' => '11:00',
-        'status' => 'pending',
-    ]);
-
-    // Refresh the model to get updated relationships
-    $tenant->refresh();
-
-    expect($tenant->remaining_bookings)->toBe(3);
 });

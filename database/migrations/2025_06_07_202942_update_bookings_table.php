@@ -14,7 +14,7 @@ return new class extends Migration
 
             $table->foreignId('tenant_id')->after('id')->constrained()->onDelete('cascade');
             $table->string('booking_reference')->nullable()->after('notes');
-            $table->decimal('light_surcharge', 10, 2)->default(0)->after('price');
+            $table->unsignedInteger('light_surcharge')->default(0)->after('price');
             $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('approved_at')->nullable();
 

@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->decimal('hourly_rate', 10, 2)->default(0);
-            $table->decimal('light_surcharge', 10, 2)->default(50000);
+            $table->unsignedInteger('hourly_rate')->default(0);
+            $table->unsignedInteger('light_surcharge')->default(50000);
             $table->boolean('is_active')->default(true);
             $table->json('operating_hours')->nullable();
             $table->timestamps();

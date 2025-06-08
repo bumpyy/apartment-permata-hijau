@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'tenant@example.com',
             'phone' => '0818 888 8888',
             'password' => bcrypt('password'),
-            'booking_limit' => 5,
+            'booking_limit' => 3,
             'is_active' => true,
             'email_verified_at' => now(),
         ]);

@@ -39,9 +39,9 @@ test('booking can calculate price with light surcharge', function () {
     ]);
 
     $totalPrice = $booking->calculatePrice();
-    expect($totalPrice)->toBe(50000.0);
+    expect($totalPrice)->toBe(50000);
     expect($booking->is_light_required)->toBeTrue();
-    expect($booking->light_surcharge)->toBe(50000.0);
+    expect($booking->light_surcharge)->toBe(50000);
 
     $booking2 = Booking::factory()->create([
         'court_id' => $this->court->id,
@@ -50,9 +50,9 @@ test('booking can calculate price with light surcharge', function () {
     ]);
 
     $totalPrice2 = $booking2->calculatePrice();
-    expect($totalPrice2)->toBe(0.0);
+    expect($totalPrice2)->toBe(0);
     expect($booking2->is_light_required)->toBeFalse();
-    expect($booking2->light_surcharge)->toBe(0.0);
+    expect($booking2->light_surcharge)->toBe(0);
 });
 
 test('booking has correct relationships', function () {
@@ -73,8 +73,8 @@ test('booking total price attribute works correctly', function () {
         'light_surcharge' => 50000,
     ]);
 
-    expect($booking->total_price)->toBe(50000.0);
+    expect($booking->total_price)->toBe(50000);
 
     $booking->price = 10000;
-    expect($booking->total_price)->toBe(60000.0);
+    expect($booking->total_price)->toBe(60000);
 });

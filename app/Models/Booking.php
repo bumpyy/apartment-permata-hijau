@@ -33,8 +33,8 @@ class Booking extends Model
         'booking_week_start' => 'date',
         'start_time' => 'datetime:H:i',
         'end_time' => 'datetime:H:i',
-        'price' => 'decimal:2',
-        'light_surcharge' => 'decimal:2',
+        'price' => 'int',
+        'light_surcharge' => 'int',
         'is_light_required' => 'boolean',
         'approved_at' => 'datetime',
     ];

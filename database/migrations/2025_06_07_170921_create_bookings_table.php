@@ -19,12 +19,12 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
             $table->enum('status', ['confirmed', 'preliminary', 'cancelled'])->default('confirmed');
-            $table->decimal('price', 10, 2)->default(0);
+            $table->unsignedInteger('price')->default(0);
             $table->boolean('is_light_required')->default(false);
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            $table->unique(['court_id', 'date', 'start_time']);
+            // $table->unique(['court_id', 'date', 'start_time']);
         });
     }
 

@@ -48,10 +48,10 @@ test('tenant has correct display name', function () {
 
 test('tenant can calculate remaining bookings correctly', function () {
     $tenant = Tenant::factory()->create([
-        'booking_limit' => 5,
+        'booking_limit' => 3,
     ]);
 
-    expect($tenant->remaining_weekly_quota)->toBe(5);
+    expect($tenant->remaining_weekly_quota)->toBe(3);
 
     // Create 2 confirmed bookings for future dates in current week
     $weekStart = Carbon::today()->startOfWeek();
@@ -86,4 +86,35 @@ test('tenant can calculate remaining bookings correctly', function () {
     $tenant->refresh();
 
     expect($tenant->remaining_weekly_quota)->toBe(3);
+});
+
+
+test('tenant can calculate remaining combined bookings', function () {
+    $tenant = Tenant::factory()->create(['booking_limit' => 3]);
+
+    expect($tenant->combined_booking_quota['remaining'])->toBe(3);
+
+    // Create some bookings
+    Booking::factory()->create([
+        'tenant_id' => $tenant->id,
+        'court_id' => $this->court->id,
+        'date' => now()->addDay(),
+        'start_time' => '10:00:00',
+        'end_time' => '11:00:00',
+        'status' => 'confirmed',
+    ]);
+
+    Booking::factory()->create([
+        'tenant_id' => $tenant->id,
+        'court_id' => $this->court->id,
+        'date' => now()->addDays(2),
+        'start_time' => '10:00:00',
+        'end_time' => '11:00:00',
+        'status' => 'pending',
+    ]);
+
+    // Refresh the model to get updated relationships
+    $tenant->refresh();
+
+    expect($tenant->combined_booking_quota['remaining'])->toBe(1);
 });

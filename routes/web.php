@@ -9,7 +9,7 @@ Route::get('/', function () {
 })->name('home');
 
 
-Volt::route('dashboard', 'tenant/dashboard')
+Volt::route('dashboard', 'tenant.dashboard')
     ->middleware([
         'auth:tenant',
     ])
@@ -21,7 +21,7 @@ Volt::route('dashboard', 'tenant/dashboard')
 //     ])
 //     ->name('dashboard');
 
-Volt::route('facilities', 'facilities')
+Volt::route('facilities', 'court-booking')
     ->name('facilities');
 
 Route::middleware(['auth:admin'])->group(function () {

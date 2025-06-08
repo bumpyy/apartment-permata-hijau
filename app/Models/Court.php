@@ -19,8 +19,8 @@ class Court extends Model
     ];
 
     protected $casts = [
-        'hourly_rate' => 'decimal:2',
-        'light_surcharge' => 'decimal:2',
+        'hourly_rate' => 'int',
+        'light_surcharge' => 'int',
         'is_active' => 'boolean',
         'operating_hours' => 'array',
     ];

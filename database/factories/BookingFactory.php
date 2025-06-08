@@ -24,11 +24,12 @@ class BookingFactory extends Factory
             'start_time' => $startTime,
             'end_time' => $endTime,
             'status' => $this->faker->randomElement(['pending', 'confirmed', 'cancelled']),
+            'booking_type' => $this->faker->randomElement(['free', 'premium']),
             'price' => 0,
-            'is_light_required' => false,
             'light_surcharge' => 0,
-            'booking_reference' => 'A' . str_pad($this->faker->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
+            'is_light_required' => false,
             'notes' => $this->faker->optional()->sentence(),
+            'booking_reference' => 'A' . str_pad($this->faker->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
         ];
     }
 }

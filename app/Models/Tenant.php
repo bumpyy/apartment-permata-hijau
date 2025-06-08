@@ -81,7 +81,8 @@ class Tenant extends Authenticatable
         $used = $this->bookings()
             ->where('status', '!=', 'cancelled')
             ->where('booking_type', 'free')
-            ->where('booking_week_start', $weekStart->format('Y-m-d'))
+            // ->where('booking_week_start', $weekStart->format('Y-m-d'))
+            ->where('date', '>=', Carbon::now())
             ->count();
 
         return [
@@ -114,9 +115,26 @@ class Tenant extends Authenticatable
     }
 
     /**
+     * Get total booking quota
+     */
+    public function getCombinedBookingQuotaAttribute()
+    {
+        $used = $this->bookings()
+            ->where('status', '!=', 'cancelled')
+            ->where('date', '>=', Carbon::now())
+            ->count();
+
+        return [
+            'used' => $used,
+            'total' => $this->booking_limit,
+            'remaining' => max(0, $this->booking_limit - $used)
+        ];
+    }
+
+    /**
      * Check if tenant can make a booking for specific date and type
      */
-    public function canMakeBooking($date, $bookingType = 'free', $slotsCount = 1)
+    public function canMakeSpecificTypeBooking($date, $bookingType = 'free', $slotsCount = 1)
     {
         $bookingDate = Carbon::parse($date);
         $weekStart = $bookingDate->startOfWeek();
@@ -153,6 +171,28 @@ class Tenant extends Authenticatable
             'can_book' => $availableInWeek >= $slotsCount,
             'available_slots' => $availableInWeek,
             'reason' => $availableInWeek < $slotsCount ? "Only {$availableInWeek} slots available for this week" : null
+        ];
+    }
+
+    /**
+     * Check if tenant can make a booking
+     */
+    public function canMakeBooking($slotsCount = 1)
+    {
+        $quota = $this->combined_booking_quota;
+
+        if ($quota['remaining'] < $slotsCount) {
+            return [
+                'can_book' => false,
+                'available_slots' => $quota['remaining'],
+                'reason' => "Only {$quota['remaining']} slots available out of your limit of {$quota['total']}"
+            ];
+        }
+
+        return [
+            'can_book' => true,
+            'available_slots' => $quota['remaining'],
+            'reason' => null
         ];
     }
 

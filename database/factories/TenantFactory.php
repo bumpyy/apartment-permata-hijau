@@ -20,7 +20,11 @@ class TenantFactory extends Factory
         return [
             'name' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
+            'phone' => $this->faker->optional()->phoneNumber(),
+            'email_verified_at' => $this->faker->optional()->dateTimeBetween('-1 year', 'now'),
             'password' => bcrypt('password'),
+            'booking_limit' => 3,
+            'is_active' => true,
         ];
     }
 }
