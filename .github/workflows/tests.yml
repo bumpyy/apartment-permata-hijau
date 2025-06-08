@@ -55,6 +55,9 @@ jobs:
           mkdir -p database
           touch database/database.sqlite
 
+      - name: Run Migrations
+        run: php artisan migrate --no-interaction
+
       - name: Clear view cache
         run: php artisan view:clear
 
