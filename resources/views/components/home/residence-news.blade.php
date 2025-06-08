@@ -2,6 +2,8 @@
     @vite(['resources/js/home.js'])
 @endPushOnce
 
+@props(['data' => []])
+
 <section class="bg-primary/50 mb-20 py-20">
 
     <div class="container mb-12 w-max text-white">
