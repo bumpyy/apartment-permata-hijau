@@ -200,7 +200,7 @@ class Tenant extends Authenticatable
     {
         return Str::of($this->name)
             ->explode(' ')
-            ->map(fn(string $name) => Str::of($name)->substr(0, 1))
+            ->map(fn (string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
     }
 
@@ -210,7 +210,7 @@ class Tenant extends Authenticatable
 
         static::creating(function ($tenant) {
             if (empty($tenant->tenant_id)) {
-                $tenant->tenant_id = 'tenant#' . str_pad(
+                $tenant->tenant_id = 'tenant#'.str_pad(
                     Tenant::max('id') + 1,
                     3,
                     '0',
