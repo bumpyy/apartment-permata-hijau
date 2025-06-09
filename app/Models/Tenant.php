@@ -38,6 +38,11 @@ class Tenant extends Authenticatable
         'booking_limit' => 'integer',
     ];
 
+    /**
+     * Get the bookings for the tenant.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function bookings()
     {
         return $this->hasMany(Booking::class);
@@ -48,8 +53,11 @@ class Tenant extends Authenticatable
         return $this->tenant_id ?? $this->name;
     }
 
+
     /**
-     * Get current week's booking quota usage
+     * Get the number of bookings made by the tenant for the current week.
+     *
+     * @return int
      */
     public function getCurrentWeekQuotaUsage()
     {
@@ -61,8 +69,15 @@ class Tenant extends Authenticatable
             ->count();
     }
 
+
     /**
-     * Get remaining quota for current week
+     * Get the remaining bookings available for the current week
+     *
+     * This will calculate the number of bookings already made by the tenant
+     * for the current week and subtract that from the tenant's booking limit.
+     * Returns the remaining bookings available for the current week.
+     *
+     * @return int
      */
     public function getRemainingWeeklyQuotaAttribute()
     {
@@ -71,8 +86,15 @@ class Tenant extends Authenticatable
         return max(0, $this->booking_limit - $used);
     }
 
+
     /**
-     * Get free booking quota (current week only)
+     * Get the free booking quota for the tenant.
+     *
+     * This will calculate the number of free bookings already made by the
+     * tenant for the current week and subtract that from the tenant's booking
+     * limit. Returns the remaining free bookings available for the current week.
+     *
+     * @return array
      */
     public function getFreeBookingQuotaAttribute()
     {
@@ -92,8 +114,15 @@ class Tenant extends Authenticatable
         ];
     }
 
+
     /**
-     * Get premium booking quota (across multiple weeks)
+     * Get the premium booking quota for the tenant.
+     *
+     * This will calculate the number of premium bookings already made by the
+     * tenant for the current week and subtract that from the tenant's booking
+     * limit. Returns the remaining premium bookings available for the current week.
+     *
+     * @return array
      */
     public function getPremiumBookingQuotaAttribute()
     {
@@ -114,8 +143,16 @@ class Tenant extends Authenticatable
         ];
     }
 
+
     /**
-     * Get total booking quota
+     * Get the combined booking quota for the tenant.
+     *
+     * This will calculate the number of bookings already made by the
+     * tenant for the current week and subtract that from the tenant's booking
+     * limit. Returns the remaining bookings available for the current week as
+     * a combined quota.
+     *
+     * @return array
      */
     public function getCombinedBookingQuotaAttribute()
     {
@@ -131,8 +168,23 @@ class Tenant extends Authenticatable
         ];
     }
 
+
     /**
-     * Check if tenant can make a booking for specific date and type
+     * Determine if a tenant can make a specific type of booking.
+     *
+     * This method checks if the tenant can make a booking of the specified type
+     * ('free' or 'premium') for the given date. It ensures that the booking
+     * falls within the allowed advance booking period (7 days for free bookings,
+     * 1 month for premium bookings) and does not exceed the tenant's weekly
+     * booking limit.
+     *
+     * @param string $date The date for which the booking is intended, in Y-m-d format.
+     * @param string $bookingType The type of booking ('free' or 'premium'). Defaults to 'free'.
+     * @param int $slotsCount The number of slots the tenant wants to book. Defaults to 1.
+     * @return array An associative array containing:
+     *               - 'can_book': A boolean indicating if the booking can be made.
+     *               - 'available_slots': The number of available slots for the week.
+     *               - 'reason': A string containing the reason if booking cannot be made.
      */
     public function canMakeSpecificTypeBooking($date, $bookingType = 'free', $slotsCount = 1)
     {
@@ -174,8 +226,14 @@ class Tenant extends Authenticatable
         ];
     }
 
+
     /**
-     * Check if tenant can make a booking
+     * Check if the tenant can make a booking with the given number of slots.
+     *
+     * @param int $slotsCount The number of slots to check.
+     * @return array A result set containing a boolean indicating whether the booking can be made
+     *              and an integer representing the number of slots available.
+     *              If the booking cannot be made, a reason string is also provided.
      */
     public function canMakeBooking($slotsCount = 1)
     {
@@ -196,21 +254,37 @@ class Tenant extends Authenticatable
         ];
     }
 
+    /**
+     * Get the user's initials
+     *
+     * This method takes the tenant's full name, splits it into parts (assuming
+     * the parts are separated by spaces), takes the first letter of each part,
+     * and combines them into a single string.
+     *
+     * @return string The user's initials.
+     */
     public function initials(): string
     {
         return Str::of($this->name)
             ->explode(' ')
-            ->map(fn (string $name) => Str::of($name)->substr(0, 1))
+            ->map(fn(string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
     }
 
+    /**
+     * Setup the model event listeners.
+     *
+     * When a tenant is created, a tenant_id is generated based on the
+     * maximum id of the tenants table. The id is padded with leading zeros
+     * to three digits.
+     */
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($tenant) {
             if (empty($tenant->tenant_id)) {
-                $tenant->tenant_id = 'tenant#'.str_pad(
+                $tenant->tenant_id = 'tenant#' . str_pad(
                     Tenant::max('id') + 1,
                     3,
                     '0',

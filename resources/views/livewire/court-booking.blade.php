@@ -1,419 +1,639 @@
 <?php
 
-use function Livewire\Volt\{layout, state, mount};
 use Carbon\Carbon;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\Layout;
+use Livewire\Volt\Component;
 
-layout('components.frontend.app');
+new #[Layout('components.frontend.app')] class extends Component {
 
-state([
-    'courtNumber' => 2,
-    'currentWeekStart' => null,
-    'startDate' => '',
-    'endDate' => '',
-    'weekDays' => [],
-    'timeSlots' => [],
-    'bookedSlots' => [],
-    'preliminaryBookedSlots' => [],
-    'selectedSlots' => [],
-    'showConfirmModal' => false,
-    'showThankYouModal' => false,
-    'showLoginReminder' => false,
-    'showCalendarPicker' => false,
-    'bookingReference' => '',
-    'pendingBookingData' => [],
-    'bookingType' => 'free',
-    'quotaInfo' => [],
-    'canGoBack' => true,
-    'canGoForward' => true,
-    'weekOffset' => 0,
-    'quotaWarning' => '',
-    'isLoggedIn' => false,
-]);
+    public $courtNumber = 2;
+    public $currentWeekStart = null;
+    public $startDate = '';
+    public $endDate = '';
+    public $weekDays = [];
+    public $timeSlots = [];
+    public $bookedSlots = [];
+    public $preliminaryBookedSlots = [];
+    public $selectedSlots = [];
+    public $showConfirmModal = false;
+    public $showThankYouModal = false;
+    public $showLoginReminder = false;
+    public $showCalendarPicker = false;
+    public $bookingReference = '';
+    public $pendingBookingData = [];
+    public $bookingType = 'free';
+    public $quotaInfo = [];
+    public $canGoBack = true;
+    public $canGoForward = true;
+    public $weekOffset = 0;
+    public $quotaWarning = '';
+    public $isLoggedIn = false;
 
-mount(function () {
-    $this->isLoggedIn = auth('tenant')->check();
-    $this->currentWeekStart = Carbon::today()->startOfWeek();
-    $this->updateWeekData();
-    $this->loadQuotaInfo();
+    /**
+     * Initialize the component's state upon mounting.
+     *
+     * Sets the login status, calculates the start of the current week,
+     * and updates week-related data. Loads quota information and retrieves
+     * any pending booking slots from the session, updating selected slots
+     * and determining the booking type if pending slots are found.
+     */
 
-    if (session()->has('pending_booking_slots')) {
-        $this->selectedSlots = session('pending_booking_slots');
-        session()->forget('pending_booking_slots');
-        $this->determineBookingType();
+    public function mount()
+    {
+        $this->isLoggedIn = auth('tenant')->check();
+        $this->currentWeekStart = Carbon::today()->startOfWeek();
+        $this->updateWeekData();
+        $this->loadQuotaInfo();
+
+        if (session()->has('pending_booking_slots')) {
+            $this->selectedSlots = session('pending_booking_slots');
+            session()->forget('pending_booking_slots');
+            $this->determineBookingType();
+        }
     }
-});
 
-$updateWeekData = function () {
-    $weekStart = $this->currentWeekStart->copy();
-    $weekEnd = $weekStart->copy()->addDays(6);
+    /**
+     * Updates the week data including start and end dates.
+     *
+     * This method sets the start and end dates of the current week,
+     * generates the week days and time slots, loads booked slots for the week,
+     * updates navigation state for week navigation, and validates the combined
+     * quota for selected booking slots.
+     */
 
-    $this->startDate = $weekStart->format('d/m/Y');
-    $this->endDate = $weekEnd->format('d/m/Y');
+    public function updateWeekData()
+    {
+        $weekStart = $this->currentWeekStart->copy();
+        $weekEnd = $weekStart->copy()->addDays(6);
 
-    $this->generateWeekDays($weekStart);
-    $this->generateTimeSlots();
-    $this->loadBookedSlots();
-    $this->updateNavigationState();
-    $this->validateCombinedQuotaForSelections();
+        $this->startDate = $weekStart->format('d/m/Y');
+        $this->endDate = $weekEnd->format('d/m/Y');
 
-    // Don't clear selections when changing weeks - preserve them for premium bookings
-};
-
-$generateWeekDays = function ($startDate) {
-    $days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-    $currentDate = $startDate->copy();
-    $this->weekDays = [];
-
-    for ($i = 0; $i < 7; $i++) {
-        $isToday = $currentDate->isToday();
-        $isPast = $currentDate->isPast() && !$isToday;
-        $daysFromNow = Carbon::now()->diffInDays($currentDate, false);
-        $isFreePeriod = $daysFromNow <= 7;
-
-        $this->weekDays[] = [
-            'name' => $days[$i],
-            'date' => $currentDate->format('Y-m-d'),
-            'day_number' => $currentDate->format('j'),
-            'month_name' => $currentDate->format('M'),
-            'is_today' => $isToday,
-            'is_past' => $isPast,
-            'is_free_period' => $isFreePeriod,
-            'formatted_date' => $currentDate->format('D, M j'),
-            'days_from_now' => $daysFromNow,
-        ];
-        $currentDate->addDay();
+        $this->generateWeekDays($weekStart);
+        $this->generateTimeSlots();
+        $this->loadBookedSlots();
+        $this->updateNavigationState();
+        $this->validateCombinedQuotaForSelections();
     }
-};
 
-$generateTimeSlots = function () {
-    $this->timeSlots = [];
-    for ($hour = 8; $hour < 23; $hour++) {
-        $this->timeSlots[] = [
-            'start' => sprintf('%02d:00', $hour),
-            'end' => sprintf('%02d:00', $hour + 1),
-        ];
-    }
-};
+    /**
+     * Generate an array of week days starting from the given start date.
+     *
+     * Week days are represented as an array of objects with the following
+     * properties:
+     *  - name: The day of the week (e.g. MON, TUE, etc.)
+     *  - date: The date of the day in the format Y-m-d
+     *  - day_number: The day number of the month (e.g. 1, 2, 3, etc.)
+     *  - month_name: The name of the month (e.g. January, February, etc.)
+     *  - is_today: Whether the day is today
+     *  - is_past: Whether the day is in the past (and not today)
+     *  - is_free_period: Whether the day is in the free period (i.e. less than 7 days from now)
+     *  - formatted_date: The date formatted as D, M j (e.g. Mon, Jan 2)
+     *  - days_from_now: The number of days from now
+     */
+    public function generateWeekDays($startDate)
+    {
+        $days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+        $currentDate = $startDate->copy();
+        $this->weekDays = [];
 
-$loadBookedSlots = function () {
-    $weekStart = $this->currentWeekStart;
-    $weekEnd = $weekStart->copy()->addDays(6);
+        for ($i = 0; $i < 7; $i++) {
+            $isToday = $currentDate->isToday();
+            $isPast = $currentDate->isPast() && !$isToday;
+            $daysFromNow = Carbon::now()->diffInDays($currentDate, false);
+            $isFreePeriod = $daysFromNow <= 7;
 
-    $bookings = Booking::where('status', '!=', 'cancelled')
-        ->whereBetween('date', [$weekStart, $weekEnd])
-        ->get();
-
-    $this->bookedSlots = [];
-    $this->preliminaryBookedSlots = [];
-
-    foreach ($bookings as $booking) {
-        $slotKey = $booking->date->format('Y-m-d') . '-' . $booking->start_time->format('H:i');
-
-        if ($booking->status === 'confirmed') {
-            $this->bookedSlots[] = [
-                'key' => $slotKey,
-                'type' => $booking->booking_type,
+            $this->weekDays[] = [
+                'name' => $days[$i],
+                'date' => $currentDate->format('Y-m-d'),
+                'day_number' => $currentDate->format('j'),
+                'month_name' => $currentDate->format('M'),
+                'is_today' => $isToday,
+                'is_past' => $isPast,
+                'is_free_period' => $isFreePeriod,
+                'formatted_date' => $currentDate->format('D, M j'),
+                'days_from_now' => $daysFromNow,
             ];
-        } else {
-            $this->preliminaryBookedSlots[] = [
-                'key' => $slotKey,
-                'type' => $booking->booking_type,
+            $currentDate->addDay();
+        }
+    }
+
+    /**
+     * Generate an array of time slots for the given week.
+     *
+     * Time slots are represented as an array of objects with the following
+     * properties:
+     *  - start: The start time of the slot in the format H:i
+     *  - end: The end time of the slot in the format H:i
+     */
+    public function generateTimeSlots()
+    {
+        $this->timeSlots = [];
+        for ($hour = 8; $hour < 23; $hour++) {
+            $this->timeSlots[] = [
+                'start' => sprintf('%02d:00', $hour),
+                'end' => sprintf('%02d:00', $hour + 1),
             ];
         }
     }
-};
 
-$updateNavigationState = function () {
-    $today = Carbon::today();
-    $maxFutureWeeks = 4;
+    /**
+     * Load booked slots for the current week.
+     *
+     * This method loads bookings for the current week and separates them into
+     * two arrays: bookedSlots and preliminaryBookedSlots. bookedSlots contains
+     * confirmed bookings, while preliminaryBookedSlots contains pending bookings.
+     *
+     * Each booking is represented as an array with two properties:
+     *  - key: A string in the format 'Y-m-d-H:i' that identifies the booking
+     *  - type: The type of booking (free or premium)
+     */
+    public function loadBookedSlots()
+    {
+        $weekStart = $this->currentWeekStart;
+        $weekEnd = $weekStart->copy()->addDays(6);
 
-    $this->canGoBack = $this->currentWeekStart->gt($today->startOfWeek());
-    $this->canGoForward = $this->weekOffset < $maxFutureWeeks;
-};
+        $bookings = Booking::where('status', '!=', 'cancelled')
+            ->whereBetween('date', [$weekStart, $weekEnd])
+            ->get();
 
-$previousWeek = function () {
-    if ($this->canGoBack) {
-        $this->currentWeekStart = $this->currentWeekStart->subWeek();
-        $this->weekOffset--;
-        $this->updateWeekData();
-    }
-};
+        $this->bookedSlots = [];
+        $this->preliminaryBookedSlots = [];
 
-$nextWeek = function () {
-    if ($this->canGoForward) {
-        $this->currentWeekStart = $this->currentWeekStart->addWeek();
-        $this->weekOffset++;
-        $this->updateWeekData();
-    }
-};
+        foreach ($bookings as $booking) {
+            $slotKey = $booking->date->format('Y-m-d') . '-' . $booking->start_time->format('H:i');
 
-$goToCurrentWeek = function () {
-    $this->currentWeekStart = Carbon::today()->startOfWeek();
-    $this->weekOffset = 0;
-    $this->updateWeekData();
-};
-
-$jumpToWeek = function ($weeksFromNow) {
-    $this->currentWeekStart = Carbon::today()->startOfWeek()->addWeeks($weeksFromNow);
-    $this->weekOffset = $weeksFromNow;
-    $this->updateWeekData();
-};
-
-$showCalendar = function () {
-    $this->showCalendarPicker = true;
-};
-
-$selectCalendarWeek = function ($weekStart) {
-    $this->currentWeekStart = Carbon::parse($weekStart)->startOfWeek();
-    $this->weekOffset = Carbon::today()->startOfWeek()->diffInWeeks($this->currentWeekStart);
-    $this->showCalendarPicker = false;
-    $this->updateWeekData();
-};
-
-$loadQuotaInfo = function () {
-    if (auth('tenant')->check()) {
-        $tenant = auth('tenant')->user();
-        $this->quotaInfo = [
-            'free' => $tenant->free_booking_quota,
-            'premium' => $tenant->premium_booking_quota,
-            'combined' => $tenant->combined_booking_quota,
-            'weekly_remaining' => $tenant->remaining_weekly_quota,
-        ];
-    }
-};
-
-$validateQuotaForSelections = function () {
-    if (!$this->isLoggedIn || empty($this->selectedSlots)) {
-        $this->quotaWarning = '';
-        return;
-    }
-
-    $freeCount = 0;
-    $premiumCount = 0;
-
-    foreach ($this->selectedSlots as $slotKey) {
-        $parts = explode('-', $slotKey);
-        if (count($parts) >= 3) {
-            $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
-            $daysFromNow = Carbon::now()->diffInDays(Carbon::parse($date), false);
-
-            if ($daysFromNow <= 7) {
-                $freeCount++;
+            if ($booking->status === 'confirmed') {
+                $this->bookedSlots[] = [
+                    'key' => $slotKey,
+                    'type' => $booking->booking_type,
+                ];
             } else {
-                $premiumCount++;
+                $this->preliminaryBookedSlots[] = [
+                    'key' => $slotKey,
+                    'type' => $booking->booking_type,
+                ];
             }
         }
     }
 
-    $freeRemaining = $this->quotaInfo['free']['remaining'] ?? 0;
-    $premiumRemaining = $this->quotaInfo['premium']['remaining'] ?? 0;
+    /**
+     * Updates the state of the navigation buttons (previous and next week).
+     *
+     * This method sets the properties $canGoBack and $canGoForward based on the
+     * current week and the maximum number of future weeks that can be booked.
+     */
+    public function updateNavigationState()
+    {
+        $today = Carbon::today();
+        $maxFutureWeeks = 4;
 
-    if ($freeCount > $freeRemaining) {
-        $this->quotaWarning = "You've selected {$freeCount} free slots but only have {$freeRemaining} remaining.";
-    } elseif ($premiumCount > $premiumRemaining) {
-        $this->quotaWarning = "You've selected {$premiumCount} premium slots but only have {$premiumRemaining} remaining.";
-    } else {
-        $this->quotaWarning = '';
-    }
-};
-
-$validateCombinedQuotaForSelections = function () {
-    if (!$this->isLoggedIn || empty($this->selectedSlots)) {
-        $this->quotaWarning = '';
-        return;
+        $this->canGoBack = $this->currentWeekStart->gt($today->startOfWeek());
+        $this->canGoForward = $this->weekOffset < $maxFutureWeeks;
     }
 
-    $selectedCount = count($this->selectedSlots);
-    $remainingSlots = $this->quotaInfo['combined']['remaining'] ?? 0;
-
-    if ($selectedCount > $remainingSlots) {
-        $this->quotaWarning = "You've selected {$selectedCount} slots but only have {$remainingSlots} remaining out of your limit of 3.";
-    } else {
-        $this->quotaWarning = '';
-    }
-};
-
-$toggleTimeSlot = function ($slotKey) {
-    // Check if slot is booked
-    $bookedKeys = array_column($this->bookedSlots, 'key');
-    $preliminaryKeys = array_column($this->preliminaryBookedSlots, 'key');
-
-    if (in_array($slotKey, $bookedKeys) || in_array($slotKey, $preliminaryKeys)) {
-        return;
+    /**
+     * Navigate to the previous week.
+     *
+     * This method checks if navigating to the previous week is allowed
+     * by verifying the $canGoBack property. If allowed, it updates the
+     * currentWeekStart to the previous week, decrements the weekOffset,
+     * and refreshes the week data.
+     */
+    public function previousWeek()
+    {
+        if ($this->canGoBack) {
+            $this->currentWeekStart = $this->currentWeekStart->subWeek();
+            $this->weekOffset--;
+            $this->updateWeekData();
+        }
     }
 
-    // Check if slot is in the past
-    $parts = explode('-', $slotKey);
-    if (count($parts) >= 4) {
-        $slotDateTime = Carbon::createFromFormat('Y-m-d H:i', $parts[0] . '-' . $parts[1] . '-' . $parts[2] . ' ' . $parts[3]);
-        if ($slotDateTime->isPast()) {
+    /**
+     * Navigate to the next week.
+     *
+     * Checks if navigating to the next week is allowed by verifying the
+     * $canGoForward property. If allowed, it updates the currentWeekStart
+     * to the next week, increments the weekOffset, and refreshes the week data.
+     */
+    public function nextWeek()
+    {
+        if ($this->canGoForward) {
+            $this->currentWeekStart = $this->currentWeekStart->addWeek();
+            $this->weekOffset++;
+            $this->updateWeekData();
+        }
+    }
+
+    /**
+     * Navigate to the current week.
+     *
+     * This method sets the currentWeekStart to the start of the current week,
+     * resets the weekOffset to zero, and refreshes the week data.
+     */
+    public function goToCurrentWeek()
+    {
+        $this->currentWeekStart = Carbon::today()->startOfWeek();
+        $this->weekOffset = 0;
+        $this->updateWeekData();
+    }
+
+    /**
+     * Navigate to a specific week relative to the current week.
+     *
+     * This method updates the currentWeekStart property to the specified week,
+     * calculates the week offset from the current week, and refreshes the week data.
+     *
+     * @param int $weeksFromNow The number of weeks from the current week to jump to.
+     */
+    public function jumpToWeek($weeksFromNow)
+    {
+        $this->currentWeekStart = Carbon::today()->startOfWeek()->addWeeks($weeksFromNow);
+        $this->weekOffset = $weeksFromNow;
+        $this->updateWeekData();
+    }
+
+    /**
+     * Shows the calendar picker.
+     *
+     * This method sets the showCalendarPicker property to true, which causes the
+     * calendar picker to be displayed.
+     */
+    public function showCalendar()
+    {
+        $this->showCalendarPicker = true;
+    }
+
+    /**
+     * Select a specific calendar week.
+     *
+     * This method sets the current week start date to the provided weekStart date,
+     * calculates the week offset from the current week, hides the calendar picker,
+     * and updates the week-related data.
+     *
+     * @param string $weekStart The start date of the week to select, in 'Y-m-d' format.
+     */
+    public function selectCalendarWeek($weekStart)
+    {
+        $this->currentWeekStart = Carbon::parse($weekStart)->startOfWeek();
+        $this->weekOffset = Carbon::today()->startOfWeek()->diffInWeeks($this->currentWeekStart);
+        $this->showCalendarPicker = false;
+        $this->updateWeekData();
+    }
+
+    /**
+     * Loads the tenant's quota information.
+     *
+     * This method loads the tenant's quotas for free, premium, and combined bookings,
+     * as well as the remaining bookings for the current week.
+     */
+    public function loadQuotaInfo()
+    {
+        if (auth('tenant')->check()) {
+            $tenant = auth('tenant')->user();
+            $this->quotaInfo = [
+                'free' => $tenant->free_booking_quota,
+                'premium' => $tenant->premium_booking_quota,
+                'combined' => $tenant->combined_booking_quota,
+                'weekly_remaining' => $tenant->remaining_weekly_quota,
+            ];
+        }
+    }
+
+    /**
+     * Validates the booking quota for selected slots.
+     *
+     * This method checks the number of selected free and premium booking slots
+     * against the tenant's remaining quota for each type. If the number of selected
+     * slots exceeds the remaining quota, a warning message is set. Otherwise, the
+     * warning message is cleared. The validation considers slots within 7 days as
+     * free and beyond 7 days as premium.
+     */
+    public function validateQuotaForSelections()
+    {
+        if (!$this->isLoggedIn || empty($this->selectedSlots)) {
+            $this->quotaWarning = '';
             return;
         }
+
+        $freeCount = 0;
+        $premiumCount = 0;
+
+        foreach ($this->selectedSlots as $slotKey) {
+            $parts = explode('-', $slotKey);
+            if (count($parts) >= 3) {
+                $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
+                $daysFromNow = Carbon::now()->diffInDays(Carbon::parse($date), false);
+
+                if ($daysFromNow <= 7) {
+                    $freeCount++;
+                } else {
+                    $premiumCount++;
+                }
+            }
+        }
+
+        $freeRemaining = $this->quotaInfo['free']['remaining'] ?? 0;
+        $premiumRemaining = $this->quotaInfo['premium']['remaining'] ?? 0;
+
+        if ($freeCount > $freeRemaining) {
+            $this->quotaWarning = "You've selected {$freeCount} free slots but only have {$freeRemaining} remaining.";
+        } elseif ($premiumCount > $premiumRemaining) {
+            $this->quotaWarning = "You've selected {$premiumCount} premium slots but only have {$premiumRemaining} remaining.";
+        } else {
+            $this->quotaWarning = '';
+        }
     }
 
-    $index = array_search($slotKey, $this->selectedSlots);
-    if ($index !== false) {
-        unset($this->selectedSlots[$index]);
-        $this->selectedSlots = array_values($this->selectedSlots);
-    } else {
-        $this->selectedSlots[] = $slotKey;
+    /**
+     * Validates the combined booking quota for selected slots.
+     *
+     * This method checks the total number of selected slots against the tenant's
+     * remaining combined booking quota. If the number of selected slots exceeds
+     * the remaining quota, a warning message is set. Otherwise, the warning message
+     * is cleared. The validation considers all selected slots as contributing to
+     * the combined booking quota.
+     */
+    public function validateCombinedQuotaForSelections()
+    {
+        if (!$this->isLoggedIn || empty($this->selectedSlots)) {
+            $this->quotaWarning = '';
+            return;
+        }
+
+        $selectedCount = count($this->selectedSlots);
+        $remainingSlots = $this->quotaInfo['combined']['remaining'] ?? 0;
+
+        if ($selectedCount > $remainingSlots) {
+            $this->quotaWarning = "You've selected {$selectedCount} slots but only have {$remainingSlots} remaining out of your limit of 3.";
+        } else {
+            $this->quotaWarning = '';
+        }
     }
 
-    $this->determineBookingType();
-    $this->validateCombinedQuotaForSelections();
-};
+    /**
+     * Toggle a time slot in the selected slots array.
+     *
+     * This method will not add a time slot to the selected slots array if it is
+     * already booked or pending, or if the time slot is in the past. If the time
+     * slot is already in the selected slots array, it will be removed.
+     *
+     * @param string $slotKey A string in the format Y-m-d-H:i representing the time slot to toggle.
+     */
+    public function toggleTimeSlot($slotKey)
+    {
+        $bookedKeys = array_column($this->bookedSlots, 'key');
+        $preliminaryKeys = array_column($this->preliminaryBookedSlots, 'key');
 
-$determineBookingType = function () {
-    if (empty($this->selectedSlots)) {
-        $this->bookingType = 'free';
-        return;
+        if (in_array($slotKey, $bookedKeys) || in_array($slotKey, $preliminaryKeys)) {
+            return;
+        }
+
+        $parts = explode('-', $slotKey);
+        if (count($parts) >= 4) {
+            $slotDateTime = Carbon::createFromFormat('Y-m-d H:i', $parts[0] . '-' . $parts[1] . '-' . $parts[2] . ' ' . $parts[3]);
+            if ($slotDateTime->isPast()) {
+                return;
+            }
+        }
+
+        $index = array_search($slotKey, $this->selectedSlots);
+        if ($index !== false) {
+            unset($this->selectedSlots[$index]);
+            $this->selectedSlots = array_values($this->selectedSlots);
+        } else {
+            $this->selectedSlots[] = $slotKey;
+        }
+
+        $this->determineBookingType();
+        $this->validateCombinedQuotaForSelections();
     }
 
-    $hasPremium = false;
-    foreach ($this->selectedSlots as $slotKey) {
+    /**
+     * Determines the booking type for the selected time slots.
+     *
+     * This method checks all selected time slots and determines if the booking
+     * type is 'free' or 'mixed'. If all selected slots are within the current
+     * week, the booking type is 'free'. If any selected slots are after the current
+     * week, the booking type is 'mixed'.
+     */
+    public function determineBookingType()
+    {
+        if (empty($this->selectedSlots)) {
+            $this->bookingType = 'free';
+            return;
+        }
+
+        $hasPremium = false;
+        foreach ($this->selectedSlots as $slotKey) {
+            $parts = explode('-', $slotKey);
+            if (count($parts) >= 3) {
+                $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
+                $daysFromNow = Carbon::now()->diffInDays(Carbon::parse($date), false);
+                if ($daysFromNow > 7) {
+                    $hasPremium = true;
+                    break;
+                }
+            }
+        }
+
+        $this->bookingType = $hasPremium ? 'mixed' : 'free';
+    }
+
+    /**
+     * Determine the booking type for the given time slot key.
+     *
+     * Given a time slot key in the format Y-m-d-H:i, this method returns
+     * 'free' if the date is within 7 days from now, or 'premium' if the date
+     * is after 7 days from now.
+     *
+     * @param string $slotKey A string in the format Y-m-d-H:i representing the time slot to check.
+     * @return string The booking type for the given time slot, either 'free' or 'premium'.
+     */
+    public function getSlotType($slotKey)
+    {
         $parts = explode('-', $slotKey);
         if (count($parts) >= 3) {
             $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
             $daysFromNow = Carbon::now()->diffInDays(Carbon::parse($date), false);
-            if ($daysFromNow > 7) {
-                $hasPremium = true;
-                break;
+            return $daysFromNow <= 7 ? 'free' : 'premium';
+        }
+        return 'free';
+    }
+
+
+    /**
+     * Confirm a booking and open the confirmation modal.
+     *
+     * This method will not do anything if no time slots are selected. If the user
+     * is not logged in, it will store the selected slots in the session and show
+     * a login reminder. If the user has exceeded their booking quota, it will
+     * show an error message. Otherwise, it will prepare the booking data and
+     * show the confirmation modal.
+     */
+    public function confirmBooking()
+    {
+        if (count($this->selectedSlots) === 0) {
+            return;
+        }
+
+        if (!auth('tenant')->check()) {
+            session(['pending_booking_slots' => $this->selectedSlots]);
+            $this->showLoginReminder = true;
+            return;
+        }
+
+        if ($this->quotaWarning) {
+            session()->flash('error', $this->quotaWarning);
+            return;
+        }
+
+        $this->prepareBookingData();
+        $this->showConfirmModal = true;
+    }
+
+
+    /**
+     * Prepares the booking data for selected time slots.
+     *
+     * This method initializes the pending booking data array and iterates over
+     * the selectedSlots array, parsing each slot key into date and time components.
+     * For each valid slot, it calculates whether light is required based on the
+     * start time, determines the booking type as either 'free' or 'premium' based
+     * on the date, and formats the information into an array which is added to
+     * pendingBookingData. Errors in parsing are logged.
+     */
+    public function prepareBookingData()
+    {
+        $this->pendingBookingData = [];
+
+        foreach ($this->selectedSlots as $slotKey) {
+            if (!str_contains($slotKey, '-')) {
+                continue;
+            }
+
+            $parts = explode('-', $slotKey);
+            if (count($parts) < 4) {
+                continue;
+            }
+
+            $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
+            $time = $parts[3];
+
+            try {
+                $dateObj = Carbon::createFromFormat('Y-m-d', $date);
+                $timeObj = Carbon::createFromFormat('H:i', $time);
+
+                $isLightRequired = $timeObj->hour >= 18;
+                $daysFromNow = Carbon::now()->diffInDays($dateObj, false);
+                $bookingType = $daysFromNow <= 7 ? 'free' : 'premium';
+
+                $this->pendingBookingData[] = [
+                    'date' => $dateObj->format('D, m/d/Y'),
+                    'time' => $time . ' - ' . $timeObj->copy()->addHour()->format('H:i'),
+                    'is_light_required' => $isLightRequired,
+                    'raw_date' => $date,
+                    'raw_time' => $time,
+                    'booking_type' => $bookingType,
+                ];
+            } catch (\Exception $e) {
+                Log::error('Error parsing booking slot: ' . $slotKey, ['error' => $e->getMessage()]);
+                continue;
             }
         }
     }
 
-    $this->bookingType = $hasPremium ? 'mixed' : 'free';
-};
 
-$getSlotType = function ($slotKey) {
-    $parts = explode('-', $slotKey);
-    if (count($parts) >= 3) {
-        $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
-        $daysFromNow = Carbon::now()->diffInDays(Carbon::parse($date), false);
-        return $daysFromNow <= 7 ? 'free' : 'premium';
-    }
-    return 'free';
-};
+    /**
+     * Process the booking for the selected time slots.
+     *
+     * This method processes the booking for each time slot in pendingBookingData.
+     * It creates a new booking and sets the booking type and light requirement based
+     * on the date and time of the booking. If the booking is successfully created,
+     * its price is calculated and saved. If there are any errors, they are logged.
+     * If the booking is successfully created, it sets the booking reference to the
+     * same value for all bookings and updates them. Finally, it resets all modal
+     * flags to false, closes all modals, and reloads booked slots and quota info.
+     */
+    public function processBooking()
+    {
+        $tenant = auth('tenant')->user();
+        $bookings = [];
 
-$confirmBooking = function () {
-    if (count($this->selectedSlots) === 0) {
-        return;
-    }
+        foreach ($this->pendingBookingData as $bookingData) {
+            try {
+                $booking = Booking::create([
+                    'tenant_id' => $tenant->id,
+                    'court_id' => $this->courtNumber,
+                    'date' => $bookingData['raw_date'],
+                    'start_time' => $bookingData['raw_time'],
+                    'end_time' => Carbon::createFromFormat('H:i', $bookingData['raw_time'])->addHour()->format('H:i'),
+                    'status' => 'pending',
+                    'booking_type' => $bookingData['booking_type'],
+                    'is_light_required' => $bookingData['is_light_required'],
+                ]);
 
-    if (!auth('tenant')->check()) {
-        session(['pending_booking_slots' => $this->selectedSlots]);
-        $this->showLoginReminder = true;
-        return;
-    }
+                $booking->calculatePrice();
+                $booking->save();
 
-    if ($this->quotaWarning) {
-        session()->flash('error', $this->quotaWarning);
-        return;
-    }
-
-    $this->prepareBookingData();
-    $this->showConfirmModal = true;
-};
-
-$prepareBookingData = function () {
-    $this->pendingBookingData = [];
-
-    foreach ($this->selectedSlots as $slotKey) {
-        if (!str_contains($slotKey, '-')) {
-            continue;
+                $bookings[] = $booking;
+            } catch (\Exception $e) {
+                Log::error('Error creating booking', ['error' => $e->getMessage(), 'data' => $bookingData]);
+                continue;
+            }
         }
 
-        $parts = explode('-', $slotKey);
-        if (count($parts) < 4) {
-            continue;
+        if (empty($bookings)) {
+            session()->flash('error', 'Failed to create bookings. Please try again.');
+            return;
         }
 
-        $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
-        $time = $parts[3];
+        $this->bookingReference = $bookings[0]->generateReference();
 
-        try {
-            $dateObj = Carbon::createFromFormat('Y-m-d', $date);
-            $timeObj = Carbon::createFromFormat('H:i', $time);
-
-            $isLightRequired = $timeObj->hour >= 18;
-            $daysFromNow = Carbon::now()->diffInDays($dateObj, false);
-            $bookingType = $daysFromNow <= 7 ? 'free' : 'premium';
-
-            $this->pendingBookingData[] = [
-                'date' => $dateObj->format('D, m/d/Y'),
-                'time' => $time . ' - ' . $timeObj->copy()->addHour()->format('H:i'),
-                'is_light_required' => $isLightRequired,
-                'raw_date' => $date,
-                'raw_time' => $time,
-                'booking_type' => $bookingType,
-            ];
-        } catch (\Exception $e) {
-            Log::error('Error parsing booking slot: ' . $slotKey, ['error' => $e->getMessage()]);
-            continue;
+        foreach ($bookings as $booking) {
+            $booking->update(['booking_reference' => $this->bookingReference]);
         }
-    }
-};
 
-$processBooking = function () {
-    $tenant = auth('tenant')->user();
-    $bookings = [];
+        $this->selectedSlots = [];
+        $this->showConfirmModal = false;
+        $this->showThankYouModal = true;
 
-    foreach ($this->pendingBookingData as $bookingData) {
-        try {
-            $booking = Booking::create([
-                'tenant_id' => $tenant->id,
-                'court_id' => $this->courtNumber,
-                'date' => $bookingData['raw_date'],
-                'start_time' => $bookingData['raw_time'],
-                'end_time' => Carbon::createFromFormat('H:i', $bookingData['raw_time'])->addHour()->format('H:i'),
-                'status' => 'pending',
-                'booking_type' => $bookingData['booking_type'],
-                'is_light_required' => $bookingData['is_light_required'],
-            ]);
-
-            $booking->calculatePrice();
-            $booking->save();
-
-            $bookings[] = $booking;
-        } catch (\Exception $e) {
-            Log::error('Error creating booking', ['error' => $e->getMessage(), 'data' => $bookingData]);
-            continue;
-        }
+        $this->loadBookedSlots();
+        $this->loadQuotaInfo();
+        /*************  ✨ Windsurf Command ⭐  *************/
+        /**
+         * Resets all modal flags to false, effectively closing all modals.
+         */
+        /*******  f29b7573-eb2a-48cb-b90e-3e620803f85a  *******/
     }
 
-    if (empty($bookings)) {
-        session()->flash('error', 'Failed to create bookings. Please try again.');
-        return;
+
+    /**
+     * Resets all modal flags to false, effectively closing all modals.
+     */
+    public function closeModal()
+    {
+        $this->showConfirmModal = false;
+        $this->showThankYouModal = false;
+        $this->showLoginReminder = false;
+        $this->showCalendarPicker = false;
     }
 
-    $this->bookingReference = $bookings[0]->generateReference();
-
-    foreach ($bookings as $booking) {
-        $booking->update(['booking_reference' => $this->bookingReference]);
+    /**
+     * Redirects the user to the login page.
+     *
+     * This method returns a redirect response that navigates
+     * the user to the login route.
+     *
+     * @return \Illuminate\Http\RedirectResponse The redirect response to the login route.
+     */
+    public function redirectToLogin()
+    {
+        return redirect()->route('login');
     }
-
-    $this->selectedSlots = [];
-    $this->showConfirmModal = false;
-    $this->showThankYouModal = true;
-
-    $this->loadBookedSlots();
-    $this->loadQuotaInfo();
-};
-
-$closeModal = function () {
-    $this->showConfirmModal = false;
-    $this->showThankYouModal = false;
-    $this->showLoginReminder = false;
-    $this->showCalendarPicker = false;
-};
-
-$redirectToLogin = function () {
-    return redirect()->route('login');
-};
-
-?>
+}; ?>
 
 <section>
     <!-- Header -->
