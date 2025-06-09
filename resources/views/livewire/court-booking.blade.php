@@ -563,11 +563,7 @@ $redirectToLogin = function () {
                     {{ $quotaInfo['free']['used'] }}/{{ $quotaInfo['free']['total'] }}
                 </p>
                 <p class="text-sm text-blue-600">Up to 7 days ahead</p>
-                <div class="mt-3 h-2 rounded-full bg-blue-200">
-                    <div class="h-2 rounded-full bg-blue-500 transition-all duration-500"
-                        style="width: {{ $quotaInfo['free']['total'] > 0 ? ($quotaInfo['free']['used'] / $quotaInfo['free']['total']) * 100 : 0 }}%">
-                    </div>
-                </div>
+
             </div>
 
             <div
@@ -580,11 +576,7 @@ $redirectToLogin = function () {
                     {{ $quotaInfo['premium']['used'] }}/{{ $quotaInfo['premium']['total'] }}
                 </p>
                 <p class="text-sm text-purple-600">Up to 1 month ahead</p>
-                <div class="mt-3 h-2 rounded-full bg-purple-200">
-                    <div class="h-2 rounded-full bg-purple-500 transition-all duration-500"
-                        style="width: {{ $quotaInfo['premium']['total'] > 0 ? ($quotaInfo['premium']['used'] / $quotaInfo['premium']['total']) * 100 : 0 }}%">
-                    </div>
-                </div>
+
             </div>
 
             <div
@@ -850,9 +842,10 @@ $redirectToLogin = function () {
                     $isCurrentWeek = $i === $weekOffset;
                     @endphp
                     <button
-                        class="@if ($isCurrentWeek) bg-blue-100 border-blue-300 text-blue-800
-                                @else
-                                    bg-gray-50 border-gray-200 hover:bg-gray-100 @endif w-full rounded-lg border p-4 text-left transition-all duration-300 hover:scale-105"
+                        @class(['bg-blue-100 border-blue-300 text-blue-800'=> $isCurrentWeek,
+                        'bg-gray-50 border-gray-200 hover:bg-gray-100' => !$isCurrentWeek,
+                        'w-full rounded-lg border p-4 text-left transition-all duration-300 hover:scale-105' => true,
+                        ])
                         wire:click="selectCalendarWeek('{{ $weekStart->format('Y-m-d') }}')">
                         <div class="font-semibold">
                             @if ($i === 0)
