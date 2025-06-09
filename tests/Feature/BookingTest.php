@@ -18,7 +18,7 @@ test('tenant cannot select this week time slots', function () {
     Volt::test('court-booking')
         ->set('courtNumber', $this->court->id)
         ->assertSet('selectedSlots', [])
-        ->call('toggleTimeSlot', Carbon::startOfWeek()->format('Y-m-d') . '-10:00')
+        ->call('toggleTimeSlot', Carbon::startOfWeek()->format('Y-m-d').'-10:00')
         ->assertSet('selectedSlots', []);
 })->todo('need to rework booking flow first');
 
@@ -27,15 +27,15 @@ test('tenant can select next week time slots', function () {
         ->set('courtNumber', $this->court->id)
         ->assertSet('selectedSlots', [])
         ->call('jumpToWeek', 1)
-        ->call('toggleTimeSlot', Carbon::startOfWeek()->addWeek(1)->addDay()->format('Y-m-d') . '-10:00')
-        ->assertSet('selectedSlots', [Carbon::startOfWeek()->addWeek(1)->addDay()->format('Y-m-d') . '-10:00']);
+        ->call('toggleTimeSlot', Carbon::startOfWeek()->addWeek(1)->addDay()->format('Y-m-d').'-10:00')
+        ->assertSet('selectedSlots', [Carbon::startOfWeek()->addWeek(1)->addDay()->format('Y-m-d').'-10:00']);
 })->todo('need to rework booking flow first');
 
 test('tenant can process booking next week when authenticated', function () {
     Volt::actingAs($this->tenant, 'tenant')
         ->test('court-booking')
         ->set('courtNumber', $this->court->id)
-        ->set('selectedSlots', [Carbon::startOfWeek()->addWeek(1)->addDay()->format('Y-m-d') . '-10:00'])
+        ->set('selectedSlots', [Carbon::startOfWeek()->addWeek(1)->addDay()->format('Y-m-d').'-10:00'])
         ->call('prepareBookingData')
         ->call('processBooking')
         // ->dump('showThankYouModal')

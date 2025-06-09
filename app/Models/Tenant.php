@@ -53,7 +53,6 @@ class Tenant extends Authenticatable
         return $this->tenant_id ?? $this->name;
     }
 
-
     /**
      * Get the number of bookings made by the tenant for the current week.
      *
@@ -68,7 +67,6 @@ class Tenant extends Authenticatable
             ->where('booking_week_start', $weekStart->format('Y-m-d'))
             ->count();
     }
-
 
     /**
      * Get the remaining bookings available for the current week
@@ -85,7 +83,6 @@ class Tenant extends Authenticatable
 
         return max(0, $this->booking_limit - $used);
     }
-
 
     /**
      * Get the free booking quota for the tenant.
@@ -113,7 +110,6 @@ class Tenant extends Authenticatable
             'remaining' => max(0, $this->booking_limit - $used),
         ];
     }
-
 
     /**
      * Get the premium booking quota for the tenant.
@@ -143,7 +139,6 @@ class Tenant extends Authenticatable
         ];
     }
 
-
     /**
      * Get the combined booking quota for the tenant.
      *
@@ -168,7 +163,6 @@ class Tenant extends Authenticatable
         ];
     }
 
-
     /**
      * Determine if a tenant can make a specific type of booking.
      *
@@ -178,9 +172,9 @@ class Tenant extends Authenticatable
      * 1 month for premium bookings) and does not exceed the tenant's weekly
      * booking limit.
      *
-     * @param string $date The date for which the booking is intended, in Y-m-d format.
-     * @param string $bookingType The type of booking ('free' or 'premium'). Defaults to 'free'.
-     * @param int $slotsCount The number of slots the tenant wants to book. Defaults to 1.
+     * @param  string  $date  The date for which the booking is intended, in Y-m-d format.
+     * @param  string  $bookingType  The type of booking ('free' or 'premium'). Defaults to 'free'.
+     * @param  int  $slotsCount  The number of slots the tenant wants to book. Defaults to 1.
      * @return array An associative array containing:
      *               - 'can_book': A boolean indicating if the booking can be made.
      *               - 'available_slots': The number of available slots for the week.
@@ -226,14 +220,13 @@ class Tenant extends Authenticatable
         ];
     }
 
-
     /**
      * Check if the tenant can make a booking with the given number of slots.
      *
-     * @param int $slotsCount The number of slots to check.
+     * @param  int  $slotsCount  The number of slots to check.
      * @return array A result set containing a boolean indicating whether the booking can be made
-     *              and an integer representing the number of slots available.
-     *              If the booking cannot be made, a reason string is also provided.
+     *               and an integer representing the number of slots available.
+     *               If the booking cannot be made, a reason string is also provided.
      */
     public function canMakeBooking($slotsCount = 1)
     {
@@ -267,7 +260,7 @@ class Tenant extends Authenticatable
     {
         return Str::of($this->name)
             ->explode(' ')
-            ->map(fn(string $name) => Str::of($name)->substr(0, 1))
+            ->map(fn (string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
     }
 
@@ -284,7 +277,7 @@ class Tenant extends Authenticatable
 
         static::creating(function ($tenant) {
             if (empty($tenant->tenant_id)) {
-                $tenant->tenant_id = 'tenant#' . str_pad(
+                $tenant->tenant_id = 'tenant#'.str_pad(
                     Tenant::max('id') + 1,
                     3,
                     '0',
