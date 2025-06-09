@@ -1,12 +1,6 @@
 @import "tailwindcss";
 @import "../../vendor/livewire/flux/dist/flux.css";
 
-/*  Required Glide.js Core Stylesheet */
-@import "../../node_modules/@glidejs/glide/dist/css/glide.core.min.css";
-
-/*  Optional Glide.js Theme Stylesheet */
-@import "../../node_modules/@glidejs/glide/dist/css/glide.theme.min.css";
-
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
@@ -55,6 +49,12 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+
+    /*  Required Glide.js Core Stylesheet */
+    @import "../../node_modules/@glidejs/glide/dist/css/glide.core.min.css";
+
+    /*  Optional Glide.js Theme Stylesheet */
+    @import "../../node_modules/@glidejs/glide/dist/css/glide.theme.min.css";
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {

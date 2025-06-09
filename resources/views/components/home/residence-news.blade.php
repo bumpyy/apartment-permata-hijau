@@ -4,7 +4,7 @@
 
 @props(['data' => []])
 
-<section class="bg-primary/50 mb-20 py-20">
+<section class="bg-primary/75 mb-20 bg-[url('../img/slider-bg.png')] py-20 bg-blend-multiply">
 
     <div class="container mb-12 w-max text-white">
         <h2 class="w-max text-center text-3xl font-bold">Residence News</h2>
@@ -39,8 +39,17 @@
         </div>
 
         <div class="glide__arrows" data-glide-el="controls">
-            <button class="glide__arrow glide__arrow--left" data-glide-dir="<">prev</button>
-            <button class="glide__arrow glide__arrow--right" data-glide-dir=">">next</button>
+            <button
+                class="glide__arrow glide__arrow--left -left-4 rounded-full border-none bg-white shadow-none sm:left-0"
+                data-glide-dir="<">
+                <x-lucide-chevron-left class="size-8 text-black" />
+            </button>
+
+            <button
+                class="glide__arrow glide__arrow--right -right-4 rounded-full border-none bg-white shadow-none sm:right-0"
+                data-glide-dir=">">
+                <x-lucide-chevron-right class="size-8 text-black" />
+            </button>
         </div>
     </div>
 </section>

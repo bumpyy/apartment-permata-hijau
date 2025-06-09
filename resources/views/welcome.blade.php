@@ -14,6 +14,7 @@
             'image' => 'https://picsum.photos/seed/2/320/240',
         ],
     ]" />
+
     <x-home.residence-news />
 
     <x-home.tabs />
