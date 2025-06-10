@@ -8,27 +8,196 @@ use Livewire\Volt\Component;
 
 new #[Layout('components.frontend.app')] class extends Component {
 
+    /**
+     * @var int $courtNumber The number of the court for which we are booking.
+     * This value is used to generate the booking reference.
+     */
     public $courtNumber = 2;
+
+    /**
+     * @var \Carbon\Carbon|null $currentWeekStart The start date of the current week.
+     * This value is used to generate the week days and time slots.
+     */
     public $currentWeekStart = null;
+
+    /**
+     * @var \Carbon\Carbon|null $monthStart The start date of the current month.
+     * This value is used to calculate the number of weeks in the month.
+     */
+    public $monthStart = null;
+
+    /**
+     * @var \Carbon\Carbon|null $monthEnd The end date of the current month.
+     * This value is used to calculate the number of weeks in the month.
+     */
+    public $monthEnd = null;
+
+    /**
+     * @var string $startDate The start date of the week in the format 'Y-m-d'.
+     * This value is used to display the week days and time slots.
+     */
     public $startDate = '';
+
+    /**
+     * @var string $endDate The end date of the week in the format 'Y-m-d'.
+     * This value is used to display the week days and time slots.
+     */
     public $endDate = '';
+
+    /**
+     * @var array $weekDays An array of week days in the format [
+     *  'name' => string,
+     *  'date' => string,
+     *  'day_number' => int,
+     *  'month_name' => string,
+     *  'is_today' => bool,
+     *  'is_past' => bool,
+     *  'is_this_week' => bool,
+     *  'is_free_period' => bool,
+     *  'formatted_date' => string,
+     *  'days_from_now' => int,
+     * ].
+     * This value is used to display the week days and time slots.
+     */
     public $weekDays = [];
+
+    /**
+     * @var array $timeSlots An array of time slots in the format [
+     *  'start' => string,
+     *  'end' => string,
+     * ].
+     * This value is used to display the week days and time slots.
+     */
     public $timeSlots = [];
+
+    /**
+     * @var array $bookedSlots An array of booked slots in the format [
+     *  'key' => string,
+     *  'type' => string,
+     * ].
+     * This value is used to display the booked slots.
+     */
     public $bookedSlots = [];
+
+    /**
+     * @var array $preliminaryBookedSlots An array of preliminary booked slots in the format [
+     *  'key' => string,
+     *  'type' => string,
+     * ].
+     * This value is used to display the preliminary booked slots.
+     */
     public $preliminaryBookedSlots = [];
+
+    /**
+     * @var array $selectedSlots An array of selected slots in the format [
+     *  'key' => string,
+     * ].
+     * This value is used to display the selected slots.
+     */
     public $selectedSlots = [];
+
+    /**
+     * @var bool $showConfirmModal Whether to show the confirm modal.
+     * This value is used to toggle the confirm modal.
+     */
     public $showConfirmModal = false;
+
+    /**
+     * @var bool $showThankYouModal Whether to show the thank you modal.
+     * This value is used to toggle the thank you modal.
+     */
     public $showThankYouModal = false;
+
+    /**
+     * @var bool $showLoginReminder Whether to show the login reminder modal.
+     * This value is used to toggle the login reminder modal.
+     */
     public $showLoginReminder = false;
+
+    /**
+     * @var bool $showCalendarPicker Whether to show the calendar picker.
+     * This value is used to toggle the calendar picker.
+     */
     public $showCalendarPicker = false;
+
+    /**
+     * @var string $bookingReference The booking reference in the format 'C{court_number}-{year}-{month}-{day}-{hour}-{minute}'.
+     * This value is used to generate the booking reference.
+     */
     public $bookingReference = '';
+
+    /**
+     * @var array $pendingBookingData An array of pending booking data in the format [
+     *  'date' => string,
+     *  'time' => string,
+     *  'is_light_required' => bool,
+     *  'raw_date' => string,
+     *  'raw_time' => string,
+     *  'booking_type' => string,
+     * ].
+     * This value is used to display the pending booking data.
+     */
     public $pendingBookingData = [];
+
+    /**
+     * @var string $bookingType The type of booking (free or premium).
+     * This value is used to determine the quota for the selected booking slots.
+     */
     public $bookingType = 'free';
+
+    /**
+     * @var array $quotaInfo An array of quota information in the format [
+     *  'free' => [
+     *      'remaining' => int,
+     *  ],
+     *  'premium' => [
+     *      'remaining' => int,
+     *  ],
+     *  'combined' => [
+     *      'remaining' => int,
+     *  ],
+     *  'weekly_remaining' => int,
+     * ].
+     * This value is used to display the quota information.
+     */
     public $quotaInfo = [];
+
+    /**
+     * @var bool $canGoBack Whether the user can go back to the previous week.
+     * This value is used to toggle the previous week button.
+     */
     public $canGoBack = true;
+
+    /**
+     * @var bool $canGoForward Whether the user can go forward to the next week.
+     * This value is used to toggle the next week button.
+     */
     public $canGoForward = true;
+
+
+    /**
+     * @var int $numberOfWeeksInMonth The number of weeks in the current month.
+     * This value is used to generate the week days and time slots.
+     */
+    public $numberOfWeeksInMonth = 0;
+
+    /**
+     * @var int $weekOffset The offset of the current week from the current date
+     * in the format 'number of weeks'.
+     * This value is used to generate the week days and time slots.
+     */
     public $weekOffset = 0;
+
+    /**
+     * @var string $quotaWarning The quota warning message.
+     * This value is used to display the quota warning message.
+     */
     public $quotaWarning = '';
+
+    /**
+     * @var bool $isLoggedIn Whether the user is logged in.
+     * This value is used to toggle the quota information.
+     */
     public $isLoggedIn = false;
 
     /**
@@ -39,11 +208,15 @@ new #[Layout('components.frontend.app')] class extends Component {
      * any pending booking slots from the session, updating selected slots
      * and determining the booking type if pending slots are found.
      */
-
     public function mount()
     {
         $this->isLoggedIn = auth('tenant')->check();
         $this->currentWeekStart = Carbon::today()->startOfWeek();
+        $this->monthStart = Carbon::today()->startOfMonth();
+        $this->monthEnd = Carbon::today()->endOfMonth();
+        $this->numberOfWeeksInMonth = $this->monthStart->diffInWeeks($this->monthEnd);
+        $this->weekOffset = $this->currentWeekStart->diffInWeeks($this->monthStart);
+
         $this->updateWeekData();
         $this->loadQuotaInfo();
 
@@ -54,6 +227,15 @@ new #[Layout('components.frontend.app')] class extends Component {
         }
     }
 
+    public function weeksInMonth($numOfDaysInMonth)
+    {
+        $daysInWeek = 7;
+        $result = $numOfDaysInMonth / $daysInWeek;
+        $numberOfFullWeeks = floor($result);
+        $numberOfRemainingDays = ($result - $numberOfFullWeeks) * 7;
+        return 'Weeks: ' . $numberOfFullWeeks . ' -  Days: ' . $numberOfRemainingDays;
+    }
+
     /**
      * Updates the week data including start and end dates.
      *
@@ -62,11 +244,10 @@ new #[Layout('components.frontend.app')] class extends Component {
      * updates navigation state for week navigation, and validates the combined
      * quota for selected booking slots.
      */
-
     public function updateWeekData()
     {
         $weekStart = $this->currentWeekStart->copy();
-        $weekEnd = $weekStart->copy()->addDays(6);
+        $weekEnd = $weekStart->copy()->endOfWeek();
 
         $this->startDate = $weekStart->format('d/m/Y');
         $this->endDate = $weekEnd->format('d/m/Y');
@@ -102,8 +283,9 @@ new #[Layout('components.frontend.app')] class extends Component {
         for ($i = 0; $i < 7; $i++) {
             $isToday = $currentDate->isToday();
             $isPast = $currentDate->isPast() && !$isToday;
+            $isThisWeek = $currentDate->isSameWeek(Carbon::now());
             $daysFromNow = Carbon::now()->diffInDays($currentDate, false);
-            $isFreePeriod = $daysFromNow <= 7;
+            $isFreePeriod = $currentDate->isNextWeek();
 
             $this->weekDays[] = [
                 'name' => $days[$i],
@@ -112,10 +294,12 @@ new #[Layout('components.frontend.app')] class extends Component {
                 'month_name' => $currentDate->format('M'),
                 'is_today' => $isToday,
                 'is_past' => $isPast,
+                'is_this_week' => $isThisWeek,
                 'is_free_period' => $isFreePeriod,
                 'formatted_date' => $currentDate->format('D, M j'),
                 'days_from_now' => $daysFromNow,
             ];
+
             $currentDate->addDay();
         }
     }
@@ -187,11 +371,8 @@ new #[Layout('components.frontend.app')] class extends Component {
      */
     public function updateNavigationState()
     {
-        $today = Carbon::today();
-        $maxFutureWeeks = 4;
-
-        $this->canGoBack = $this->currentWeekStart->gt($today->startOfWeek());
-        $this->canGoForward = $this->weekOffset < $maxFutureWeeks;
+        $this->canGoBack = $this->currentWeekStart->gt($this->monthStart);
+        $this->canGoForward = $this->weekOffset < $this->numberOfWeeksInMonth;
     }
 
     /**
@@ -636,6 +817,11 @@ new #[Layout('components.frontend.app')] class extends Component {
 }; ?>
 
 <section>
+
+    {{
+        \Carbon\Carbon::now()->daysInMonth;
+    }}
+
     <!-- Header -->
     <div class="relative overflow-hidden bg-gradient-to-r from-gray-600 to-gray-800 py-8 text-center text-white">
         <div class="absolute inset-0 bg-black opacity-10"></div>
@@ -1055,10 +1241,11 @@ new #[Layout('components.frontend.app')] class extends Component {
             <h3 class="mb-6 text-center text-xl font-bold">📅 Select Week</h3>
 
             <div class="max-h-64 space-y-3 overflow-y-auto">
-                @for ($i = 0; $i <= 4; $i++)
+
+                @for ($i = 0; $i < $numOfWeeks; $i++)
                     @php
-                    $weekStart=\Carbon\Carbon::today()->startOfWeek()->addWeeks($i);
-                    $weekEnd = $weekStart->copy()->addDays(6);
+                    $weekStart=\Carbon\Carbon::today()->startOfWeek();
+                    $weekEnd = $weekStart->copy()->endOfWeek();
                     $isCurrentWeek = $i === $weekOffset;
                     @endphp
                     <button
