@@ -7,7 +7,6 @@ use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.frontend.app')] class extends Component {
-
     /**
      * @var int $courtNumber The number of the court for which we are booking.
      * This value is used to generate the booking reference.
@@ -173,7 +172,6 @@ new #[Layout('components.frontend.app')] class extends Component {
      * This value is used to toggle the next week button.
      */
     public $canGoForward = true;
-
 
     /**
      * @var int $numberOfWeeksInMonth The number of weeks in the current month.
@@ -644,7 +642,6 @@ new #[Layout('components.frontend.app')] class extends Component {
         return 'free';
     }
 
-
     /**
      * Confirm a booking and open the confirmation modal.
      *
@@ -674,7 +671,6 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->prepareBookingData();
         $this->showConfirmModal = true;
     }
-
 
     /**
      * Prepares the booking data for selected time slots.
@@ -725,7 +721,6 @@ new #[Layout('components.frontend.app')] class extends Component {
             }
         }
     }
-
 
     /**
      * Process the booking for the selected time slots.
@@ -790,7 +785,6 @@ new #[Layout('components.frontend.app')] class extends Component {
         /*******  f29b7573-eb2a-48cb-b90e-3e620803f85a  *******/
     }
 
-
     /**
      * Resets all modal flags to false, effectively closing all modals.
      */
@@ -818,9 +812,7 @@ new #[Layout('components.frontend.app')] class extends Component {
 
 <section>
 
-    {{
-        \Carbon\Carbon::now()->daysInMonth;
-    }}
+    {{ \Carbon\Carbon::now()->daysInMonth }}
 
     <!-- Header -->
     <div class="relative overflow-hidden bg-gradient-to-r from-gray-600 to-gray-800 py-8 text-center text-white">
@@ -887,9 +879,9 @@ new #[Layout('components.frontend.app')] class extends Component {
                 class="flex flex-wrap items-center justify-between gap-y-6 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 p-6 shadow-sm">
                 <div class="flex flex-wrap items-center gap-4">
                     <button
-                        class="nav-button @if ($canGoBack) bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 cursor-pointer shadow-sm hover:shadow-md
-                            @else
-                                bg-gray-200 border border-gray-200 text-gray-400 cursor-not-allowed @endif flex transform items-center gap-2 rounded-lg px-4 py-2 transition-all duration-300 hover:scale-105"
+                        @class([ 'nav-button' , 'bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 cursor-pointer shadow-sm hover:shadow-md'=> $canGoBack,
+                        'bg-gray-200 border border-gray-200 text-gray-400 cursor-not-allowed' => !$canGoBack,
+                        ])
                         wire:click="previousWeek" @disabled(!$canGoBack)>
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
@@ -923,9 +915,9 @@ new #[Layout('components.frontend.app')] class extends Component {
                             $isCurrentWeek = $i === $weekOffset;
                             @endphp
                             <button
-                                class="quick-jump @if ($isCurrentWeek) bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md
-                                    @else
-                                        bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 shadow-sm hover:shadow-md @endif transform rounded-full px-3 py-2 text-xs transition-all duration-300 hover:scale-110"
+                                @class([ 'quick-jump transform rounded-full text-white px-3 py-2 text-xs transition-all duration-300 hover:scale-110' , 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-md'=> $isCurrentWeek,
+                                'border border-gray-300 text-gray-600 hover:bg-gray-50 shadow-sm hover:shadow-md' => !$isCurrentWeek,
+                                ])
                                 wire:click="jumpToWeek({{ $i }})"
                                 title="{{ $jumpDate->format('M j') }} - {{ $jumpDate->copy()->addDays(6)->format('M j') }}">
                                 @if ($i === 0)
@@ -942,9 +934,10 @@ new #[Layout('components.frontend.app')] class extends Component {
 
                 <div class="flex items-center gap-4">
                     <button
-                        class="nav-button @if ($canGoForward) bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 cursor-pointer shadow-sm hover:shadow-md
-                            @else
-                                bg-gray-200 border border-gray-200 text-gray-400 cursor-not-allowed @endif flex transform items-center gap-2 rounded-lg px-4 py-2 transition-all duration-300 hover:scale-105"
+                        @class([ 'nav-button' , 'bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 cursor-pointer shadow-sm hover:shadow-md'=> $canGoForward,
+                        'bg-gray-200 border border-gray-200 text-gray-400 cursor-not-allowed' => !$canGoForward,
+                        'flex transform items-center gap-2 rounded-lg px-4 py-2 transition-all duration-300 hover:scale-105',
+                        ])
                         wire:click="nextWeek" @disabled(!$canGoForward)>
                         Next
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1028,22 +1021,17 @@ new #[Layout('components.frontend.app')] class extends Component {
                 <thead>
                     <tr>
                         @foreach ($weekDays as $day)
-                        <th @class([ 'border-r border-gray-300 last:border-r-0 p-4 text-center relative' , 'bg-gradient-to-b from-blue-500 to-blue-600 text-white'=> $day['is_today'],
-                            'bg-gradient-to-b from-gray-400 to-gray-500 text-white' => $day['is_past'],
-                            'bg-gradient-to-b from-blue-700 to-blue-800 text-white' =>
-                            $day['is_free_period'],
-                            'bg-gradient-to-b from-purple-600 to-purple-700 text-white' =>
-                            !$day['is_today'] && !$day['is_past'] && !$day['is_free_period'],
+                        <th @class([ 'border-r border-gray-300 last:border-r-0 p-4 text-white text-center relative' , 'bg-gradient-to-b from-blue-500 to-blue-600 '=> $day['is_today'],
+                            'bg-gradient-to-b from-gray-400 to-gray-500 ' => $day['is_past'],
+                            'bg-gradient-to-b from-blue-700 to-blue-800 ' => $day['is_free_period'],
+                            'bg-gradient-to-b from-purple-600 to-purple-700 ' => !$day['is_today'] && !$day['is_past'] && !$day['is_free_period'],
                             ])>
                             <div class="flex flex-col items-center">
                                 <div class="text-sm font-bold">{{ $day['name'] }}</div>
                                 <div class="text-2xl font-bold">{{ $day['day_number'] }}</div>
                                 <div class="text-xs opacity-90">{{ $day['month_name'] }}</div>
                                 @if ($day['is_today'])
-                                <div class="mt-1 rounded-full bg-blue-400 px-2 py-0.5 text-xs">
-
-
-                                    TODAY</div>
+                                <div class="mt-1 rounded-full bg-blue-400 px-2 py-0.5 text-xs">TODAY</div>
                                 @elseif(!$day['is_free_period'] && !$day['is_past'])
                                 <div class="mt-1 rounded-full bg-purple-500 px-2 py-0.5 text-xs">PREMIUM</div>
                                 @endif
@@ -1074,18 +1062,17 @@ new #[Layout('components.frontend.app')] class extends Component {
                         );
                         $isPastSlot = $slotDateTime->isPast();
                         @endphp
-                        <td class="time-slot @if ($isPastSlot) bg-gray-100 text-gray-400 cursor-not-allowed
-                                        @elseif($isBooked)
-                                            @if ($bookedSlot['type'] === 'free')
-                                                bg-red-100 text-red-800 cursor-not-allowed border-l-4 border-red-400
-                                            @else
-                                                bg-red-200 text-red-900 cursor-not-allowed border-l-4 border-red-600 @endif @elseif($isPreliminary) @if ($preliminarySlot['type'] === 'free') bg-blue-100 text-blue-800 cursor-not-allowed border-l-4 border-blue-400
-                                            @else
-                                                bg-blue-200 text-blue-900 cursor-not-allowed border-l-4 border-blue-600 @endif @elseif($isSelected) @if ($slotType === 'free') bg-green-100 text-green-800 cursor-pointer hover:bg-green-200 transform scale-95 shadow-inner border-l-4 border-green-500
-                                            @else
-                                                bg-purple-100 text-purple-800 cursor-pointer hover:bg-purple-200 transform scale-95 shadow-inner border-l-4 border-purple-500 @endif @else @if ($slotType === 'free') cursor-pointer hover:bg-blue-50 hover:shadow-md transform hover:scale-105
-                                            @else
-                                                cursor-pointer hover:bg-purple-50 hover:shadow-md transform hover:scale-105 @endif @endif relative cursor-pointer border-r border-gray-200 p-3 text-center text-sm transition-all duration-300 last:border-r-0"
+                        <td
+                            @class([ 'time-slot' , 'bg-gray-100 text-gray-400 cursor-not-allowed'=> $isPastSlot,
+                            'bg-red-100 text-red-800 cursor-not-allowed border-l-4 border-red-400' => $isBooked && $bookedSlot['type'] === 'free',
+                            'bg-red-200 text-red-900 cursor-not-allowed border-l-4 border-red-600' => $isBooked && $bookedSlot['type'] !== 'free',
+                            'bg-blue-100 text-blue-800 cursor-not-allowed border-l-4 border-blue-400' => $isPreliminary && $preliminarySlot['type'] === 'free',
+                            'bg-blue-200 text-blue-900 cursor-not-allowed border-l-4 border-blue-600' => $isPreliminary && $preliminarySlot['type'] !== 'free',
+                            'bg-green-100 text-green-800 cursor-pointer hover:bg-green-200 transform scale-95 shadow-inner border-l-4 border-green-500' => $isSelected && $slotType === 'free',
+                            'bg-purple-100 text-purple-800 cursor-pointer hover:bg-purple-200 transform scale-95 shadow-inner border-l-4 border-purple-500' => $isSelected && $slotType !== 'free',
+                            'cursor-pointer hover:bg-blue-50 hover:shadow-md transform hover:scale-105' => !$isSelected && $slotType === 'free',
+                            'cursor-pointer hover:bg-purple-50 hover:shadow-md transform hover:scale-105' => !$isSelected && $slotType !== 'free',
+                            ])
                             wire:click="toggleTimeSlot('{{ $slotKey }}')"
                             title="@if ($isPastSlot) Past slot @else {{ $day['formatted_date'] }} {{ $slot['start'] }}-{{ $slot['end'] }} ({{ ucfirst($slotType) }}) @endif">
                             <div class="py-1 font-bold">
@@ -1099,7 +1086,9 @@ new #[Layout('components.frontend.app')] class extends Component {
                             <div class="mt-1 text-xs text-gray-400">Past</div>
                             @elseif($isSelected)
                             <div
-                                class="@if ($slotType === 'free') text-green-700 @else text-purple-700 @endif mt-1 text-xs font-bold">
+                                @class([ 'mt-1 text-xs font-bold' , 'text-green-700'=> $slotType === 'free',
+                                'text-purple-700' => $slotType !== 'free',
+                                ])
                                 ✓ Selected
                             </div>
                             @elseif($isBooked || $isPreliminary)
@@ -1186,17 +1175,21 @@ new #[Layout('components.frontend.app')] class extends Component {
                 @endphp
                 @if (isset($date) && isset($time))
                 <span
-                    class="selected-slot @if ($slotType === 'free') bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300
-                                @else
-                                    bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300 @endif inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 hover:scale-105">
+                    @class([ 'selected-slot' , 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'=> $slotType === 'free',
+                    'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300' => $slotType !== 'free',
+                    'inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 hover:scale-105',
+                    ])
                     @if ($slotType === 'free')
                     🆓
                     @else
                     ⭐
                     @endif
+
                     {{ $date->format('M j') }} at {{ $time }}
                     <button
-                        class="@if ($slotType === 'free') text-green-600 hover:text-green-800 @else text-purple-600 hover:text-purple-800 @endif ml-2 transition-transform duration-200 hover:scale-110"
+                        @class([ 'ml-2 transition-transform duration-200 hover:scale-110' , 'text-green-600 hover:text-green-800'=> $slotType === 'free',
+                        'text-purple-600 hover:text-purple-800' => $slotType !== 'free',
+                        ])
                         wire:click="toggleTimeSlot('{{ $slot }}')">
                         ✕
                     </button>
@@ -1210,11 +1203,11 @@ new #[Layout('components.frontend.app')] class extends Component {
         <!-- Actions -->
         <div class="flex justify-end">
             <button
-                class="confirm-booking @if (count($selectedSlots) === 0) bg-gray-300 text-gray-500 cursor-not-allowed
-                    @elseif($quotaWarning)
-                        bg-orange-400 text-white cursor-not-allowed
-                    @else
-                        bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 text-white hover:from-gray-800 hover:via-gray-900 hover:to-black cursor-pointer hover:shadow-xl @endif transform rounded-xl px-8 py-4 text-sm font-bold shadow-lg transition-all duration-500 hover:scale-105"
+                @class([ 'confirm-booking' , 'bg-gray-300 text-gray-500 cursor-not-allowed'=> count($selectedSlots) === 0,
+                'bg-orange-400 text-white cursor-not-allowed' => $quotaWarning,
+                'bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 text-white hover:from-gray-800 hover:via-gray-900 hover:to-black cursor-pointer hover:shadow-xl' => ! $quotaWarning,
+                'transform rounded-xl px-8 py-4 text-sm font-bold shadow-lg transition-all duration-500 hover:scale-105',
+                ])
                 wire:click="confirmBooking" @disabled(count($selectedSlots)===0 || $quotaWarning)>
                 @if ($quotaWarning)
                 ⚠️ QUOTA EXCEEDED
@@ -1248,8 +1241,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                     $weekEnd = $weekStart->copy()->endOfWeek();
                     $isCurrentWeek = $i === $weekOffset;
                     @endphp
-                    <button
-                        @class(['bg-blue-100 border-blue-300 text-blue-800'=> $isCurrentWeek,
+                    <button @class([ 'bg-blue-100 border-blue-300 text-blue-800'=> $isCurrentWeek,
                         'bg-gray-50 border-gray-200 hover:bg-gray-100' => !$isCurrentWeek,
                         'w-full rounded-lg border p-4 text-left transition-all duration-300 hover:scale-105' => true,
                         ])
@@ -1306,7 +1298,10 @@ new #[Layout('components.frontend.app')] class extends Component {
                             @endif
                         </div>
                         <span
-                            class="@if ($booking['booking_type'] === 'free') bg-blue-100 text-blue-800 @else bg-purple-100 text-purple-800 @endif inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
+                            @class([ 'bg-blue-100 text-blue-800'=> $booking['booking_type'] === 'free',
+                            'bg-purple-100 text-purple-800' => $booking['booking_type'] !== 'free',
+                            'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
+                            ])
                             @if ($booking['booking_type'] === 'free')
                             🆓
                             @else
