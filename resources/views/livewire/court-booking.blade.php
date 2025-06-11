@@ -1513,7 +1513,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                         </svg>
                     </button>
                 </div>
-                @php $dayInfo = $this->getDateBookingInfo(Carbon\Carbon::parse($selectedDateForTime)); @endphp
+                @php $dayInfo = $this->getDateBookingInfo(Carbon::parse($selectedDateForTime)); @endphp
                 <div class="mt-2 flex items-center gap-2">
                     @if($dayInfo['can_book_free'])
                     <span class="rounded-full bg-green-200 px-2 py-1 text-xs text-green-700">🆓 Free Booking Available</span>
