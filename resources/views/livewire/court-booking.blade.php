@@ -425,7 +425,13 @@ new #[Layout('components.frontend.app')] class extends Component {
     public function processBooking()
     {
         $tenant = auth('tenant')->user();
-
+        $this->bookingReference = sprintf(
+            'BK%s-%s-%s-%s',
+            $tenant->id,
+            $this->courtNumber,
+            Carbon::today()->format('Y-m-d'),
+            strtoupper(Str::random(4))
+        );
         // Create each booking in the database
         foreach ($this->pendingBookingData as $slot) {
             try {
@@ -433,6 +439,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                 Booking::create([
                     ...$slot,
                     'tenant_id' => $tenant->id,
+                    'booking_reference' => $this->bookingReference
                 ]);
             } catch (\Exception $e) {
                 // Log detailed error information for debugging
@@ -460,13 +467,6 @@ new #[Layout('components.frontend.app')] class extends Component {
         // Show thank you modal
         $this->showConfirmModal = false;
         $this->showThankYouModal = true;
-        $this->bookingReference = sprintf(
-            'BK%s-%s-%s-%s',
-            $tenant->id,
-            $this->courtNumber,
-            Carbon::today()->format('Y-m-d'),
-            strtoupper(Str::random(4))
-        );
     }
 
     /**
