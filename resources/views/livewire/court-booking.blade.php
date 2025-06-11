@@ -4,69 +4,96 @@ use Carbon\Carbon;
 use App\Models\Booking;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.frontend.app')] class extends Component {
-    public $courtNumber;
-    public $selectedDate;
-    public $availableTimes = [];
-    public $selectedSlots = [];
-    public $quotaWarning = '';
-    public $quotaInfo;
-    public $bookingConfirmed = false;
-    public $confirmingBooking = false;
-    public $bookingToConfirm;
-    public bool $compactView = false;
-    public $viewMode = 'weekly';
-    public $currentDate;
-    public $currentWeekStart;
-    public $currentMonthStart;
-    public $canGoBack = true;
-    public $canGoForward = true;
-    public $isLoggedIn = false;
-    public $isPremiumBookingOpen = false;
-    public $premiumBookingDate;
-    public $weekDays = [];
-    public $monthDays = [];
-    public $timeSlots = [];
-    public $bookedSlots = [];
-    public $preliminaryBookedSlots = [];
-    public $bookingType = 'free';
-    public $showTimeSelector = false;
-    public $showDatePicker = false;
-    public $selectedDateForTime;
-    public $availableTimesForDate = [];
-    public $datePickerMode = 'day';
-    public $selectedMonth;
-    public $selectedYear;
-    public $availableMonths = [];
-    public $availableYears = [];
-    public $calendarDays = [];
-    public $calendarWeeks = [];
-    public $calendarMonths = [];
-    public $showConfirmModal = false;
-    public $showThankYouModal = false;
-    public $showLoginReminder = false;
-    public $pendingBookingData = [];
-    public $bookingReference;
+    // === CORE PROPERTIES ===
+    public $courtNumber;                    // Which court we're booking (e.g., Court 2)
+    public $selectedDate;                   // Currently selected date in daily view
+    public $availableTimes = [];            // Available time slots for daily view
+    public $selectedSlots = [];             // Array of selected time slots (format: "YYYY-MM-DD-HH:MM")
+    public $quotaWarning = '';              // Warning message for quota violations
+    public $quotaInfo;                      // User's quota information (used/remaining)
 
+    // === BOOKING STATE ===
+    public $bookingConfirmed = false;       // Whether booking is confirmed
+    public $confirmingBooking = false;      // Whether we're in confirmation process
+    public $bookingToConfirm;               // Booking data being confirmed
+    public $bookingType = 'free';           // Type of booking: 'free', 'premium', or 'mixed'
+    public $bookingReference;               // Generated booking reference number
+    public $pendingBookingData = [];        // Data for bookings being confirmed
+
+    // === UI STATE ===
+    public bool $compactView = false;       // Toggle between compact and full view
+    public $viewMode = 'weekly';            // Current view: 'weekly', 'monthly', or 'daily'
+
+    // === DATE NAVIGATION ===
+    public $currentDate;                    // Current date being viewed
+    public $currentWeekStart;               // Start of current week being viewed
+    public $currentMonthStart;              // Start of current month being viewed
+    public $canGoBack = true;               // Whether user can navigate backwards
+    public $canGoForward = true;            // Whether user can navigate forwards
+
+    // === USER & PERMISSIONS ===
+    public $isLoggedIn = false;             // Whether user is logged in
+    public $isPremiumBookingOpen = false;   // Whether premium booking is currently open
+    public $premiumBookingDate;             // Date when premium booking opens (25th of month)
+
+    // === DATA ARRAYS ===
+    public $weekDays = [];                  // Array of days for weekly view
+    public $monthDays = [];                 // Array of days for monthly view
+    public $timeSlots = [];                 // Array of time slots (8am-10pm)
+    public $bookedSlots = [];               // Array of confirmed bookings
+    public $preliminaryBookedSlots = [];   // Array of pending bookings
+
+    // === MODAL STATE ===
+    public $showTimeSelector = false;       // Show time selection modal (monthly view)
+    public $showDatePicker = false;         // Show date picker modal
+    public $showConfirmModal = false;       // Show booking confirmation modal
+    public $showThankYouModal = false;      // Show thank you modal after booking
+    public $showLoginReminder = false;      // Show login reminder modal
+
+    // === DATE PICKER STATE ===
+    public $selectedDateForTime;            // Date selected for time picker modal
+    public $availableTimesForDate = [];     // Available times for selected date
+    public $datePickerMode = 'day';         // Date picker mode: 'day', 'week', or 'month'
+    public $selectedMonth;                  // Selected month in date picker
+    public $selectedYear;                   // Selected year in date picker
+    public $availableMonths = [];           // Available months for selection
+    public $availableYears = [];            // Available years for selection
+    public $calendarDays = [];              // Calendar days for date picker
+    public $calendarWeeks = [];             // Calendar weeks for date picker
+    public $calendarMonths = [];            // Calendar months for date picker
+
+    /**
+     * Initialize the component when it's first loaded
+     * Sets up default values and loads initial data
+     */
     public function mount()
     {
+        // Set default court (hardcoded to Court 2 for now)
         $this->courtNumber = 2;
+
+        // Initialize dates to today
         $this->selectedDate = now()->format('Y-m-d');
         $this->currentDate = now();
         $this->currentWeekStart = now()->startOfWeek();
         $this->currentMonthStart = now()->startOfMonth();
 
-        // Set premium booking date (25th of current month, or next month if past 25th)
+        // Calculate premium booking date (25th of current month, or next month if past 25th)
         $this->premiumBookingDate = now()->day >= 25 ?
             now()->addMonth()->day(25) :
             now()->day(25);
 
+        // Check if premium booking is currently open
         $this->isPremiumBookingOpen = now()->gte($this->premiumBookingDate);
+
+        // Check if user is logged in
         $this->isLoggedIn = auth('tenant')->check();
 
+        // Load initial data
         $this->generateAvailableTimesForDate();
         $this->quotaInfo = $this->getQuotaInfo();
         $this->generateTimeSlots();
@@ -76,49 +103,68 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->loadBookedSlots();
     }
 
+    /**
+     * Get user's quota information (how many days they've used/have remaining)
+     * Returns array with weekly usage data
+     */
     public function getQuotaInfo()
     {
+        // If not logged in, return empty quota
         if (!$this->isLoggedIn) {
-            return ['weekly_remaining' => 0];
+            return ['weekly_remaining' => 0, 'weekly_used' => 0, 'weekly_total' => 3];
         }
 
         $tenant = auth('tenant')->user();
+
+        // Count bookings for current week (Monday to Sunday)
         $weeklyBookings = Booking::where('tenant_id', $tenant->id)
             ->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
             ->where('status', '!=', 'cancelled')
             ->count();
 
-        $weeklyRemaining = 7 - $weeklyBookings;
+        // Calculate remaining quota (max 3 days per week)
+        $weeklyRemaining = max(0, 3 - $weeklyBookings);
 
         return [
             'weekly_remaining' => $weeklyRemaining,
             'weekly_used' => $weeklyBookings,
-            'weekly_total' => 7
+            'weekly_total' => 3
         ];
     }
 
+    /**
+     * Load booked and pending slots for the current view period
+     * This populates the bookedSlots and preliminaryBookedSlots arrays
+     */
     public function loadBookedSlots()
     {
-        // Load booked and preliminary slots for current view period
+        // Determine date range based on current view mode
         $startDate = $this->viewMode === 'weekly' ? $this->currentWeekStart : $this->currentMonthStart->copy()->startOfWeek();
         $endDate = $this->viewMode === 'weekly' ? $this->currentWeekStart->copy()->addWeek() : $this->currentMonthStart->copy()->endOfMonth()->endOfWeek();
 
+        // Get all bookings for this court in the date range
         $bookings = Booking::where('court_id', $this->courtNumber)
             ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->where('status', '!=', 'cancelled')
             ->get();
 
+        // Reset arrays
         $this->bookedSlots = [];
         $this->preliminaryBookedSlots = [];
 
+        // Process each booking
         foreach ($bookings as $booking) {
+            // Create slot key in format "YYYY-MM-DD-HH:MM"
             $slotKey = $booking->date->format('Y-m-d') . '-' . $booking->start_time->format('H:i');
+
+            // Create slot data with tenant info
             $slotData = [
                 'key' => $slotKey,
                 'tenant_name' => $booking->tenant->name ?? 'Unknown',
                 'is_own_booking' => $this->isLoggedIn && $booking->tenant_id === auth('tenant')->id()
             ];
 
+            // Separate confirmed vs pending bookings
             if ($booking->status === 'confirmed') {
                 $this->bookedSlots[] = $slotData;
             } else {
@@ -127,6 +173,10 @@ new #[Layout('components.frontend.app')] class extends Component {
         }
     }
 
+    /**
+     * Called when selectedDate changes in daily view
+     * Resets selections and regenerates available times
+     */
     public function updatedSelectedDate()
     {
         $this->selectedSlots = [];
@@ -134,17 +184,27 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->validateSelections();
     }
 
+    /**
+     * Generate available time slots for a specific date
+     * Used by daily view and time selector modal
+     *
+     * @param string|null $date - Date to generate times for (defaults to selectedDate)
+     */
     public function generateAvailableTimesForDate($date = null)
     {
+        // Use provided date or fall back to selectedDate
         $targetDate = $date ? Carbon::parse($date) : Carbon::parse($this->selectedDate);
+
+        // Court operating hours: 8am to 10pm
         $startTime = Carbon::parse('08:00');
         $endTime = Carbon::parse('22:00');
-        $interval = 60; // 60 minutes
+        $interval = 60; // 60-minute slots
 
+        // Reset arrays
         $this->availableTimes = [];
         $this->availableTimesForDate = [];
 
-        // Get booked slots for this specific date
+        // Get existing bookings for this date
         $bookedSlotsForDate = Booking::where('court_id', $this->courtNumber)
             ->where('date', $targetDate->format('Y-m-d'))
             ->where('status', '!=', 'cancelled')
@@ -155,6 +215,7 @@ new #[Layout('components.frontend.app')] class extends Component {
             })
             ->toArray();
 
+        // Generate time slots
         while ($startTime <= $endTime) {
             $time = $startTime->format('H:i');
             $slotKey = $targetDate->format('Y-m-d') . '-' . $time;
@@ -163,14 +224,14 @@ new #[Layout('components.frontend.app')] class extends Component {
             $isSelected = in_array($slotKey, $this->selectedSlots);
             $isPast = $startTime->copy()->setDateFrom($targetDate)->isPast();
 
-            // For the main availableTimes array (used by daily view)
+            // For daily view (simple array of available times)
             if (!$date) {
                 if (!$isBooked) {
                     $this->availableTimes[] = $time;
                 }
             }
 
-            // For the modal time selector
+            // For modal time selector (detailed slot information)
             $this->availableTimesForDate[] = [
                 'start_time' => $time,
                 'end_time' => $startTime->copy()->addHour()->format('H:i'),
@@ -180,56 +241,72 @@ new #[Layout('components.frontend.app')] class extends Component {
                 'is_booked' => $isBooked,
                 'is_selected' => $isSelected,
                 'is_past' => $isPast,
-                'is_peak' => $startTime->hour >= 18
+                'is_peak' => $startTime->hour >= 18  // After 6pm = peak hours
             ];
 
             $startTime->addMinutes($interval);
         }
     }
 
+    /**
+     * Toggle selection of a time slot
+     * Handles adding/removing slots and quota validation
+     *
+     * @param string $slotKey - Slot key in format "YYYY-MM-DD-HH:MM"
+     */
     public function toggleTimeSlot($slotKey)
     {
         if (in_array($slotKey, $this->selectedSlots)) {
+            // REMOVE SLOT: Simply remove from array
             $this->selectedSlots = array_diff($this->selectedSlots, [$slotKey]);
         } else {
-            // Extract date from slot key for quota checking
+            // ADD SLOT: Check quotas first
             $parts = explode('-', $slotKey);
-            if (count($parts) >= 4) {
+            if (count($parts) >= 3) {
                 $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
 
-                // Check if adding this slot exceeds the daily quota (2 hours)
+                // Count currently selected slots for this date
                 $dailySlots = array_filter($this->selectedSlots, function ($slot) use ($date) {
                     return str_starts_with($slot, $date);
                 });
 
-                // Also check existing bookings for this date (both confirmed and pending)
+                // Count existing bookings for this date by this user
+                $existingBookingsForDate = 0;
                 if ($this->isLoggedIn) {
                     $existingBookingsForDate = Booking::where('court_id', $this->courtNumber)
                         ->where('date', $date)
                         ->where('status', '!=', 'cancelled')
                         ->where('tenant_id', auth('tenant')->id())
                         ->count();
-
-                    $totalSlotsForDay = count($dailySlots) + $existingBookingsForDate;
-
-                    if ($totalSlotsForDay >= 2) {
-                        $this->quotaWarning = 'Maximum 2 hours per day allowed (including pending bookings).';
-                        return;
-                    }
                 }
 
-                $this->selectedSlots[] = $slotKey;
+                $totalSlotsForDay = count($dailySlots) + $existingBookingsForDate;
+
+                // QUOTA CHECK: Max 2 hours (slots) per day
+                if ($totalSlotsForDay >= 2) {
+                    $this->quotaWarning = 'Maximum 2 hours per day allowed (including existing bookings).';
+                    // Don't add the slot, just show warning
+                } else {
+                    // Add the slot and clear any warnings
+                    $this->selectedSlots[] = $slotKey;
+                    $this->quotaWarning = '';
+                }
             }
         }
 
+        // Re-validate all selections
         $this->validateSelections();
 
-        // Refresh available times if we're in the time selector modal
+        // Refresh modal data if time selector is open
         if ($this->showTimeSelector) {
             $this->generateAvailableTimesForDate($this->selectedDateForTime);
         }
     }
 
+    /**
+     * Validate current slot selections against quotas
+     * Sets quotaWarning if any limits are exceeded
+     */
     private function validateSelections()
     {
         if (empty($this->selectedSlots)) {
@@ -240,6 +317,7 @@ new #[Layout('components.frontend.app')] class extends Component {
         $selectedDays = [];
         $dailySlotCounts = [];
 
+        // Group selections by date
         foreach ($this->selectedSlots as $slot) {
             $parts = explode('-', $slot);
             if (count($parts) >= 3) {
@@ -253,7 +331,7 @@ new #[Layout('components.frontend.app')] class extends Component {
             }
         }
 
-        // Check daily quota including existing bookings
+        // Check daily quota (2 hours per day) including existing bookings
         if ($this->isLoggedIn) {
             foreach ($dailySlotCounts as $date => $selectedCount) {
                 $existingBookingsForDate = Booking::where('court_id', $this->courtNumber)
@@ -270,7 +348,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                 }
             }
 
-            // Check weekly quota
+            // Check weekly quota (3 days per week)
             $dayCount = count($selectedDays);
             $remaining = $this->quotaInfo['weekly_remaining'] ?? 0;
 
@@ -282,52 +360,144 @@ new #[Layout('components.frontend.app')] class extends Component {
         }
     }
 
+    /**
+     * Confirm and create the bookings
+     * This is the main booking creation function
+     */
     public function confirmBooking()
     {
+
+        // Check if user is logged in
         if (!$this->isLoggedIn) {
             $this->showLoginReminder = true;
             return;
         }
 
+        // Validate selections one more time
         $this->validateSelections();
 
+        // Don't proceed if there are quota violations
         if (!empty($this->quotaWarning)) {
             return;
         }
 
-        $tenant = auth('tenant')->user();
-
-        foreach ($this->selectedSlots as $slot) {
-            $parts = explode('-', $slot);
-            $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
-            $time = $parts[3] . ':' . $parts[4];
-
-            Booking::create([
-                'tenant_id' => $tenant->id,
-                'court_id' => $this->courtNumber,
-                'date' => $date,
-                'start_time' => $time,
-                'status' => 'pending',
-            ]);
+        // Don't proceed if no slots selected
+        if (empty($this->selectedSlots)) {
+            return;
         }
 
+        // Prepare booking data for confirmation modal
+        $this->pendingBookingData = [];
+        foreach ($this->selectedSlots as $slot) {
+            $parts = explode('-', $slot);
+            if (count($parts) >= 4) {
+                $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
+                $startTime = count($parts) == 4 ? $parts[3] : $parts[3] . ':' . $parts[4];
+                $bookingDate = Carbon::parse($date);
+                $slotType = $this->getDateBookingType($bookingDate);
+
+                $this->pendingBookingData[] = [
+                    'court_id' => $this->courtNumber,
+                    'date' => $bookingDate,
+                    'start_time' => $startTime,
+                    'end_time' => (new DateTime($startTime))->modify('+1 hour')->format('H:i'),
+                    'status' => 'pending',
+                    'booking_type' => $slotType,
+                    'booking_week_start' => $bookingDate->copy()->startOfWeek()->format('Y-m-d'),
+                    'price' => $slotType === 'premium' ? 150000 : 0,
+                    'light_surcharge' => Carbon::createFromFormat('H:i', $startTime)->hour >= 18 ? 50000 : 0,
+                    'is_light_required' => Carbon::createFromFormat('H:i', $startTime)->hour >= 18,
+                ];
+            }
+        }
+        // usort($this->pendingBookingData, function ($a, $b) {
+        //     return $a['date'] <=> $b['date'] ?: $a['start_time'] <=> $b['start_time'];
+        // });
+
+        // Show confirmation modal
+        $this->showConfirmModal = true;
+    }
+
+    /**
+     * Actually process the booking after confirmation
+     * Creates database records
+     */
+    public function processBooking()
+    {
+        $tenant = auth('tenant')->user();
+
+        // Create each booking in the database
+        foreach ($this->pendingBookingData as $slot) {
+            try {
+                // CREATE BOOKING RECORD
+                Booking::create([
+                    ...$slot,
+                    'tenant_id' => $tenant->id,
+                ]);
+            } catch (\Exception $e) {
+                // Log detailed error information for debugging
+                Log::error('Booking creation failed: ' . $e->getMessage(), [
+                    'slot' => $slot,
+                    'tenant_id' => $tenant->id,
+                    'court_id' => $this->courtNumber
+                ]);
+
+                $this->quotaWarning = 'Failed to create booking. Please try again.';
+                return;
+            }
+        }
+
+        // Reset state after successful booking
         $this->selectedSlots = [];
         $this->generateAvailableTimesForDate();
         $this->quotaInfo = $this->getQuotaInfo();
         $this->loadBookedSlots();
+        $this->quotaWarning = '';
+
+        // Flash success message
         session()->flash('message', 'Booking request sent successfully!');
+
+        // Show thank you modal
+        $this->showConfirmModal = false;
+        $this->showThankYouModal = true;
+        $this->bookingReference = sprintf(
+            'BK%s-%s-%s-%s',
+            $tenant->id,
+            $this->courtNumber,
+            Carbon::today()->format('Y-m-d'),
+            strtoupper(Str::random(4))
+        );
     }
 
+    /**
+     * Toggle between compact and full view modes
+     */
     public function toggleCompactView()
     {
         $this->compactView = !$this->compactView;
     }
 
+    /**
+     * Open the date picker modal
+     */
+    public function openDatePicker()
+    {
+        $this->showDatePicker = true;
+        $this->initializeDatePicker();
+    }
+
+    /**
+     * Close the date picker modal
+     */
     public function closeDatePicker()
     {
         $this->showDatePicker = false;
     }
 
+    /**
+     * Generate the standard time slots (8am-10pm, 1-hour intervals)
+     * Used by all views to show available booking times
+     */
     public function generateTimeSlots()
     {
         $this->timeSlots = [];
@@ -338,12 +508,16 @@ new #[Layout('components.frontend.app')] class extends Component {
             $this->timeSlots[] = [
                 'start' => $start->format('H:i'),
                 'end' => $start->copy()->addHour()->format('H:i'),
-                'is_peak' => $start->hour >= 18 // After 6pm
+                'is_peak' => $start->hour >= 18 // After 6pm = peak hours (lights required)
             ];
             $start->addHour();
         }
     }
 
+    /**
+     * Generate days for weekly view
+     * Creates array of 7 days starting from currentWeekStart
+     */
     public function generateWeekDays()
     {
         $this->weekDays = [];
@@ -353,9 +527,9 @@ new #[Layout('components.frontend.app')] class extends Component {
             $date = $start->copy()->addDays($i);
             $this->weekDays[] = [
                 'date' => $date->format('Y-m-d'),
-                'day_name' => $date->format('D'),
-                'day_number' => $date->format('j'),
-                'month_name' => $date->format('M'),
+                'day_name' => $date->format('D'),           // Mon, Tue, etc.
+                'day_number' => $date->format('j'),         // 1, 2, 3, etc.
+                'month_name' => $date->format('M'),         // Jan, Feb, etc.
                 'is_today' => $date->isToday(),
                 'is_past' => $date->isPast(),
                 'is_bookable' => $this->canBookSlot($date),
@@ -366,9 +540,15 @@ new #[Layout('components.frontend.app')] class extends Component {
         }
     }
 
+    /**
+     * Generate days for monthly view
+     * Creates calendar grid including days from previous/next month
+     */
     public function generateMonthDays()
     {
         $this->monthDays = [];
+
+        // Start from Monday of first week, end on Sunday of last week
         $start = $this->currentMonthStart->copy()->startOfWeek();
         $end = $this->currentMonthStart->copy()->endOfMonth()->endOfWeek();
 
@@ -395,27 +575,34 @@ new #[Layout('components.frontend.app')] class extends Component {
         }
     }
 
+    /**
+     * Get booking counts for a specific date
+     * Returns array with counts of different booking types
+     *
+     * @param Carbon $date - Date to count bookings for
+     * @return array - Counts of booked, pending, selected, available slots
+     */
     public function getDateBookingCounts($date)
     {
         $dateStr = $date->format('Y-m-d');
 
-        // Count booked slots
+        // Count confirmed bookings for this date
         $bookedCount = collect($this->bookedSlots)->filter(function ($slot) use ($dateStr) {
             return str_starts_with($slot['key'], $dateStr);
         })->count();
 
-        // Count pending slots
+        // Count pending bookings for this date
         $pendingCount = collect($this->preliminaryBookedSlots)->filter(function ($slot) use ($dateStr) {
             return str_starts_with($slot['key'], $dateStr);
         })->count();
 
-        // Count selected slots
+        // Count currently selected slots for this date
         $selectedCount = collect($this->selectedSlots)->filter(function ($slot) use ($dateStr) {
             return str_starts_with($slot, $dateStr);
         })->count();
 
-        // Calculate available slots (total slots minus booked/pending)
-        $totalSlots = 14; // 8am to 10pm = 14 hours
+        // Calculate available slots (total 14 slots: 8am-10pm)
+        $totalSlots = 14;
         $availableCount = $totalSlots - $bookedCount - $pendingCount;
 
         return [
@@ -426,11 +613,25 @@ new #[Layout('components.frontend.app')] class extends Component {
         ];
     }
 
+    // === BOOKING RULES FUNCTIONS ===
+    // These functions determine when users can book slots
+
+    /**
+     * Check if a slot can be booked on this date
+     * @param Carbon $date
+     * @return bool
+     */
     public function canBookSlot($date)
     {
         return $this->canBookFree($date) || $this->canBookPremium($date);
     }
 
+    /**
+     * Check if free booking is available for this date
+     * Rule: Free booking only for next week (Monday to Sunday)
+     * @param Carbon $date
+     * @return bool
+     */
     public function canBookFree($date)
     {
         $nextWeekStart = now()->addWeek()->startOfWeek();
@@ -438,12 +639,23 @@ new #[Layout('components.frontend.app')] class extends Component {
         return $date->between($nextWeekStart, $nextWeekEnd);
     }
 
+    /**
+     * Check if premium booking is available for this date
+     * Rule: Premium booking for dates beyond next week, and only if premium booking is open
+     * @param Carbon $date
+     * @return bool
+     */
     public function canBookPremium($date)
     {
         $nextWeekEnd = now()->addWeek()->endOfWeek();
         return $date->gt($nextWeekEnd) && $this->isPremiumBookingOpen;
     }
 
+    /**
+     * Get the booking type for a specific date
+     * @param Carbon $date
+     * @return string - 'free', 'premium', or 'none'
+     */
     public function getDateBookingType($date)
     {
         if ($this->canBookFree($date)) return 'free';
@@ -451,6 +663,11 @@ new #[Layout('components.frontend.app')] class extends Component {
         return 'none';
     }
 
+    /**
+     * Get detailed booking information for a date
+     * @param Carbon $date
+     * @return array
+     */
     public function getDateBookingInfo($date)
     {
         return [
@@ -460,6 +677,11 @@ new #[Layout('components.frontend.app')] class extends Component {
         ];
     }
 
+    /**
+     * Get the booking type for a specific slot key
+     * @param string $slotKey - Format: "YYYY-MM-DD-HH:MM"
+     * @return string - 'free', 'premium', or 'none'
+     */
     public function getSlotType($slotKey)
     {
         $parts = explode('-', $slotKey);
@@ -470,21 +692,35 @@ new #[Layout('components.frontend.app')] class extends Component {
         return 'none';
     }
 
+    // === VIEW SWITCHING FUNCTIONS ===
+
+    /**
+     * Switch between different view modes
+     * @param string $mode - 'weekly', 'monthly', or 'daily'
+     */
     public function switchView($mode)
     {
         $this->viewMode = $mode;
+
+        // Generate appropriate data for the new view
         if ($mode === 'weekly') {
             $this->generateWeekDays();
         } elseif ($mode === 'monthly') {
             $this->generateMonthDays();
         } elseif ($mode === 'daily') {
-            // Don't subtract a day when switching to daily view
             $this->selectedDate = $this->currentDate->format('Y-m-d');
             $this->generateAvailableTimesForDate();
         }
+
+        // Reload booking data for new view
         $this->loadBookedSlots();
     }
 
+    // === NAVIGATION FUNCTIONS ===
+
+    /**
+     * Navigate to previous period (week/month/day)
+     */
     public function previousPeriod()
     {
         if ($this->viewMode === 'weekly') {
@@ -501,6 +737,9 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->loadBookedSlots();
     }
 
+    /**
+     * Navigate to next period (week/month/day)
+     */
     public function nextPeriod()
     {
         if ($this->viewMode === 'weekly') {
@@ -517,6 +756,9 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->loadBookedSlots();
     }
 
+    /**
+     * Navigate to today
+     */
     public function goToToday()
     {
         $this->currentDate = now();
@@ -524,6 +766,7 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->currentMonthStart = now()->startOfMonth();
         $this->selectedDate = now()->format('Y-m-d');
 
+        // Regenerate data for current view
         if ($this->viewMode === 'weekly') {
             $this->generateWeekDays();
         } elseif ($this->viewMode === 'monthly') {
@@ -534,12 +777,11 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->loadBookedSlots();
     }
 
-    public function showDatePicker()
-    {
-        $this->showDatePicker = true;
-        $this->initializeDatePicker();
-    }
+    // === MODAL FUNCTIONS ===
 
+    /**
+     * Close all modals
+     */
     public function closeModal()
     {
         $this->showConfirmModal = false;
@@ -549,6 +791,10 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->showDatePicker = false;
     }
 
+    /**
+     * Show time selector modal for a specific date (used in monthly view)
+     * @param string $date - Date to show times for
+     */
     public function showTimesForDate($date)
     {
         $this->selectedDateForTime = $date;
@@ -556,16 +802,25 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->generateAvailableTimesForDate($date);
     }
 
+    /**
+     * Close time selector modal
+     */
     public function closeTimeSelector()
     {
         $this->showTimeSelector = false;
     }
 
+    // === DATE PICKER FUNCTIONS ===
+
+    /**
+     * Initialize date picker with current date and available options
+     */
     public function initializeDatePicker()
     {
         $this->selectedMonth = $this->currentDate->month;
         $this->selectedYear = $this->currentDate->year;
 
+        // Set up available months
         $this->availableMonths = [
             1 => 'January',
             2 => 'February',
@@ -581,12 +836,18 @@ new #[Layout('components.frontend.app')] class extends Component {
             12 => 'December'
         ];
 
+        // Set up available years (current year + 2 years ahead)
         $this->availableYears = range(now()->year, now()->year + 2);
+
+        // Generate calendar data
         $this->generateCalendarDays();
         $this->generateCalendarWeeks();
         $this->generateCalendarMonths();
     }
 
+    /**
+     * Generate calendar days for date picker
+     */
     public function generateCalendarDays()
     {
         $this->calendarDays = [];
@@ -610,6 +871,9 @@ new #[Layout('components.frontend.app')] class extends Component {
         }
     }
 
+    /**
+     * Generate calendar weeks for date picker
+     */
     public function generateCalendarWeeks()
     {
         $this->calendarWeeks = [];
@@ -636,6 +900,9 @@ new #[Layout('components.frontend.app')] class extends Component {
         }
     }
 
+    /**
+     * Generate calendar months for date picker
+     */
     public function generateCalendarMonths()
     {
         $this->calendarMonths = [];
@@ -656,17 +923,33 @@ new #[Layout('components.frontend.app')] class extends Component {
         }
     }
 
+    /**
+     * Set date picker mode (day/week/month)
+     * @param string $mode
+     */
     public function setDatePickerMode($mode)
     {
         $this->datePickerMode = $mode;
+        if ($mode === 'day') {
+            $this->generateCalendarDays();
+        } elseif ($mode === 'week') {
+            $this->generateCalendarWeeks();
+        } elseif ($mode === 'month') {
+            $this->generateCalendarMonths();
+        }
     }
 
+    /**
+     * Select a specific date from date picker
+     * @param string $date
+     */
     public function selectDate($date)
     {
         $selectedDate = Carbon::parse($date);
         $this->currentDate = $selectedDate;
         $this->selectedDate = $date;
 
+        // Update view based on current mode
         if ($this->viewMode === 'daily') {
             $this->generateAvailableTimesForDate();
         } elseif ($this->viewMode === 'weekly') {
@@ -681,6 +964,10 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->closeDatePicker();
     }
 
+    /**
+     * Select a specific week from date picker
+     * @param string $weekStart
+     */
     public function selectWeek($weekStart)
     {
         $this->currentWeekStart = Carbon::parse($weekStart);
@@ -694,6 +981,10 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->closeDatePicker();
     }
 
+    /**
+     * Select a specific month from date picker
+     * @param string $monthStart
+     */
     public function selectMonth($monthStart)
     {
         $this->currentMonthStart = Carbon::parse($monthStart);
@@ -707,19 +998,17 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->closeDatePicker();
     }
 
+    /**
+     * Redirect to login page
+     */
     public function redirectToLogin()
     {
         return redirect()->route('login');
     }
 
-    public function processBooking()
-    {
-        // Process the actual booking
-        $this->showConfirmModal = false;
-        $this->showThankYouModal = true;
-        $this->bookingReference = 'BK' . rand(1000, 9999);
-    }
-
+    /**
+     * Called when month is changed in date picker
+     */
     public function updatedSelectedMonth()
     {
         $this->generateCalendarDays();
@@ -727,6 +1016,9 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->generateCalendarMonths();
     }
 
+    /**
+     * Called when year is changed in date picker
+     */
     public function updatedSelectedYear()
     {
         $this->generateCalendarDays();
@@ -842,7 +1134,7 @@ new #[Layout('components.frontend.app')] class extends Component {
 
                 <!-- Date Picker Button -->
                 <button
-                    wire:click="showDatePicker"
+                    wire:click="openDatePicker"
                     @class([ 'rounded-lg bg-purple-100 text-purple-700 transition-all duration-300 hover:bg-purple-200' , 'px-2 py-1 text-xs'=> $compactView,
                     'px-3 py-1 ml-2' => !$compactView
                     ])>
@@ -1377,7 +1669,7 @@ new #[Layout('components.frontend.app')] class extends Component {
             $parts = explode('-', $slot);
             if (count($parts) >= 4) {
             $date = Carbon::createFromFormat('Y-m-d', $parts[0] . '-' . $parts[1] . '-' . $parts[2]);
-            $time = $parts[3];
+            $time = count($parts) == 4 ? $parts[3] : $parts[3] . ':' . $parts[4];
             $slotType = $this->getSlotType($slot);
             }
             @endphp
@@ -1820,6 +2112,96 @@ new #[Layout('components.frontend.app')] class extends Component {
                 </button>
             </div>
         </div>
+    </div>
+</div>
+@endif
+
+@if($showConfirmModal)
+<div class="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="animate-scale-in mx-4 w-full max-w-lg transform rounded-xl bg-white p-6 shadow-2xl">
+        <h3 class="mb-6 text-xl font-bold">
+            @if ($bookingType === 'mixed')
+            🎾 Mixed Booking Confirmation
+            @else
+            🎾 {{ ucfirst($bookingType) }} Booking Confirmation
+            @endif
+        </h3>
+
+        <div class="mb-6 space-y-4">
+            @foreach ($pendingBookingData as $booking)
+            <div class="rounded-lg border bg-gray-50 p-4">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="font-semibold">{{ $booking['date']->format('l, F j, Y') }}</div>
+                        <div class="text-lg">{{ $booking['start_time'] . ' - ' . $booking['end_time'] }}</div>
+                        @if ($booking['is_light_required'])
+                        <div class="mt-1 text-sm text-orange-600">
+                            💡 additional IDR 50k/hour for tennis court lights
+                        </div>
+                        @endif
+                    </div>
+                    <span
+                        @class([ 'bg-blue-100 text-blue-800'=> $booking['booking_type'] === 'free',
+                        'bg-purple-100 text-purple-800' => $booking['booking_type'] !== 'free',
+                        'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
+                        ])
+                        @if ($booking['booking_type'] === 'free')
+                        🆓
+                        @else
+                        ⭐
+                        @endif
+                        {{ strtoupper($booking['booking_type']) }}
+                    </span>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        <div class="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-gray-600">
+            <p>💳 *Please process the payment to the Receptionist before using the tennis court</p>
+            <p>⚠️ *Please be responsible with your bookings. Failure to comply may result in being blacklisted.
+            </p>
+        </div>
+
+        <div class="flex justify-end gap-3">
+            <button class="rounded-lg px-6 py-2 text-gray-600 transition-colors hover:text-gray-800"
+                wire:click="closeModal">
+                Cancel
+            </button>
+            <button
+                class="transform rounded-lg bg-gradient-to-r from-gray-700 to-gray-900 px-6 py-2 text-white transition-all duration-300 hover:scale-105 hover:from-gray-800 hover:to-black"
+                wire:click="processBooking">
+                🎾 CONFIRM BOOKING(S)
+            </button>
+        </div>
+    </div>
+</div>
+@endif
+
+<!-- Thank You Modal -->
+@if($showThankYouModal)
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div @class([ 'mx-4 w-full transform rounded-xl bg-white text-center shadow-2xl' , 'max-w-sm p-6'=> $compactView,
+        'max-w-md p-8' => !$compactView
+        ])>
+        <div @class([ 'mb-4' , 'text-4xl'=> $compactView,
+            'text-6xl' => !$compactView
+            ])>🎾</div>
+        <h3 @class([ 'mb-4 font-bold' , 'text-lg'=> $compactView,
+            'text-xl' => !$compactView
+            ])>Thank you for your booking!</h3>
+        <div @class([ 'mb-6 rounded-lg bg-gray-100 font-bold text-gray-800' , 'py-2 text-xl'=> $compactView,
+            'py-4 text-3xl' => !$compactView
+            ])>
+            #{{ $bookingReference }}
+        </div>
+        <button
+            @class([ 'transform rounded-lg bg-gradient-to-r from-gray-600 to-gray-800 text-white transition-all duration-300 hover:scale-105 hover:from-gray-700 hover:to-gray-900' , 'px-6 py-2 text-sm'=> $compactView,
+            'px-8 py-3' => !$compactView
+            ])
+            wire:click="closeModal">
+            🏠 @if($compactView) BACK @else BACK TO BOOKING @endif
+        </button>
     </div>
 </div>
 @endif
