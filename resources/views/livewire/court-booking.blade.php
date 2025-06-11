@@ -2,343 +2,158 @@
 
 use Carbon\Carbon;
 use App\Models\Booking;
+use App\Models\Tenant;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.frontend.app')] class extends Component {
-    /**
-     * @var int $courtNumber The number of the court for which we are booking.
-     * This value is used to generate the booking reference.
-     */
-    public $courtNumber = 2;
+    // View modes
+    public string $viewMode = 'weekly';
+    public int $courtNumber = 2;
 
-    /**
-     * @var \Carbon\Carbon|null $currentWeekStart The start date of the current week.
-     * This value is used to generate the week days and time slots.
-     */
-    public $currentWeekStart = null;
+    // Date navigation
+    public ?Carbon $currentDate = null;
+    public ?Carbon $currentWeekStart = null;
+    public ?Carbon $currentMonthStart = null;
 
-    /**
-     * @var \Carbon\Carbon|null $monthStart The start date of the current month.
-     * This value is used to calculate the number of weeks in the month.
-     */
-    public $monthStart = null;
+    // Display data
+    public array $weekDays = [];
+    public array $monthDays = [];
+    public array $timeSlots = [];
+    public array $bookedSlots = [];
+    public array $preliminaryBookedSlots = [];
+    public array $selectedSlots = [];
 
-    /**
-     * @var \Carbon\Carbon|null $monthEnd The end date of the current month.
-     * This value is used to calculate the number of weeks in the month.
-     */
-    public $monthEnd = null;
+    // Booking state
+    public string $bookingType = 'free';
+    public array $quotaInfo = [];
+    public string $quotaWarning = '';
+    public bool $isLoggedIn = false;
+    public array $pendingBookingData = [];
+    public string $bookingReference = '';
 
-    /**
-     * @var string $startDate The start date of the week in the format 'Y-m-d'.
-     * This value is used to display the week days and time slots.
-     */
-    public $startDate = '';
+    // Modals
+    public bool $showConfirmModal = false;
+    public bool $showThankYouModal = false;
+    public bool $showLoginReminder = false;
+    public bool $showCalendarPicker = false;
 
-    /**
-     * @var string $endDate The end date of the week in the format 'Y-m-d'.
-     * This value is used to display the week days and time slots.
-     */
-    public $endDate = '';
+    // Premium booking settings
+    public ?Carbon $premiumBookingDate = null;
+    public bool $isPremiumBookingOpen = false;
 
-    /**
-     * @var array $weekDays An array of week days in the format [
-     *  'name' => string,
-     *  'date' => string,
-     *  'day_number' => int,
-     *  'month_name' => string,
-     *  'is_today' => bool,
-     *  'is_past' => bool,
-     *  'is_this_week' => bool,
-     *  'is_free_period' => bool,
-     *  'formatted_date' => string,
-     *  'days_from_now' => int,
-     * ].
-     * This value is used to display the week days and time slots.
-     */
-    public $weekDays = [];
+    // Navigation state
+    public bool $canGoBack = true;
+    public bool $canGoForward = true;
 
-    /**
-     * @var array $timeSlots An array of time slots in the format [
-     *  'start' => string,
-     *  'end' => string,
-     * ].
-     * This value is used to display the week days and time slots.
-     */
-    public $timeSlots = [];
-
-    /**
-     * @var array $bookedSlots An array of booked slots in the format [
-     *  'key' => string,
-     *  'type' => string,
-     * ].
-     * This value is used to display the booked slots.
-     */
-    public $bookedSlots = [];
-
-    /**
-     * @var array $preliminaryBookedSlots An array of preliminary booked slots in the format [
-     *  'key' => string,
-     *  'type' => string,
-     * ].
-     * This value is used to display the preliminary booked slots.
-     */
-    public $preliminaryBookedSlots = [];
-
-    /**
-     * @var array $selectedSlots An array of selected slots in the format [
-     *  'key' => string,
-     * ].
-     * This value is used to display the selected slots.
-     */
-    public $selectedSlots = [];
-
-    /**
-     * @var bool $showConfirmModal Whether to show the confirm modal.
-     * This value is used to toggle the confirm modal.
-     */
-    public $showConfirmModal = false;
-
-    /**
-     * @var bool $showThankYouModal Whether to show the thank you modal.
-     * This value is used to toggle the thank you modal.
-     */
-    public $showThankYouModal = false;
-
-    /**
-     * @var bool $showLoginReminder Whether to show the login reminder modal.
-     * This value is used to toggle the login reminder modal.
-     */
-    public $showLoginReminder = false;
-
-    /**
-     * @var bool $showCalendarPicker Whether to show the calendar picker.
-     * This value is used to toggle the calendar picker.
-     */
-    public $showCalendarPicker = false;
-
-    /**
-     * @var string $bookingReference The booking reference in the format 'C{court_number}-{year}-{month}-{day}-{hour}-{minute}'.
-     * This value is used to generate the booking reference.
-     */
-    public $bookingReference = '';
-
-    /**
-     * @var array $pendingBookingData An array of pending booking data in the format [
-     *  'date' => string,
-     *  'time' => string,
-     *  'is_light_required' => bool,
-     *  'raw_date' => string,
-     *  'raw_time' => string,
-     *  'booking_type' => string,
-     * ].
-     * This value is used to display the pending booking data.
-     */
-    public $pendingBookingData = [];
-
-    /**
-     * @var string $bookingType The type of booking (free or premium).
-     * This value is used to determine the quota for the selected booking slots.
-     */
-    public $bookingType = 'free';
-
-    /**
-     * @var array $quotaInfo An array of quota information in the format [
-     *  'free' => [
-     *      'remaining' => int,
-     *  ],
-     *  'premium' => [
-     *      'remaining' => int,
-     *  ],
-     *  'combined' => [
-     *      'remaining' => int,
-     *  ],
-     *  'weekly_remaining' => int,
-     * ].
-     * This value is used to display the quota information.
-     */
-    public $quotaInfo = [];
-
-    /**
-     * @var bool $canGoBack Whether the user can go back to the previous week.
-     * This value is used to toggle the previous week button.
-     */
-    public $canGoBack = true;
-
-    /**
-     * @var bool $canGoForward Whether the user can go forward to the next week.
-     * This value is used to toggle the next week button.
-     */
-    public $canGoForward = true;
-
-    /**
-     * @var int $numberOfWeeksInMonth The number of weeks in the current month.
-     * This value is used to generate the week days and time slots.
-     */
-    public $numberOfWeeksInMonth = 0;
-
-    /**
-     * @var int $weekOffset The offset of the current week from the current date
-     * in the format 'number of weeks'.
-     * This value is used to generate the week days and time slots.
-     */
-    public $weekOffset = 0;
-
-    /**
-     * @var string $quotaWarning The quota warning message.
-     * This value is used to display the quota warning message.
-     */
-    public $quotaWarning = '';
-
-    /**
-     * @var bool $isLoggedIn Whether the user is logged in.
-     * This value is used to toggle the quota information.
-     */
-    public $isLoggedIn = false;
-
-    /**
-     * Initialize the component's state upon mounting.
-     *
-     * Sets the login status, calculates the start of the current week,
-     * and updates week-related data. Loads quota information and retrieves
-     * any pending booking slots from the session, updating selected slots
-     * and determining the booking type if pending slots are found.
-     */
     public function mount()
     {
         $this->isLoggedIn = auth('tenant')->check();
+        $this->currentDate = Carbon::today();
         $this->currentWeekStart = Carbon::today()->startOfWeek();
-        $this->monthStart = Carbon::today()->startOfMonth();
-        $this->monthEnd = Carbon::today()->endOfMonth();
-        $this->numberOfWeeksInMonth = $this->monthStart->diffInWeeks($this->monthEnd);
-        $this->weekOffset = Carbon::today()->weekOfMonth();
+        $this->currentMonthStart = Carbon::today()->startOfMonth();
 
-        $this->updateWeekData();
+        // Check if premium booking is open (25th of each month, or nearest weekday)
+        $this->setPremiumBookingDate();
+
+        $this->updateViewData();
         $this->loadQuotaInfo();
+        $this->restoreSelectedSlots();
+    }
 
-        if (session()->has('pending_booking_slots')) {
-            $this->selectedSlots = session('pending_booking_slots');
-            session()->forget('pending_booking_slots');
-            $this->determineBookingType();
+    private function setPremiumBookingDate()
+    {
+        $targetDate = Carbon::today()->day(25);
+
+        // If 25th is weekend, move to nearest weekday
+        if ($targetDate->isWeekend()) {
+            if ($targetDate->isSaturday()) {
+                $targetDate->subDay(); // Friday 24th
+            } else {
+                $targetDate->addDay(); // Monday 26th
+            }
+        }
+
+        $this->premiumBookingDate = $targetDate;
+        $this->isPremiumBookingOpen = Carbon::today()->isSameDay($targetDate);
+    }
+
+    public function switchView($mode)
+    {
+        $this->storeSelectedSlots();
+        $this->viewMode = $mode;
+        $this->updateViewData();
+        $this->restoreSelectedSlots();
+    }
+
+    private function storeSelectedSlots()
+    {
+        if (!empty($this->selectedSlots)) {
+            session(['booking_selected_slots' => $this->selectedSlots]);
         }
     }
 
-    public function weeksInMonth($numOfDaysInMonth)
+    private function restoreSelectedSlots()
     {
-        $daysInWeek = 7;
-        $result = $numOfDaysInMonth / $daysInWeek;
-        $numberOfFullWeeks = floor($result);
-        $numberOfRemainingDays = ($result - $numberOfFullWeeks) * 7;
-        return 'Weeks: ' . $numberOfFullWeeks . ' -  Days: ' . $numberOfRemainingDays;
+        if (session()->has('booking_selected_slots')) {
+            $this->selectedSlots = session('booking_selected_slots');
+            $this->validateSelections();
+        }
     }
 
-    /**
-     * Updates the week data including start and end dates.
-     *
-     * This method sets the start and end dates of the current week,
-     * generates the week days and time slots, loads booked slots for the week,
-     * updates navigation state for week navigation, and validates the combined
-     * quota for selected booking slots.
-     */
-    public function updateWeekData()
+    public function updateViewData()
     {
-        $weekStart = $this->currentWeekStart->copy();
-        $weekEnd = $weekStart->copy()->endOfWeek();
+        switch ($this->viewMode) {
+            case 'weekly':
+                $this->generateWeekView();
+                break;
+            case 'monthly':
+                $this->generateMonthView();
+                break;
+            case 'daily':
+                $this->generateDayView();
+                break;
+        }
 
-        $this->startDate = $weekStart->format('d/m/Y');
-        $this->endDate = $weekEnd->format('d/m/Y');
-
-        $this->generateWeekDays($weekStart);
         $this->generateTimeSlots();
         $this->loadBookedSlots();
         $this->updateNavigationState();
-        $this->validateCombinedQuotaForSelections();
+        $this->validateSelections();
     }
 
     /**
-     * Generate an array of week days starting from the given start date.
-     *
-     * Week days are represented as an array of objects with the following
-     * properties:
-     *  - name: The day of the week (e.g. MON, TUE, etc.)
-     *  - date: The date of the day in the format Y-m-d
-     *  - day_number: The day number of the month (e.g. 1, 2, 3, etc.)
-     *  - month_name: The name of the month (e.g. January, February, etc.)
-     *  - is_today: Whether the day is today
-     *  - is_past: Whether the day is in the past (and not today)
-     *  - is_free_period: Whether the day is in the free period (i.e. less than 7 days from now)
-     *  - formatted_date: The date formatted as D, M j (e.g. Mon, Jan 2)
-     *  - days_from_now: The number of days from now
-     */
-    public function generateWeekDays($startDate)
-    {
-        $days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-        $currentDate = $startDate->copy();
-        $this->weekDays = [];
-
-        for ($i = 0; $i < 7; $i++) {
-            $isToday = $currentDate->isToday();
-            $isPast = $currentDate->isPast() && !$isToday;
-            $isThisWeek = $currentDate->isSameWeek(Carbon::now());
-            $daysFromNow = Carbon::now()->diffInDays($currentDate, false);
-            $isFreePeriod = $currentDate->isNextWeek();
-
-            $this->weekDays[] = [
-                'name' => $days[$i],
-                'date' => $currentDate->format('Y-m-d'),
-                'day_number' => $currentDate->format('j'),
-                'month_name' => $currentDate->format('M'),
-                'is_today' => $isToday,
-                'is_past' => $isPast,
-                'is_this_week' => $isThisWeek,
-                'is_free_period' => $isFreePeriod,
-                'formatted_date' => $currentDate->format('D, M j'),
-                'days_from_now' => $daysFromNow,
-            ];
-
-            $currentDate->addDay();
-        }
-    }
-
-    /**
-     * Generate an array of time slots for the given week.
-     *
-     * Time slots are represented as an array of objects with the following
-     * properties:
-     *  - start: The start time of the slot in the format H:i
-     *  - end: The end time of the slot in the format H:i
-     */
-    public function generateTimeSlots()
-    {
-        $this->timeSlots = [];
-        for ($hour = 8; $hour < 23; $hour++) {
-            $this->timeSlots[] = [
-                'start' => sprintf('%02d:00', $hour),
-                'end' => sprintf('%02d:00', $hour + 1),
-            ];
-        }
-    }
-
-    /**
-     * Load booked slots for the current week.
-     *
-     * This method loads bookings for the current week and separates them into
-     * two arrays: bookedSlots and preliminaryBookedSlots. bookedSlots contains
-     * confirmed bookings, while preliminaryBookedSlots contains pending bookings.
-     *
-     * Each booking is represented as an array with two properties:
-     *  - key: A string in the format 'Y-m-d-H:i' that identifies the booking
-     *  - type: The type of booking (free or premium)
+     * Load booked slots for the current period based on view mode.
      */
     public function loadBookedSlots()
     {
-        $weekStart = $this->currentWeekStart;
-        $weekEnd = $weekStart->copy()->addDays(6);
+        $startDate = null;
+        $endDate = null;
 
-        $bookings = Booking::where('status', '!=', 'cancelled')
-            ->whereBetween('date', [$weekStart, $weekEnd])
+        switch ($this->viewMode) {
+            case 'weekly':
+                $startDate = $this->currentWeekStart;
+                $endDate = $this->currentWeekStart->copy()->addDays(6);
+                break;
+            case 'monthly':
+                $startDate = $this->currentMonthStart;
+                $endDate = $this->currentMonthStart->copy()->endOfMonth();
+                break;
+            case 'daily':
+                $startDate = $this->currentDate;
+                $endDate = $this->currentDate->copy();
+                break;
+        }
+
+        if (!$startDate || !$endDate) {
+            $this->bookedSlots = [];
+            $this->preliminaryBookedSlots = [];
+            return;
+        }
+
+        $bookings = Booking::where('court_id', $this->courtNumber)
+            ->where('status', '!=', 'cancelled')
+            ->whereBetween('date', [$startDate, $endDate])
             ->get();
 
         $this->bookedSlots = [];
@@ -347,257 +162,203 @@ new #[Layout('components.frontend.app')] class extends Component {
         foreach ($bookings as $booking) {
             $slotKey = $booking->date->format('Y-m-d') . '-' . $booking->start_time->format('H:i');
 
+            $slotData = [
+                'key' => $slotKey,
+                'type' => $booking->booking_type,
+                'tenant_id' => $booking->tenant_id,
+            ];
+
             if ($booking->status === 'confirmed') {
-                $this->bookedSlots[] = [
-                    'key' => $slotKey,
-                    'type' => $booking->booking_type,
-                ];
+                $this->bookedSlots[] = $slotData;
             } else {
-                $this->preliminaryBookedSlots[] = [
-                    'key' => $slotKey,
-                    'type' => $booking->booking_type,
-                ];
+                $this->preliminaryBookedSlots[] = $slotData;
             }
         }
     }
 
-    /**
-     * Updates the state of the navigation buttons (previous and next week).
-     *
-     * This method sets the properties $canGoBack and $canGoForward based on the
-     * current week and the maximum number of future weeks that can be booked.
-     */
-    public function updateNavigationState()
+    private function generateWeekView()
     {
-        $this->canGoBack = $this->currentWeekStart->gt($this->monthStart);
-        $this->canGoForward = $this->weekOffset < $this->numberOfWeeksInMonth;
-    }
+        $this->weekDays = [];
+        $startDate = $this->currentWeekStart->copy();
 
-    /**
-     * Navigate to the previous week.
-     *
-     * This method checks if navigating to the previous week is allowed
-     * by verifying the $canGoBack property. If allowed, it updates the
-     * currentWeekStart to the previous week, decrements the weekOffset,
-     * and refreshes the week data.
-     */
-    public function previousWeek()
-    {
-        if ($this->canGoBack) {
-            $this->currentWeekStart = $this->currentWeekStart->subWeek();
-            $this->weekOffset--;
-            $this->updateWeekData();
-        }
-    }
+        for ($i = 0; $i < 7; $i++) {
+            $currentDate = $startDate->copy()->addDays($i);
+            $isNextWeek = $currentDate->isNextWeek();
+            $canBookFree = $isNextWeek && !$currentDate->isPast();
+            $canBookPremium = $this->isPremiumBookingOpen &&
+                $currentDate->greaterThan(Carbon::today()->addWeek()) &&
+                $currentDate->lessThanOrEqualTo(Carbon::today()->addMonth());
 
-    /**
-     * Navigate to the next week.
-     *
-     * Checks if navigating to the next week is allowed by verifying the
-     * $canGoForward property. If allowed, it updates the currentWeekStart
-     * to the next week, increments the weekOffset, and refreshes the week data.
-     */
-    public function nextWeek()
-    {
-        if ($this->canGoForward) {
-            $this->currentWeekStart = $this->currentWeekStart->addWeek();
-            $this->weekOffset++;
-            $this->updateWeekData();
-        }
-    }
-
-    /**
-     * Navigate to the current week.
-     *
-     * This method sets the currentWeekStart to the start of the current week,
-     * resets the weekOffset to zero, and refreshes the week data.
-     */
-    public function goToCurrentWeek()
-    {
-        $this->currentWeekStart = Carbon::today()->startOfWeek();
-        $this->weekOffset = 0;
-        $this->updateWeekData();
-    }
-
-    /**
-     * Navigate to a specific week relative to the current week.
-     *
-     * This method updates the currentWeekStart property to the specified week,
-     * calculates the week offset from the current week, and refreshes the week data.
-     *
-     * @param int $weeksFromNow The number of weeks from the current week to jump to.
-     */
-    public function jumpToWeek($weeksFromNow)
-    {
-        $this->currentWeekStart = Carbon::today()->startOfMonth()->addWeeks($weeksFromNow);
-        $this->weekOffset = $weeksFromNow;
-        $this->updateWeekData();
-    }
-
-    /**
-     * Shows the calendar picker.
-     *
-     * This method sets the showCalendarPicker property to true, which causes the
-     * calendar picker to be displayed.
-     */
-    public function showCalendar()
-    {
-        $this->showCalendarPicker = true;
-    }
-
-    /**
-     * Select a specific calendar week.
-     *
-     * This method sets the current week start date to the provided weekStart date,
-     * calculates the week offset from the current week, hides the calendar picker,
-     * and updates the week-related data.
-     *
-     * @param string $weekStart The start date of the week to select, in 'Y-m-d' format.
-     */
-    public function selectCalendarWeek($weekStart)
-    {
-        $this->currentWeekStart = Carbon::parse($weekStart)->startOfWeek();
-        $this->weekOffset = Carbon::today()->startOfWeek()->diffInWeeks($this->currentWeekStart);
-        $this->showCalendarPicker = false;
-        $this->updateWeekData();
-    }
-
-    /**
-     * Loads the tenant's quota information.
-     *
-     * This method loads the tenant's quotas for free, premium, and combined bookings,
-     * as well as the remaining bookings for the current week.
-     */
-    public function loadQuotaInfo()
-    {
-        if (auth('tenant')->check()) {
-            $tenant = auth('tenant')->user();
-            $this->quotaInfo = [
-                'free' => $tenant->free_booking_quota,
-                'premium' => $tenant->premium_booking_quota,
-                'combined' => $tenant->combined_booking_quota,
-                'weekly_remaining' => $tenant->remaining_weekly_quota,
+            $this->weekDays[] = [
+                'date' => $currentDate->format('Y-m-d'),
+                'day_name' => $currentDate->format('D'),
+                'day_number' => $currentDate->format('j'),
+                'month_name' => $currentDate->format('M'),
+                'is_today' => $currentDate->isToday(),
+                'is_past' => $currentDate->isPast(),
+                'can_book_free' => $canBookFree,
+                'can_book_premium' => $canBookPremium,
+                'is_bookable' => $canBookFree || $canBookPremium,
+                'formatted_date' => $currentDate->format('D, M j'),
             ];
         }
     }
 
-    /**
-     * Validates the booking quota for selected slots.
-     *
-     * This method checks the number of selected free and premium booking slots
-     * against the tenant's remaining quota for each type. If the number of selected
-     * slots exceeds the remaining quota, a warning message is set. Otherwise, the
-     * warning message is cleared. The validation considers slots within 7 days as
-     * free and beyond 7 days as premium.
-     */
-    public function validateQuotaForSelections()
+    private function generateMonthView()
     {
-        if (!$this->isLoggedIn || empty($this->selectedSlots)) {
-            $this->quotaWarning = '';
-            return;
-        }
+        $this->monthDays = [];
+        $monthStart = $this->currentMonthStart->copy()->startOfWeek();
+        $monthEnd = $this->currentMonthStart->copy()->endOfMonth()->endOfWeek();
 
-        $freeCount = 0;
-        $premiumCount = 0;
+        $currentDate = $monthStart->copy();
+        while ($currentDate->lessThanOrEqualTo($monthEnd)) {
+            $isCurrentMonth = $currentDate->month === $this->currentMonthStart->month;
+            $isNextWeek = $currentDate->isNextWeek();
+            $canBookFree = $isNextWeek && !$currentDate->isPast() && $isCurrentMonth;
+            $canBookPremium = $this->isPremiumBookingOpen &&
+                $currentDate->greaterThan(Carbon::today()->addWeek()) &&
+                $currentDate->lessThanOrEqualTo(Carbon::today()->addMonth()) &&
+                $isCurrentMonth;
 
-        foreach ($this->selectedSlots as $slotKey) {
-            $parts = explode('-', $slotKey);
-            if (count($parts) >= 3) {
-                $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
-                $daysFromNow = Carbon::now()->diffInDays(Carbon::parse($date), false);
+            $this->monthDays[] = [
+                'date' => $currentDate->format('Y-m-d'),
+                'day_number' => $currentDate->format('j'),
+                'is_current_month' => $isCurrentMonth,
+                'is_today' => $currentDate->isToday(),
+                'is_past' => $currentDate->isPast(),
+                'can_book_free' => $canBookFree,
+                'can_book_premium' => $canBookPremium,
+                'is_bookable' => $canBookFree || $canBookPremium,
+                'week_start' => $currentDate->isMonday(),
+            ];
 
-                if ($daysFromNow <= 7) {
-                    $freeCount++;
-                } else {
-                    $premiumCount++;
-                }
-            }
-        }
-
-        $freeRemaining = $this->quotaInfo['free']['remaining'] ?? 0;
-        $premiumRemaining = $this->quotaInfo['premium']['remaining'] ?? 0;
-
-        if ($freeCount > $freeRemaining) {
-            $this->quotaWarning = "You've selected {$freeCount} free slots but only have {$freeRemaining} remaining.";
-        } elseif ($premiumCount > $premiumRemaining) {
-            $this->quotaWarning = "You've selected {$premiumCount} premium slots but only have {$premiumRemaining} remaining.";
-        } else {
-            $this->quotaWarning = '';
+            $currentDate->addDay();
         }
     }
 
-    /**
-     * Validates the combined booking quota for selected slots.
-     *
-     * This method checks the total number of selected slots against the tenant's
-     * remaining combined booking quota. If the number of selected slots exceeds
-     * the remaining quota, a warning message is set. Otherwise, the warning message
-     * is cleared. The validation considers all selected slots as contributing to
-     * the combined booking quota.
-     */
-    public function validateCombinedQuotaForSelections()
+    private function generateDayView()
     {
-        if (!$this->isLoggedIn || empty($this->selectedSlots)) {
-            $this->quotaWarning = '';
-            return;
-        }
+        // Day view shows detailed hourly slots for selected date
+        $this->generateTimeSlots();
+    }
 
-        $selectedCount = count($this->selectedSlots);
-        $remainingSlots = $this->quotaInfo['combined']['remaining'] ?? 0;
-
-        if ($selectedCount > $remainingSlots) {
-            $this->quotaWarning = "You've selected {$selectedCount} slots but only have {$remainingSlots} remaining out of your limit of 3.";
-        } else {
-            $this->quotaWarning = '';
+    private function generateTimeSlots()
+    {
+        $this->timeSlots = [];
+        for ($hour = 8; $hour < 23; $hour++) {
+            $this->timeSlots[] = [
+                'start' => sprintf('%02d:00', $hour),
+                'end' => sprintf('%02d:00', $hour + 1),
+                'is_peak' => $hour >= 18, // After 6 PM requires lights
+            ];
         }
     }
 
-    /**
-     * Toggle a time slot in the selected slots array.
-     *
-     * This method will not add a time slot to the selected slots array if it is
-     * already booked or pending, or if the time slot is in the past. If the time
-     * slot is already in the selected slots array, it will be removed.
-     *
-     * @param string $slotKey A string in the format Y-m-d-H:i representing the time slot to toggle.
-     */
+    public function loadQuotaInfo()
+    {
+        if (!$this->isLoggedIn) {
+            $this->quotaInfo = [];
+            return;
+        }
+
+        $tenant = auth('tenant')->user();
+        $weekStart = Carbon::today()->startOfWeek();
+        $weekEnd = $weekStart->copy()->endOfWeek();
+
+        // Count bookings for current week (group by date to count days, not individual slots)
+        $weeklyBookingDays = Booking::where('tenant_id', $tenant->id)
+            ->whereBetween('date', [$weekStart, $weekEnd])
+            ->where('status', '!=', 'cancelled')
+            ->get()
+            ->groupBy(function ($booking) {
+                return $booking->date->format('Y-m-d');
+            })
+            ->count();
+
+        $remainingQuota = max(0, 3 - $weeklyBookingDays);
+
+        $this->quotaInfo = [
+            'weekly_used' => $weeklyBookingDays,
+            'weekly_total' => 3,
+            'weekly_remaining' => $remainingQuota,
+            'combined' => [
+                'remaining' => $remainingQuota
+            ]
+        ];
+    }
+
     public function toggleTimeSlot($slotKey)
     {
-        $bookedKeys = array_column($this->bookedSlots, 'key');
-        $preliminaryKeys = array_column($this->preliminaryBookedSlots, 'key');
-
-        if (in_array($slotKey, $bookedKeys) || in_array($slotKey, $preliminaryKeys)) {
+        if (!$this->isLoggedIn) {
+            $this->storeSelectedSlots();
+            $this->showLoginReminder = true;
             return;
         }
 
+        // Parse slot key (format: Y-m-d-H:i)
         $parts = explode('-', $slotKey);
-        if (count($parts) >= 4) {
-            $slotDateTime = Carbon::createFromFormat('Y-m-d H:i', $parts[0] . '-' . $parts[1] . '-' . $parts[2] . ' ' . $parts[3]);
-            if ($slotDateTime->isPast()) {
-                return;
-            }
+        if (count($parts) < 4) return;
+
+        $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
+        $slotDate = Carbon::parse($date);
+
+        // Check if slot is bookable
+        if (!$this->canBookSlot($slotDate)) {
+            return;
         }
 
+        // Check if already booked
+        if ($this->isSlotBooked($slotKey)) {
+            return;
+        }
+
+        // Check if slot is in the past
+        $slotDateTime = Carbon::createFromFormat('Y-m-d H:i', $date . ' ' . $parts[3]);
+        if ($slotDateTime->isPast()) {
+            return;
+        }
+
+        // Toggle selection
         $index = array_search($slotKey, $this->selectedSlots);
         if ($index !== false) {
             unset($this->selectedSlots[$index]);
             $this->selectedSlots = array_values($this->selectedSlots);
         } else {
+            // Check daily limit (max 2 hours per day)
+            $dailySlots = array_filter($this->selectedSlots, function ($slot) use ($date) {
+                return str_starts_with($slot, $date);
+            });
+
+            if (count($dailySlots) >= 2) {
+                $this->quotaWarning = 'Maximum 2 hours per day allowed.';
+                return;
+            }
+
             $this->selectedSlots[] = $slotKey;
         }
 
+        $this->storeSelectedSlots();
         $this->determineBookingType();
-        $this->validateCombinedQuotaForSelections();
+        $this->validateSelections();
     }
 
-    /**
-     * Determines the booking type for the selected time slots.
-     *
-     * This method checks all selected time slots and determines if the booking
-     * type is 'free' or 'mixed'. If all selected slots are within the current
-     * week, the booking type is 'free'. If any selected slots are after the current
-     * week, the booking type is 'mixed'.
-     */
+    private function canBookSlot($date)
+    {
+        $isNextWeek = $date->isNextWeek();
+        $isPremiumPeriod = $date->greaterThan(Carbon::today()->addWeek()) &&
+            $date->lessThanOrEqualTo(Carbon::today()->addMonth());
+
+        return ($isNextWeek) || ($isPremiumPeriod && $this->isPremiumBookingOpen);
+    }
+
+    private function isSlotBooked($slotKey)
+    {
+        $bookedKeys = array_column($this->bookedSlots, 'key');
+        $preliminaryKeys = array_column($this->preliminaryBookedSlots, 'key');
+
+        return in_array($slotKey, $bookedKeys) || in_array($slotKey, $preliminaryKeys);
+    }
+
     public function determineBookingType()
     {
         if (empty($this->selectedSlots)) {
@@ -610,8 +371,8 @@ new #[Layout('components.frontend.app')] class extends Component {
             $parts = explode('-', $slotKey);
             if (count($parts) >= 3) {
                 $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
-                $daysFromNow = Carbon::now()->diffInDays(Carbon::parse($date), false);
-                if ($daysFromNow > 7) {
+                $slotDate = Carbon::parse($date);
+                if ($slotDate->greaterThan(Carbon::today()->addWeek())) {
                     $hasPremium = true;
                     break;
                 }
@@ -621,44 +382,122 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->bookingType = $hasPremium ? 'mixed' : 'free';
     }
 
-    /**
-     * Determine the booking type for the given time slot key.
-     *
-     * Given a time slot key in the format Y-m-d-H:i, this method returns
-     * 'free' if the date is within 7 days from now, or 'premium' if the date
-     * is after 7 days from now.
-     *
-     * @param string $slotKey A string in the format Y-m-d-H:i representing the time slot to check.
-     * @return string The booking type for the given time slot, either 'free' or 'premium'.
-     */
     public function getSlotType($slotKey)
     {
         $parts = explode('-', $slotKey);
         if (count($parts) >= 3) {
             $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
-            $daysFromNow = Carbon::now()->diffInDays(Carbon::parse($date), false);
-            return $daysFromNow <= 7 ? 'free' : 'premium';
+            $slotDate = Carbon::parse($date);
+            return $slotDate->greaterThan(Carbon::today()->addWeek()) ? 'premium' : 'free';
         }
         return 'free';
     }
 
-    /**
-     * Confirm a booking and open the confirmation modal.
-     *
-     * This method will not do anything if no time slots are selected. If the user
-     * is not logged in, it will store the selected slots in the session and show
-     * a login reminder. If the user has exceeded their booking quota, it will
-     * show an error message. Otherwise, it will prepare the booking data and
-     * show the confirmation modal.
-     */
-    public function confirmBooking()
+    private function validateSelections()
     {
-        if (count($this->selectedSlots) === 0) {
+        if (empty($this->selectedSlots)) {
+            $this->quotaWarning = '';
             return;
         }
 
-        if (!auth('tenant')->check()) {
-            session(['pending_booking_slots' => $this->selectedSlots]);
+        // Group by date to count days
+        $selectedDays = [];
+        foreach ($this->selectedSlots as $slot) {
+            $parts = explode('-', $slot);
+            if (count($parts) >= 3) {
+                $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
+                $selectedDays[$date] = true;
+            }
+        }
+
+        $dayCount = count($selectedDays);
+        $remaining = $this->quotaInfo['weekly_remaining'] ?? 0;
+
+        if ($dayCount > $remaining) {
+            $this->quotaWarning = "You can only book {$remaining} more days this week.";
+        } else {
+            $this->quotaWarning = '';
+        }
+    }
+
+    private function updateNavigationState()
+    {
+        switch ($this->viewMode) {
+            case 'weekly':
+                $this->canGoBack = $this->currentWeekStart->greaterThan(Carbon::today()->startOfWeek());
+                $this->canGoForward = $this->currentWeekStart->lessThan(Carbon::today()->addMonth()->startOfWeek());
+                break;
+            case 'monthly':
+                $this->canGoBack = $this->currentMonthStart->greaterThan(Carbon::today()->startOfMonth());
+                $this->canGoForward = $this->currentMonthStart->lessThan(Carbon::today()->addYear()->startOfMonth());
+                break;
+            case 'daily':
+                $this->canGoBack = $this->currentDate->greaterThan(Carbon::today());
+                $this->canGoForward = $this->currentDate->lessThan(Carbon::today()->addMonth());
+                break;
+        }
+    }
+
+    // Navigation methods
+    public function previousPeriod()
+    {
+        $this->storeSelectedSlots();
+
+        switch ($this->viewMode) {
+            case 'weekly':
+                $this->currentWeekStart->subWeek();
+                break;
+            case 'monthly':
+                $this->currentMonthStart->subMonth();
+                break;
+            case 'daily':
+                $this->currentDate->subDay();
+                break;
+        }
+
+        $this->updateViewData();
+        $this->restoreSelectedSlots();
+    }
+
+    public function nextPeriod()
+    {
+        $this->storeSelectedSlots();
+
+        switch ($this->viewMode) {
+            case 'weekly':
+                $this->currentWeekStart->addWeek();
+                break;
+            case 'monthly':
+                $this->currentMonthStart->addMonth();
+                break;
+            case 'daily':
+                $this->currentDate->addDay();
+                break;
+        }
+
+        $this->updateViewData();
+        $this->restoreSelectedSlots();
+    }
+
+    public function goToToday()
+    {
+        $this->storeSelectedSlots();
+
+        $this->currentDate = Carbon::today();
+        $this->currentWeekStart = Carbon::today()->startOfWeek();
+        $this->currentMonthStart = Carbon::today()->startOfMonth();
+
+        $this->updateViewData();
+        $this->restoreSelectedSlots();
+    }
+
+    // Booking process methods
+    public function confirmBooking()
+    {
+        if (empty($this->selectedSlots)) return;
+
+        if (!$this->isLoggedIn) {
+            $this->storeSelectedSlots();
             $this->showLoginReminder = true;
             return;
         }
@@ -672,29 +511,13 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->showConfirmModal = true;
     }
 
-    /**
-     * Prepares the booking data for selected time slots.
-     *
-     * This method initializes the pending booking data array and iterates over
-     * the selectedSlots array, parsing each slot key into date and time components.
-     * For each valid slot, it calculates whether light is required based on the
-     * start time, determines the booking type as either 'free' or 'premium' based
-     * on the date, and formats the information into an array which is added to
-     * pendingBookingData. Errors in parsing are logged.
-     */
     public function prepareBookingData()
     {
         $this->pendingBookingData = [];
 
         foreach ($this->selectedSlots as $slotKey) {
-            if (!str_contains($slotKey, '-')) {
-                continue;
-            }
-
             $parts = explode('-', $slotKey);
-            if (count($parts) < 4) {
-                continue;
-            }
+            if (count($parts) < 4) continue;
 
             $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
             $time = $parts[3];
@@ -704,8 +527,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                 $timeObj = Carbon::createFromFormat('H:i', $time);
 
                 $isLightRequired = $timeObj->hour >= 18;
-                $daysFromNow = Carbon::now()->diffInDays($dateObj, false);
-                $bookingType = $daysFromNow <= 7 ? 'free' : 'premium';
+                $bookingType = $this->getSlotType($slotKey);
 
                 $this->pendingBookingData[] = [
                     'date' => $dateObj->format('D, m/d/Y'),
@@ -722,17 +544,6 @@ new #[Layout('components.frontend.app')] class extends Component {
         }
     }
 
-    /**
-     * Process the booking for the selected time slots.
-     *
-     * This method processes the booking for each time slot in pendingBookingData.
-     * It creates a new booking and sets the booking type and light requirement based
-     * on the date and time of the booking. If the booking is successfully created,
-     * its price is calculated and saved. If there are any errors, they are logged.
-     * If the booking is successfully created, it sets the booking reference to the
-     * same value for all bookings and updates them. Finally, it resets all modal
-     * flags to false, closes all modals, and reloads booked slots and quota info.
-     */
     public function processBooking()
     {
         $tenant = auth('tenant')->user();
@@ -751,7 +562,9 @@ new #[Layout('components.frontend.app')] class extends Component {
                     'is_light_required' => $bookingData['is_light_required'],
                 ]);
 
-                $booking->calculatePrice();
+                if (method_exists($booking, 'calculatePrice')) {
+                    $booking->calculatePrice();
+                }
                 $booking->save();
 
                 $bookings[] = $booking;
@@ -766,28 +579,26 @@ new #[Layout('components.frontend.app')] class extends Component {
             return;
         }
 
-        $this->bookingReference = $bookings[0]->generateReference();
+        // Generate booking reference
+        $firstBooking = $bookings[0];
+        $this->bookingReference = 'C' . $this->courtNumber . '-' .
+            $firstBooking->date->format('Y-m-d') . '-' .
+            $firstBooking->start_time->format('Hi') . '-' .
+            $firstBooking->id;
 
         foreach ($bookings as $booking) {
             $booking->update(['booking_reference' => $this->bookingReference]);
         }
 
         $this->selectedSlots = [];
+        session()->forget('booking_selected_slots');
         $this->showConfirmModal = false;
         $this->showThankYouModal = true;
 
         $this->loadBookedSlots();
         $this->loadQuotaInfo();
-        /*************  ✨ Windsurf Command ⭐  *************/
-        /**
-         * Resets all modal flags to false, effectively closing all modals.
-         */
-        /*******  f29b7573-eb2a-48cb-b90e-3e620803f85a  *******/
     }
 
-    /**
-     * Resets all modal flags to false, effectively closing all modals.
-     */
     public function closeModal()
     {
         $this->showConfirmModal = false;
@@ -796,203 +607,160 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->showCalendarPicker = false;
     }
 
-    /**
-     * Redirects the user to the login page.
-     *
-     * This method returns a redirect response that navigates
-     * the user to the login route.
-     *
-     * @return \Illuminate\Http\RedirectResponse The redirect response to the login route.
-     */
     public function redirectToLogin()
     {
         return redirect()->route('login');
     }
 }; ?>
 
-<section>
-
-    {{ \Carbon\Carbon::now()->daysInMonth }}
-
+<div x-data="courtBooking()" x-init="init()">
     <!-- Header -->
     <div class="relative overflow-hidden bg-gradient-to-r from-gray-600 to-gray-800 py-8 text-center text-white">
         <div class="absolute inset-0 bg-black opacity-10"></div>
         <div class="relative z-10">
             <h1 class="text-3xl font-bold tracking-wide">🎾 TENNIS COURT BOOKING</h1>
             <p class="mt-2 text-gray-200">Reserve your perfect playing time</p>
+
+            @if($isPremiumBookingOpen)
+            <div class="mt-4 inline-block rounded-full bg-purple-600 px-4 py-2 text-sm font-bold">
+                🌟 Premium Booking Open Today!
+            </div>
+            @else
+            <div class="mt-4 text-sm text-gray-300">
+                Next Premium Booking: {{ $premiumBookingDate->format('M j, Y') }}
+            </div>
+            @endif
         </div>
     </div>
 
-    <!-- Content -->
-    <div class="container min-h-screen bg-white py-6">
-        <!-- Title Section -->
-        <div class="mb-8">
-            <div class="flex flex-wrap items-start justify-between gap-4">
-                <div class="booking-title">
-                    <h2 class="mb-2 text-lg font-medium text-gray-600">Select Date & Time</h2>
-                    <h3 class="mb-2 text-3xl font-bold text-gray-800">
-                        @if ($bookingType === 'mixed')
-                        Mixed Booking, Court {{ $courtNumber }}
-                        @else
-                        {{ ucfirst($bookingType) }} Booking, Court {{ $courtNumber }}
-                        @endif
-                    </h3>
-                </div>
-                <div class="text-right">
-                    <p class="text-sm font-medium text-gray-600">{{ $startDate }} - {{ $endDate }}</p>
-                    @if ($weekOffset === 0)
-                    <p class="text-xs font-bold text-blue-600">📅 Current Week</p>
-                    @elseif($weekOffset === 1)
-                    <p class="text-xs font-bold text-purple-600">📅 Next Week</p>
-                    @else
-                    <p class="text-xs font-bold text-purple-600">📅 {{ $weekOffset }} weeks ahead</p>
-                    @endif
-                </div>
+    <div class="container mx-auto min-h-screen bg-white px-4 py-6">
+        <!-- View Mode Selector -->
+        <div class="mb-6 flex justify-center">
+            <div class="inline-flex rounded-lg border border-gray-300 bg-white p-1 shadow-sm">
+                <button
+                    wire:click="switchView('weekly')"
+                    @class([ 'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200' , 'bg-blue-500 text-white shadow-sm'=> $viewMode === 'weekly',
+                    'text-gray-700 hover:bg-gray-100' => $viewMode !== 'weekly'
+                    ])>
+                    📅 Weekly
+                </button>
+                <button
+                    wire:click="switchView('monthly')"
+                    @class([ 'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200' , 'bg-blue-500 text-white shadow-sm'=> $viewMode === 'monthly',
+                    'text-gray-700 hover:bg-gray-100' => $viewMode !== 'monthly'
+                    ])>
+                    📆 Monthly
+                </button>
+                <button
+                    wire:click="switchView('daily')"
+                    @class([ 'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200' , 'bg-blue-500 text-white shadow-sm'=> $viewMode === 'daily',
+                    'text-gray-700 hover:bg-gray-100' => $viewMode !== 'daily'
+                    ])>
+                    🕐 Daily
+                </button>
             </div>
         </div>
 
-        <!-- Login Prompt for Quota -->
-        @if (!$isLoggedIn)
+        <!-- Navigation Controls -->
+        <div class="mb-6 flex items-center justify-between rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 p-4 shadow-sm">
+            <button
+                wire:click="previousPeriod"
+                @disabled(!$canGoBack)
+                @class([ 'flex items-center gap-2 rounded-lg px-4 py-2 transition-all duration-300' , 'bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 cursor-pointer shadow-sm'=> $canGoBack,
+                'bg-gray-200 border border-gray-200 text-gray-400 cursor-not-allowed' => !$canGoBack
+                ])>
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Previous
+            </button>
+
+            <div class="text-center">
+                @if($viewMode === 'weekly')
+                <h3 class="text-lg font-semibold">
+                    {{ $currentWeekStart->format('M j') }} - {{ $currentWeekStart->copy()->addDays(6)->format('M j, Y') }}
+                </h3>
+                @elseif($viewMode === 'monthly')
+                <h3 class="text-lg font-semibold">{{ $currentMonthStart->format('F Y') }}</h3>
+                @else
+                <h3 class="text-lg font-semibold">{{ $currentDate->format('l, F j, Y') }}</h3>
+                @endif
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button
+                    wire:click="goToToday"
+                    class="rounded-lg bg-blue-100 px-4 py-2 text-blue-700 transition-all duration-300 hover:bg-blue-200">
+                    📅 Today
+                </button>
+
+                <button
+                    wire:click="nextPeriod"
+                    @disabled(!$canGoForward)
+                    @class([ 'flex items-center gap-2 rounded-lg px-4 py-2 transition-all duration-300' , 'bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 cursor-pointer shadow-sm'=> $canGoForward,
+                    'bg-gray-200 border border-gray-200 text-gray-400 cursor-not-allowed' => !$canGoForward
+                    ])>
+                    Next
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Login Prompt -->
+        @if(!$isLoggedIn)
         <div class="mb-6 rounded-r-lg border-l-4 border-blue-400 bg-blue-50 p-6">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
                     <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                            clip-rule="evenodd" />
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                     </svg>
                 </div>
                 <div class="ml-3">
                     <p class="text-sm text-blue-700">
                         <strong>Login to see your booking quota</strong> and make reservations.
-                        <a class="underline transition-colors hover:text-blue-900" href="{{ route('login') }}">Sign
-                            in here</a>
+                        <a class="underline transition-colors hover:text-blue-900" href="{{ route('login') }}">Sign in here</a>
                     </p>
                 </div>
             </div>
         </div>
         @endif
 
-        <!-- Week Navigation -->
-        <div class="mb-8">
-            <div
-                class="flex flex-wrap items-center justify-between gap-y-6 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 p-6 shadow-sm">
-                <div class="flex flex-wrap items-center gap-4">
-                    <button
-                        @class([ 'nav-button flex transform items-center gap-2 rounded-lg px-4 py-2 transition-all duration-300 hover:scale-105' , 'bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 cursor-pointer shadow-sm hover:shadow-md'=> $canGoBack,
-                        'bg-gray-200 border border-gray-200 text-gray-400 cursor-not-allowed' => !$canGoBack,
-                        ])
-                        wire:click="previousWeek" @disabled(!$canGoBack)>
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
-                            </path>
-                        </svg>
-                        Previous
-                    </button>
-
-                    @if ($weekOffset > 0)
-                    <button
-                        class="transform rounded-lg bg-blue-100 px-4 py-2 text-blue-700 shadow-sm transition-all duration-300 hover:scale-105 hover:bg-blue-200"
-                        wire:click="goToCurrentWeek">
-                        📅 Current Week
-                    </button>
-                    @endif
-
-                    <button
-                        class="transform rounded-lg bg-purple-100 px-4 py-2 text-purple-700 shadow-sm transition-all duration-300 hover:scale-105 hover:bg-purple-200"
-                        wire:click="showCalendar">
-                        📅 Pick Date
-                    </button>
+        <!-- Quota Display -->
+        @if($isLoggedIn && !empty($quotaInfo))
+        <div class="mb-6 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 p-6 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-blue-800">Weekly Quota</h3>
+                    <p class="text-sm text-blue-600">Maximum 3 days per week, 2 hours per day</p>
                 </div>
-
-                <!-- Quick Jump Buttons -->
-                <div class="flex max-sm:flex-col">
-                    <span class="mr-2 text-sm font-medium text-gray-600">Quick Jump:</span>
-                    <div class="flex flex-wrap items-center gap-2">
-                        @for ($i = 1; $i < $numberOfWeeksInMonth; $i++)
-                            @php
-                            $jumpDate=\Carbon\Carbon::today()->startOfWeek()->addWeeks($i);
-                            $isCurrentWeek = $i === $weekOffset;
-                            @endphp
-
-                            <button
-                                @class([ 'quick-jump transform rounded-full  px-3 py-2 text-xs transition-all duration-300 hover:scale-110' , 'text-white bg-gradient-to-r from-blue-500 to-blue-600 shadow-md'=> $isCurrentWeek,
-                                'border border-gray-300 text-gray-600 hover:bg-gray-50 shadow-sm hover:shadow-md' => !$isCurrentWeek,
-                                ])
-                                wire:click="jumpToWeek({{ $i }})"
-                                title="{{ $jumpDate->format('M j') }} - {{ $jumpDate->copy()->addDays(6)->format('M j') }}">
-                                {{ $isCurrentWeek ? 'Current Week' : 'Week ' . ($i ) }}
-                            </button>
-                            @endfor
+                <div class="text-right">
+                    <div class="text-3xl font-bold text-blue-600">
+                        {{ $quotaInfo['weekly_used'] ?? 0 }}/{{ $quotaInfo['weekly_total'] ?? 3 }}
                     </div>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    <button
-                        @class([ 'nav-button flex transform items-center gap-2 rounded-lg px-4 py-2 transition-all duration-300 hover:scale-105' , 'bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 cursor-pointer shadow-sm hover:shadow-md'=> $canGoForward,
-                        'bg-gray-200 border border-gray-200 text-gray-400 cursor-not-allowed' => !$canGoForward,
-                        ])
-                        wire:click="nextWeek" @disabled(!$canGoForward)>
-                        Next
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
-                            </path>
-                        </svg>
-                    </button>
+                    <div class="text-sm text-blue-600">Days used this week</div>
                 </div>
             </div>
-        </div>
-
-        <!-- Quota Info -->
-        @if ($isLoggedIn && !empty($quotaInfo))
-        <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-            <div
-                class="quota-card rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 p-6 shadow-sm transition-all duration-300 hover:shadow-md">
-                <div class="mb-3 flex items-center justify-between">
-                    <h4 class="font-bold text-blue-800">🆓 Free Booking Quota</h4>
-                    <div class="rounded-full bg-blue-200 px-2 py-1 text-xs text-blue-800">Weekly</div>
-                </div>
-                <p class="mb-2 text-3xl font-bold text-blue-600">
-                    {{ $quotaInfo['free']['used'] }}/{{ $quotaInfo['free']['total'] }}
-                </p>
-                <p class="text-sm text-blue-600">Up to 7 days ahead</p>
-
+            @if(($quotaInfo['weekly_remaining'] ?? 0) > 0)
+            <div class="mt-2 text-sm text-green-600">
+                ✅ You can book {{ $quotaInfo['weekly_remaining'] }} more days this week
             </div>
-
-            <div
-                class="quota-card rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 p-6 shadow-sm transition-all duration-300 hover:shadow-md">
-                <div class="mb-3 flex items-center justify-between">
-                    <h4 class="font-bold text-purple-800">⭐ Premium Booking Quota</h4>
-                    <div class="rounded-full bg-purple-200 px-2 py-1 text-xs text-purple-800">Monthly</div>
-                </div>
-                <p class="mb-2 text-3xl font-bold text-purple-600">
-                    {{ $quotaInfo['premium']['used'] }}/{{ $quotaInfo['premium']['total'] }}
-                </p>
-                <p class="text-sm text-purple-600">Up to 1 month ahead</p>
-
+            @else
+            <div class="mt-2 text-sm text-red-600">
+                ⚠️ You have reached your weekly booking limit
             </div>
-
-            <div
-                class="quota-card rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-green-100 p-6 shadow-sm transition-all duration-300 hover:shadow-md">
-                <div class="mb-3 flex items-center justify-between">
-                    <h4 class="font-bold text-green-800">📊 Combined Quota</h4>
-                    <div class="rounded-full bg-green-200 px-2 py-1 text-xs text-green-800">Available</div>
-                </div>
-                <p class="mb-2 text-3xl font-bold text-green-600">{{ $quotaInfo['combined']['remaining'] }}</p>
-                <p class="text-sm text-green-600">Your remaining quota</p>
-            </div>
+            @endif
         </div>
         @endif
 
         <!-- Quota Warning -->
-        @if ($quotaWarning)
-        <div class="quota-warning mb-6 rounded-r-lg border-l-4 border-orange-400 bg-orange-50 p-4">
+        @if($quotaWarning)
+        <div class="mb-6 rounded-r-lg border-l-4 border-orange-400 bg-orange-50 p-4">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
                     <svg class="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                            clip-rule="evenodd" />
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                     </svg>
                 </div>
                 <div class="ml-3">
@@ -1002,32 +770,30 @@ new #[Layout('components.frontend.app')] class extends Component {
         </div>
         @endif
 
-        <!-- Error Messages -->
-        @if (session()->has('error'))
-        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800">
-            {{ session('error') }}
-        </div>
-        @endif
-
-        <!-- Booking Table -->
-        <div class="booking-table-container mb-8 overflow-x-auto rounded-xl border border-gray-300 shadow-lg">
+        <!-- Weekly View -->
+        @if($viewMode === 'weekly')
+        <div class="mb-8 overflow-x-auto rounded-xl border border-gray-300 shadow-lg">
             <table class="w-full border-collapse bg-white">
                 <thead>
                     <tr>
-                        @foreach ($weekDays as $day)
-                        <th @class([ 'border-r border-gray-300 last:border-r-0 p-4 text-white text-center relative' , 'bg-gradient-to-b from-blue-500 to-blue-600 '=> $day['is_today'],
-                            'bg-gradient-to-b from-gray-400 to-gray-500 ' => $day['is_past'],
-                            'bg-gradient-to-b from-blue-700 to-blue-800 ' => $day['is_free_period'],
-                            'bg-gradient-to-b from-purple-600 to-purple-700 ' => !$day['is_today'] && !$day['is_past'] && !$day['is_free_period'],
+                        <th class="border-r border-gray-300 bg-gray-100 p-4 text-left font-semibold text-gray-700">Time</th>
+                        @foreach($weekDays as $day)
+                        <th @class([ 'border-r border-gray-300 last:border-r-0 p-4 text-white text-center relative' , 'bg-gradient-to-b from-blue-500 to-blue-600'=> $day['is_today'],
+                            'bg-gradient-to-b from-gray-400 to-gray-500' => $day['is_past'],
+                            'bg-gradient-to-b from-green-600 to-green-700' => $day['can_book_free'] && !$day['is_today'],
+                            'bg-gradient-to-b from-purple-600 to-purple-700' => $day['can_book_premium'] && !$day['is_today'] && !$day['can_book_free'],
+                            'bg-gradient-to-b from-gray-300 to-gray-400' => !$day['is_bookable'] && !$day['is_today'] && !$day['is_past']
                             ])>
                             <div class="flex flex-col items-center">
-                                <div class="text-sm font-bold">{{ $day['name'] }}</div>
+                                <div class="text-sm font-bold">{{ $day['day_name'] }}</div>
                                 <div class="text-2xl font-bold">{{ $day['day_number'] }}</div>
                                 <div class="text-xs opacity-90">{{ $day['month_name'] }}</div>
-                                @if ($day['is_today'])
+                                @if($day['is_today'])
                                 <div class="mt-1 rounded-full bg-blue-400 px-2 py-0.5 text-xs">TODAY</div>
-                                @elseif(!$day['is_free_period'] && $currentWeekStart->copy()->addWeek()->isSameWeek(Carbon::now()) && $day['is_past'])
-                                <div class="mt-1 rounded-full bg-purple-500 px-2 py-0.5 text-xs">PREMIUM</div>
+                                @elseif($day['can_book_free'])
+                                <div class="mt-1 rounded-full bg-green-400 px-2 py-0.5 text-xs">FREE</div>
+                                @elseif($day['can_book_premium'])
+                                <div class="mt-1 rounded-full bg-purple-400 px-2 py-0.5 text-xs">PREMIUM</div>
                                 @endif
                             </div>
                         </th>
@@ -1035,10 +801,13 @@ new #[Layout('components.frontend.app')] class extends Component {
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($timeSlots as $slot)
-                    <tr
-                        class="border-b border-gray-200 transition-colors duration-200 last:border-b-0 hover:bg-gray-50">
-                        @foreach ($weekDays as $day)
+                    @foreach($timeSlots as $slot)
+                    <tr class="border-b border-gray-200 transition-colors duration-200 last:border-b-0 hover:bg-gray-50">
+                        <td class="border-r border-gray-300 bg-gray-50 p-4 font-medium text-gray-700">
+                            <div class="text-sm">{{ $slot['start'] }}</div>
+                            <div class="text-xs text-gray-500">{{ $slot['end'] }}</div>
+                        </td>
+                        @foreach($weekDays as $day)
                         @php
                         $slotKey = $day['date'] . '-' . $slot['start'];
                         $slotType = $this->getSlotType($slotKey);
@@ -1050,60 +819,46 @@ new #[Layout('components.frontend.app')] class extends Component {
                         $isPreliminary = $preliminarySlot !== null;
                         $isSelected = in_array($slotKey, $selectedSlots);
 
-                        $slotDateTime = \Carbon\Carbon::createFromFormat(
-                        'Y-m-d H:i',
-                        $day['date'] . ' ' . $slot['start'],
-                        );
+                        $slotDateTime = \Carbon\Carbon::createFromFormat('Y-m-d H:i', $day['date'] . ' ' . $slot['start']);
                         $isPastSlot = $slotDateTime->isPast();
+                        $canBook = $day['is_bookable'] && !$isPastSlot && !$isBooked && !$isPreliminary;
                         @endphp
                         <td
-                            @class([ 'time-slot' , 'bg-gray-100 text-gray-400 cursor-not-allowed'=> $isPastSlot,
-                            'bg-red-100 text-red-800 cursor-not-allowed border-l-4 border-red-400' => $isBooked && $bookedSlot['type'] === 'free',
-                            'bg-red-200 text-red-900 cursor-not-allowed border-l-4 border-red-600' => $isBooked && $bookedSlot['type'] !== 'free',
-                            'bg-blue-100 text-blue-800 cursor-not-allowed border-l-4 border-blue-400' => $isPreliminary && $preliminarySlot['type'] === 'free',
-                            'bg-blue-200 text-blue-900 cursor-not-allowed border-l-4 border-blue-600' => $isPreliminary && $preliminarySlot['type'] !== 'free',
-                            'bg-green-100 text-green-800 cursor-pointer hover:bg-green-200 transform scale-95 shadow-inner border-l-4 border-green-500' => $isSelected && $slotType === 'free',
-                            'bg-purple-100 text-purple-800 cursor-pointer hover:bg-purple-200 transform scale-95 shadow-inner border-l-4 border-purple-500' => $isSelected && $slotType !== 'free',
-                            'cursor-pointer hover:bg-blue-50 hover:shadow-md transform hover:scale-105' => !$isSelected && $slotType === 'free',
-                            'cursor-pointer hover:bg-purple-50 hover:shadow-md transform hover:scale-105' => !$isSelected && $slotType !== 'free',
+                            @class([ 'time-slot p-3 text-center cursor-pointer transition-all duration-200' , 'bg-gray-100 text-gray-400 cursor-not-allowed'=> $isPastSlot || !$day['is_bookable'],
+                            'bg-red-100 text-red-800 cursor-not-allowed border-l-4 border-red-400' => $isBooked,
+                            'bg-yellow-100 text-yellow-800 cursor-not-allowed border-l-4 border-yellow-400' => $isPreliminary,
+                            'bg-green-100 text-green-800 border-l-4 border-green-500 transform scale-95 shadow-inner' => $isSelected && $slotType === 'free',
+                            'bg-purple-100 text-purple-800 border-l-4 border-purple-500 transform scale-95 shadow-inner' => $isSelected && $slotType === 'premium',
+                            'hover:bg-green-50 hover:shadow-md transform hover:scale-105' => $canBook && $slotType === 'free' && !$isSelected,
+                            'hover:bg-purple-50 hover:shadow-md transform hover:scale-105' => $canBook && $slotType === 'premium' && !$isSelected,
                             ])
-
-                            @if (!$day['is_this_week'])
+                            @if($canBook)
                             wire:click="toggleTimeSlot('{{ $slotKey }}')"
                             @endif
-                            title="@if ($isPastSlot) Past slot @else {{ $day['formatted_date'] }} {{ $slot['start'] }}-{{ $slot['end'] }} ({{ ucfirst($slotType) }}) @endif">
-                            <div class="py-1 font-bold">
-                                {{ $slot['start'] }}
-                            </div>
-                            <div class="text-xs opacity-75">
-                                {{ $slot['end'] }}
-                            </div>
+                            title="@if($isPastSlot) Past slot @elseif(!$day['is_bookable']) Not bookable @else {{ $day['formatted_date'] ?? $day['date'] }} {{ $slot['start'] }}-{{ $slot['end'] }} ({{ ucfirst($slotType) }}) @endif">
 
-                            @if ($isPastSlot)
-                            <div class="mt-1 text-xs text-gray-400">Past</div>
+                            @if($isPastSlot)
+                            <div class="text-xs text-gray-400">Past</div>
+                            @elseif(!$day['is_bookable'])
+                            <div class="text-xs text-gray-400">-</div>
                             @elseif($isSelected)
-                            <div
-                                @class([ 'mt-1 text-xs font-bold' , 'text-green-700'=> $slotType === 'free',
-                                'text-purple-700' => $slotType !== 'free',
-                                ])
+                            <div @class([ 'text-xs font-bold' , 'text-green-700'=> $slotType === 'free',
+                                'text-purple-700' => $slotType === 'premium'
+                                ])>
                                 ✓ Selected
                             </div>
-                            @elseif($isBooked || $isPreliminary)
-                            <div class="mt-1 text-xs font-bold">
-                                @if ($isBooked) Booked
-                                @else
-                                Pending @endif
-                            </div>
+                            @elseif($isBooked)
+                            <div class="text-xs font-bold text-red-700">Booked</div>
+                            @elseif($isPreliminary)
+                            <div class="text-xs font-bold text-yellow-700">Pending</div>
                             @else
-                            <div class="mt-1 text-xs opacity-60">
-                                @if ($slotType === 'free') 🆓 Free
-                                @else
-                                ⭐ Premium @endif
+                            <div class="text-xs opacity-60">
+                                @if($slotType === 'free') 🆓 Free @else ⭐ Premium @endif
                             </div>
                             @endif
 
-                            @if ($slotType === 'premium' && !$isPastSlot && !$isBooked && !$isPreliminary)
-                            <div class="absolute right-1 top-1 h-2 w-2 rounded-full bg-purple-500"></div>
+                            @if($slot['is_peak'] && $canBook)
+                            <div class="mt-1 text-xs text-orange-600">💡</div>
                             @endif
                         </td>
                         @endforeach
@@ -1112,80 +867,124 @@ new #[Layout('components.frontend.app')] class extends Component {
                 </tbody>
             </table>
         </div>
+        @endif
 
-        <!-- Legend -->
-        <div
-            class="mb-8 flex flex-wrap items-center gap-6 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 p-6 text-sm">
-            <div class="flex items-center gap-2">
-                <div class="h-4 w-4 rounded border-l-4 border-red-400 bg-red-100"></div>
-                <span class="font-medium">🆓 Free Booked</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="h-4 w-4 rounded border-l-4 border-red-600 bg-red-200"></div>
-                <span class="font-medium">⭐ Premium Booked</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="h-4 w-4 rounded border-l-4 border-blue-400 bg-blue-100"></div>
-                <span class="font-medium">🆓 Free Pending</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="h-4 w-4 rounded border-l-4 border-blue-600 bg-blue-200"></div>
-                <span class="font-medium">⭐ Premium Pending</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="h-4 w-4 rounded border-l-4 border-green-500 bg-green-100"></div>
-                <span class="font-medium">🆓 Free Selected</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="h-4 w-4 rounded border-l-4 border-purple-500 bg-purple-100"></div>
-                <span class="font-medium">⭐ Premium Selected</span>
-            </div>
-            <div class="ml-auto max-w-md text-xs italic text-gray-600">
-                *For booking later than 6pm additional IDR 50k/hour will be charged for tennis court lights
+        <!-- Monthly View -->
+        @if($viewMode === 'monthly')
+        <div class="mb-8 overflow-hidden rounded-xl border border-gray-300 shadow-lg">
+            <div class="grid grid-cols-7 gap-0">
+                <!-- Day headers -->
+                @foreach(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $dayName)
+                <div class="bg-gray-100 p-4 text-center font-semibold text-gray-700">{{ $dayName }}</div>
+                @endforeach
+
+                <!-- Calendar days -->
+                @foreach($monthDays as $day)
+                <div @class([ 'aspect-square border-r border-b border-gray-200 p-2 transition-all duration-200' , 'bg-white hover:bg-gray-50'=> $day['is_current_month'],
+                    'bg-gray-50 text-gray-400' => !$day['is_current_month'],
+                    'bg-blue-100 border-blue-300' => $day['is_today'],
+                    'cursor-pointer hover:shadow-md' => $day['is_bookable'],
+                    ])>
+                    <div class="flex h-full flex-col">
+                        <div @class([ 'text-sm font-medium' , 'text-blue-600 font-bold'=> $day['is_today'],
+                            'text-gray-900' => $day['is_current_month'] && !$day['is_today'],
+                            'text-gray-400' => !$day['is_current_month']
+                            ])>
+                            {{ $day['day_number'] }}
+                        </div>
+
+                        @if($day['is_bookable'])
+                        <div class="mt-1 flex-1">
+                            @if($day['can_book_free'])
+                            <div class="mb-1 rounded bg-green-100 px-1 py-0.5 text-xs text-green-700">Free</div>
+                            @endif
+                            @if($day['can_book_premium'])
+                            <div class="rounded bg-purple-100 px-1 py-0.5 text-xs text-purple-700">Premium</div>
+                            @endif
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
             </div>
         </div>
+        @endif
+
+        <!-- Daily View -->
+        @if($viewMode === 'daily')
+        <div class="mb-8 rounded-xl border border-gray-300 bg-white shadow-lg">
+            <div class="border-b border-gray-200 bg-gray-50 p-4">
+                <h3 class="text-lg font-semibold text-gray-800">{{ $currentDate->format('l, F j, Y') }}</h3>
+            </div>
+            <div class="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach($timeSlots as $slot)
+                @php
+                $slotKey = $currentDate->format('Y-m-d') . '-' . $slot['start'];
+                $slotType = $this->getSlotType($slotKey);
+                $isSelected = in_array($slotKey, $selectedSlots);
+                $isBooked = $this->isSlotBooked($slotKey);
+                $slotDateTime = \Carbon\Carbon::createFromFormat('Y-m-d H:i', $currentDate->format('Y-m-d') . ' ' . $slot['start']);
+                $isPastSlot = $slotDateTime->isPast();
+                $canBook = $this->canBookSlot($currentDate) && !$isPastSlot && !$isBooked;
+                @endphp
+                <div
+                    @class([ 'rounded-lg border p-4 text-center transition-all duration-200' , 'bg-gray-100 text-gray-400 cursor-not-allowed'=> $isPastSlot || !$canBook,
+                    'bg-green-100 text-green-800 border-green-300 cursor-pointer hover:bg-green-200' => $canBook && $slotType === 'free' && !$isSelected,
+                    'bg-purple-100 text-purple-800 border-purple-300 cursor-pointer hover:bg-purple-200' => $canBook && $slotType === 'premium' && !$isSelected,
+                    'bg-green-200 text-green-900 border-green-400 shadow-inner' => $isSelected && $slotType === 'free',
+                    'bg-purple-200 text-purple-900 border-purple-400 shadow-inner' => $isSelected && $slotType === 'premium',
+                    'bg-red-100 text-red-800 border-red-300' => $isBooked,
+                    ])
+                    @if($canBook)
+                    wire:click="toggleTimeSlot('{{ $slotKey }}')"
+                    @endif>
+                    <div class="font-semibold">{{ $slot['start'] }} - {{ $slot['end'] }}</div>
+                    @if($isPastSlot)
+                    <div class="text-xs">Past</div>
+                    @elseif($isBooked)
+                    <div class="text-xs">Booked</div>
+                    @elseif($isSelected)
+                    <div class="text-xs">✓ Selected</div>
+                    @elseif($canBook)
+                    <div class="text-xs">{{ $slotType === 'free' ? '🆓 Free' : '⭐ Premium' }}</div>
+                    @if($slot['is_peak'])
+                    <div class="text-xs text-orange-600">💡 Lights required</div>
+                    @endif
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
 
         <!-- Selection Summary -->
-        @if (count($selectedSlots) > 0)
-        <div
-            class="selection-summary mb-8 rounded-xl border border-green-200 bg-gradient-to-r from-green-50 to-blue-50 p-6 shadow-sm">
+        @if(count($selectedSlots) > 0)
+        <div class="mb-8 rounded-xl border border-green-200 bg-gradient-to-r from-green-50 to-blue-50 p-6 shadow-sm">
             <h4 class="mb-4 flex items-center gap-2 font-bold text-gray-800">
                 🎯 Selected Time Slots ({{ count($selectedSlots) }})
-                @if ($bookingType === 'mixed')
-                <span
-                    class="rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-2 py-1 text-xs text-white">Mixed
-                    Booking</span>
+                @if($bookingType === 'mixed')
+                <span class="rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-2 py-1 text-xs text-white">Mixed Booking</span>
                 @endif
             </h4>
             <div class="flex flex-wrap gap-3">
-                @foreach ($selectedSlots as $slot)
+                @foreach($selectedSlots as $slot)
                 @php
                 $parts = explode('-', $slot);
                 if (count($parts) >= 4) {
-                $date = \Carbon\Carbon::createFromFormat(
-                'Y-m-d',
-                $parts[0] . '-' . $parts[1] . '-' . $parts[2],
-                );
+                $date = \Carbon\Carbon::createFromFormat('Y-m-d', $parts[0] . '-' . $parts[1] . '-' . $parts[2]);
                 $time = $parts[3];
                 $slotType = $this->getSlotType($slot);
                 }
                 @endphp
-                @if (isset($date) && isset($time))
-                <span
-                    @class([ 'selected-slot' , 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'=> $slotType === 'free',
-                    'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300' => $slotType !== 'free',
-                    'inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 hover:scale-105',
-                    ])
-                    @if ($slotType === 'free')
-                    🆓
-                    @else
-                    ⭐
-                    @endif
-
+                @if(isset($date) && isset($time))
+                <span @class([ 'inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 hover:scale-105' , 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'=> $slotType === 'free',
+                    'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300' => $slotType !== 'free'
+                    ])>
+                    @if($slotType === 'free') 🆓 @else ⭐ @endif
                     {{ $date->format('M j') }} at {{ $time }}
                     <button
                         @class([ 'ml-2 transition-transform duration-200 hover:scale-110' , 'text-green-600 hover:text-green-800'=> $slotType === 'free',
-                        'text-purple-600 hover:text-purple-800' => $slotType !== 'free',
+                        'text-purple-600 hover:text-purple-800' => $slotType !== 'free'
                         ])
                         wire:click="toggleTimeSlot('{{ $slot }}')">
                         ✕
@@ -1197,113 +996,75 @@ new #[Layout('components.frontend.app')] class extends Component {
         </div>
         @endif
 
-        <!-- Actions -->
+        <!-- Legend -->
+        <div class="mb-8 flex flex-wrap items-center gap-6 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 p-6 text-sm">
+            <div class="flex items-center gap-2">
+                <div class="h-4 w-4 rounded border-l-4 border-red-400 bg-red-100"></div>
+                <span class="font-medium">Booked</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="h-4 w-4 rounded border-l-4 border-yellow-400 bg-yellow-100"></div>
+                <span class="font-medium">Pending</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="h-4 w-4 rounded border-l-4 border-green-500 bg-green-100"></div>
+                <span class="font-medium">🆓 Free Selected</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="h-4 w-4 rounded border-l-4 border-purple-500 bg-purple-100"></div>
+                <span class="font-medium">⭐ Premium Selected</span>
+            </div>
+            <div class="ml-auto max-w-md text-xs italic text-gray-600">
+                *💡 After 6pm additional charges apply for court lights
+            </div>
+        </div>
+
+        <!-- Confirm Button -->
         <div class="flex justify-end">
             <button
-                @class([ 'confirm-booking' , 'bg-gray-300 text-gray-500 cursor-not-allowed'=> count($selectedSlots) === 0,
+                wire:click="confirmBooking"
+                @disabled(count($selectedSlots)===0 || $quotaWarning)
+                @class([ 'transform rounded-xl px-8 py-4 text-sm font-bold shadow-lg transition-all duration-500 hover:scale-105' , 'bg-gray-300 text-gray-500 cursor-not-allowed'=> count($selectedSlots) === 0,
                 'bg-orange-400 text-white cursor-not-allowed' => $quotaWarning,
-                'bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 text-white hover:from-gray-800 hover:via-gray-900 hover:to-black cursor-pointer hover:shadow-xl' => ! $quotaWarning,
-                'transform rounded-xl px-8 py-4 text-sm font-bold shadow-lg transition-all duration-500 hover:scale-105',
-                ])
-                wire:click="confirmBooking" @disabled(count($selectedSlots)===0 || $quotaWarning)>
-                @if ($quotaWarning)
+                'bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 text-white hover:from-gray-800 hover:via-gray-900 hover:to-black cursor-pointer hover:shadow-xl' => !$quotaWarning && count($selectedSlots) > 0
+                ])>
+                @if($quotaWarning)
                 ⚠️ QUOTA EXCEEDED
                 @else
                 🎾 CONFIRM
-                @if ($bookingType === 'mixed')
-                MIXED
-                @else
-                {{ strtoupper($bookingType) }}
-                @endif
+                @if($bookingType === 'mixed') MIXED @else {{ strtoupper($bookingType) }} @endif
                 BOOKING(S)
-                @if (count($selectedSlots) > 0)
-                ({{ count($selectedSlots) }})
-                @endif
+                @if(count($selectedSlots) > 0) ({{ count($selectedSlots) }}) @endif
                 @endif
             </button>
         </div>
     </div>
 
-    <!-- Calendar Picker Modal -->
-    @if ($showCalendarPicker)
-    <div class="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div class="animate-scale-in mx-4 w-full max-w-md transform rounded-xl bg-white p-6 shadow-2xl">
-            <h3 class="mb-6 text-center text-xl font-bold">📅 Select Week</h3>
-
-            <div class="max-h-64 space-y-3 overflow-y-auto">
-
-                @for ($i = 0; $i < $numOfWeeks; $i++)
-                    @php
-                    $weekStart=\Carbon\Carbon::today()->startOfWeek();
-                    $weekEnd = $weekStart->copy()->endOfWeek();
-                    $isCurrentWeek = $i === $weekOffset;
-                    @endphp
-                    <button @class([ 'bg-blue-100 border-blue-300 text-blue-800'=> $isCurrentWeek,
-                        'bg-gray-50 border-gray-200 hover:bg-gray-100' => !$isCurrentWeek,
-                        'w-full rounded-lg border p-4 text-left transition-all duration-300 hover:scale-105' => true,
-                        ])
-                        wire:click="selectCalendarWeek('{{ $weekStart->format('Y-m-d') }}')">
-                        <div class="font-semibold">
-                            @if ($i === 0)
-                            This Week
-                            @elseif($i === 1)
-                            Next Week
-                            @else
-                            {{ $i }} weeks ahead
-                            @endif
-                        </div>
-                        <div class="text-sm text-gray-600">
-                            {{ $weekStart->format('M j') }} - {{ $weekEnd->format('M j, Y') }}
-                        </div>
-                    </button>
-                    @endfor
-            </div>
-
-            <div class="mt-6 flex justify-end">
-                <button class="px-6 py-2 text-gray-600 transition-colors hover:text-gray-800"
-                    wire:click="closeModal">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    <!-- Other modals remain the same... -->
-    @if ($showConfirmModal)
-    <div class="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div class="animate-scale-in mx-4 w-full max-w-lg transform rounded-xl bg-white p-6 shadow-2xl">
+    <!-- Modals -->
+    @if($showConfirmModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="mx-4 w-full max-w-lg transform rounded-xl bg-white p-6 shadow-2xl">
             <h3 class="mb-6 text-xl font-bold">
-                @if ($bookingType === 'mixed')
-                🎾 Mixed Booking Confirmation
-                @else
-                🎾 {{ ucfirst($bookingType) }} Booking Confirmation
-                @endif
+                🎾 {{ $bookingType === 'mixed' ? 'Mixed' : ucfirst($bookingType) }} Booking Confirmation
             </h3>
 
             <div class="mb-6 space-y-4">
-                @foreach ($pendingBookingData as $booking)
+                @foreach($pendingBookingData as $booking)
                 <div class="rounded-lg border bg-gray-50 p-4">
                     <div class="flex items-start justify-between">
                         <div>
                             <div class="font-semibold">{{ $booking['date'] }}</div>
                             <div class="text-lg">{{ $booking['time'] }}</div>
-                            @if ($booking['is_light_required'])
+                            @if($booking['is_light_required'])
                             <div class="mt-1 text-sm text-orange-600">
-                                💡 additional IDR 50k/hour for tennis court lights
+                                💡 Additional charges for court lights
                             </div>
                             @endif
                         </div>
-                        <span
-                            @class([ 'bg-blue-100 text-blue-800'=> $booking['booking_type'] === 'free',
-                            'bg-purple-100 text-purple-800' => $booking['booking_type'] !== 'free',
-                            'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
-                            ])
-                            @if ($booking['booking_type'] === 'free')
-                            🆓
-                            @else
-                            ⭐
-                            @endif
+                        <span @class([ 'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium' , 'bg-blue-100 text-blue-800'=> $booking['booking_type'] === 'free',
+                            'bg-purple-100 text-purple-800' => $booking['booking_type'] !== 'free'
+                            ])>
+                            @if($booking['booking_type'] === 'free') 🆓 @else ⭐ @endif
                             {{ strtoupper($booking['booking_type']) }}
                         </span>
                     </div>
@@ -1312,13 +1073,13 @@ new #[Layout('components.frontend.app')] class extends Component {
             </div>
 
             <div class="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-gray-600">
-                <p>💳 *Please process the payment to the Receptionist before using the tennis court</p>
-                <p>⚠️ *Please be responsible with your bookings. Failure to comply may result in being blacklisted.
-                </p>
+                <p>💳 Please process payment at reception before using the court</p>
+                <p>⚠️ Please be responsible with bookings to avoid being blacklisted</p>
             </div>
 
             <div class="flex justify-end gap-3">
-                <button class="rounded-lg px-6 py-2 text-gray-600 transition-colors hover:text-gray-800"
+                <button
+                    class="rounded-lg px-6 py-2 text-gray-600 transition-colors hover:text-gray-800"
                     wire:click="closeModal">
                     Cancel
                 </button>
@@ -1332,14 +1093,14 @@ new #[Layout('components.frontend.app')] class extends Component {
     </div>
     @endif
 
-    @if ($showThankYouModal)
-    <div class="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div
-            class="animate-scale-in mx-4 w-full max-w-md transform rounded-xl bg-white p-8 text-center shadow-2xl">
+    @if($showThankYouModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="mx-4 w-full max-w-md transform rounded-xl bg-white p-8 text-center shadow-2xl">
             <div class="mb-4 text-6xl">🎾</div>
             <h3 class="mb-4 text-xl font-bold">Thank you for your booking!</h3>
             <div class="mb-6 rounded-lg bg-gray-100 py-4 text-3xl font-bold text-gray-800">
-                #{{ $bookingReference }}</div>
+                #{{ $bookingReference }}
+            </div>
             <button
                 class="transform rounded-lg bg-gradient-to-r from-gray-600 to-gray-800 px-8 py-3 text-white transition-all duration-300 hover:scale-105 hover:from-gray-700 hover:to-gray-900"
                 wire:click="closeModal">
@@ -1349,17 +1110,19 @@ new #[Layout('components.frontend.app')] class extends Component {
     </div>
     @endif
 
-    @if ($showLoginReminder)
-    <div class="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div class="animate-scale-in mx-4 w-full max-w-md transform rounded-xl bg-white p-6 shadow-2xl">
+    @if($showLoginReminder)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="mx-4 w-full max-w-md transform rounded-xl bg-white p-6 shadow-2xl">
             <h3 class="mb-4 text-lg font-bold">🔐 Login Required</h3>
-            <p class="mb-6 text-gray-600">Please log in to your tenant account to proceed with the booking.</p>
+            <p class="mb-6 text-gray-600">Please log in to your tenant account to proceed with booking.</p>
             <div class="flex justify-end gap-3">
-                <button class="px-4 py-2 text-gray-600 transition-colors hover:text-gray-800"
+                <button
+                    class="px-4 py-2 text-gray-600 transition-colors hover:text-gray-800"
                     wire:click="closeModal">
                     Cancel
                 </button>
-                <button class="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+                <button
+                    class="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
                     wire:click="redirectToLogin">
                     🔑 Login
                 </button>
@@ -1367,4 +1130,4 @@ new #[Layout('components.frontend.app')] class extends Component {
         </div>
     </div>
     @endif
-</section>
+</div>
