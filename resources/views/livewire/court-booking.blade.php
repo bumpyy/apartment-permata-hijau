@@ -213,7 +213,7 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->monthStart = Carbon::today()->startOfMonth();
         $this->monthEnd = Carbon::today()->endOfMonth();
         $this->numberOfWeeksInMonth = $this->monthStart->diffInWeeks($this->monthEnd);
-        $this->weekOffset = $this->currentWeekStart->diffInWeeks($this->monthStart);
+        $this->weekOffset = Carbon::today()->weekOfMonth();
 
         $this->updateWeekData();
         $this->loadQuotaInfo();
@@ -429,7 +429,7 @@ new #[Layout('components.frontend.app')] class extends Component {
      */
     public function jumpToWeek($weeksFromNow)
     {
-        $this->currentWeekStart = Carbon::today()->startOfWeek()->addWeeks($weeksFromNow);
+        $this->currentWeekStart = Carbon::today()->startOfMonth()->addWeeks($weeksFromNow);
         $this->weekOffset = $weeksFromNow;
         $this->updateWeekData();
     }
@@ -879,7 +879,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                 class="flex flex-wrap items-center justify-between gap-y-6 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 p-6 shadow-sm">
                 <div class="flex flex-wrap items-center gap-4">
                     <button
-                        @class([ 'nav-button' , 'bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 cursor-pointer shadow-sm hover:shadow-md'=> $canGoBack,
+                        @class([ 'nav-button flex transform items-center gap-2 rounded-lg px-4 py-2 transition-all duration-300 hover:scale-105' , 'bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 cursor-pointer shadow-sm hover:shadow-md'=> $canGoBack,
                         'bg-gray-200 border border-gray-200 text-gray-400 cursor-not-allowed' => !$canGoBack,
                         ])
                         wire:click="previousWeek" @disabled(!$canGoBack)>
@@ -909,24 +909,19 @@ new #[Layout('components.frontend.app')] class extends Component {
                 <div class="flex max-sm:flex-col">
                     <span class="mr-2 text-sm font-medium text-gray-600">Quick Jump:</span>
                     <div class="flex flex-wrap items-center gap-2">
-                        @for ($i = 0; $i <= 4; $i++)
+                        @for ($i = 1; $i < $numberOfWeeksInMonth; $i++)
                             @php
                             $jumpDate=\Carbon\Carbon::today()->startOfWeek()->addWeeks($i);
                             $isCurrentWeek = $i === $weekOffset;
                             @endphp
+
                             <button
-                                @class([ 'quick-jump transform rounded-full text-white px-3 py-2 text-xs transition-all duration-300 hover:scale-110' , 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-md'=> $isCurrentWeek,
+                                @class([ 'quick-jump transform rounded-full  px-3 py-2 text-xs transition-all duration-300 hover:scale-110' , 'text-white bg-gradient-to-r from-blue-500 to-blue-600 shadow-md'=> $isCurrentWeek,
                                 'border border-gray-300 text-gray-600 hover:bg-gray-50 shadow-sm hover:shadow-md' => !$isCurrentWeek,
                                 ])
                                 wire:click="jumpToWeek({{ $i }})"
                                 title="{{ $jumpDate->format('M j') }} - {{ $jumpDate->copy()->addDays(6)->format('M j') }}">
-                                @if ($i === 0)
-                                This Week
-                                @elseif($i === 1)
-                                Next Week
-                                @else
-                                +{{ $i }}w
-                                @endif
+                                {{ $isCurrentWeek ? 'Current Week' : 'Week ' . ($i ) }}
                             </button>
                             @endfor
                     </div>
@@ -934,9 +929,8 @@ new #[Layout('components.frontend.app')] class extends Component {
 
                 <div class="flex items-center gap-4">
                     <button
-                        @class([ 'nav-button' , 'bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 cursor-pointer shadow-sm hover:shadow-md'=> $canGoForward,
+                        @class([ 'nav-button flex transform items-center gap-2 rounded-lg px-4 py-2 transition-all duration-300 hover:scale-105' , 'bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 cursor-pointer shadow-sm hover:shadow-md'=> $canGoForward,
                         'bg-gray-200 border border-gray-200 text-gray-400 cursor-not-allowed' => !$canGoForward,
-                        'flex transform items-center gap-2 rounded-lg px-4 py-2 transition-all duration-300 hover:scale-105',
                         ])
                         wire:click="nextWeek" @disabled(!$canGoForward)>
                         Next
@@ -1032,7 +1026,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                                 <div class="text-xs opacity-90">{{ $day['month_name'] }}</div>
                                 @if ($day['is_today'])
                                 <div class="mt-1 rounded-full bg-blue-400 px-2 py-0.5 text-xs">TODAY</div>
-                                @elseif(!$day['is_free_period'] && !$day['is_past'])
+                                @elseif(!$day['is_free_period'] && $currentWeekStart->copy()->addWeek()->isSameWeek(Carbon::now()) && $day['is_past'])
                                 <div class="mt-1 rounded-full bg-purple-500 px-2 py-0.5 text-xs">PREMIUM</div>
                                 @endif
                             </div>
@@ -1073,7 +1067,10 @@ new #[Layout('components.frontend.app')] class extends Component {
                             'cursor-pointer hover:bg-blue-50 hover:shadow-md transform hover:scale-105' => !$isSelected && $slotType === 'free',
                             'cursor-pointer hover:bg-purple-50 hover:shadow-md transform hover:scale-105' => !$isSelected && $slotType !== 'free',
                             ])
+
+                            @if (!$day['is_this_week'])
                             wire:click="toggleTimeSlot('{{ $slotKey }}')"
+                            @endif
                             title="@if ($isPastSlot) Past slot @else {{ $day['formatted_date'] }} {{ $slot['start'] }}-{{ $slot['end'] }} ({{ ucfirst($slotType) }}) @endif">
                             <div class="py-1 font-bold">
                                 {{ $slot['start'] }}
