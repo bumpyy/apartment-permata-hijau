@@ -118,7 +118,7 @@ new #[Layout('components.frontend.app')] class extends Component {
 
         // Count bookings for current week (Monday to Sunday)
         $weeklyBookings = Booking::where('tenant_id', $tenant->id)
-            ->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+            ->whereBetween('date', [Carbon::now()->startOfWeek()->addWeek(1), Carbon::now()->endOfWeek()->addWeek(1)])
             ->where('status', '!=', 'cancelled')
             ->count();
 
@@ -1227,7 +1227,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                     </div>
                     <div @class([ 'text-blue-600' , 'text-xs'=> $compactView,
                         'text-sm' => !$compactView
-                        ])>Days used this week</div>
+                        ])>Days used next week</div>
                 </div>
             </div>
             @if(($quotaInfo['weekly_remaining'] ?? 0) > 0)
