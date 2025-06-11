@@ -410,9 +410,9 @@ new #[Layout('components.frontend.app')] class extends Component {
                 ];
             }
         }
-        // usort($this->pendingBookingData, function ($a, $b) {
-        //     return $a['date'] <=> $b['date'] ?: $a['start_time'] <=> $b['start_time'];
-        // });
+        usort($this->pendingBookingData, function ($a, $b) {
+            return $a['date'] <=> $b['date'] ?: $a['start_time'] <=> $b['start_time'];
+        });
 
         // Show confirmation modal
         $this->showConfirmModal = true;
