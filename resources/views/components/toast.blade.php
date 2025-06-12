@@ -1,122 +1,28 @@
-<div class="relative h-auto w-auto" x-data>
-    <div class="relative space-y-5" x-data="{
-        title: 'Default Toast Notification',
-        description: '',
-        type: 'default',
-        position: 'top-center',
-        expanded: false,
-        popToast(custom) {
-            let html = '';
-            if (typeof custom != 'undefined') {
-                html = custom;
-            }
-            toast(this.title, { description: this.description, type: this.type, position: this.position, html: html })
-        }
-    }" x-init="window.toast = function(message, options = {}) {
-        let description = '';
-        let type = 'default';
-        let position = 'top-center';
+<div class="relative space-y-5" x-data="{
+    title: 'Default Toast Notification',
+    description: '',
+    type: 'default',
+    position: 'top-center',
+    expanded: false,
+    popToast(custom) {
         let html = '';
-        if (typeof options.description != 'undefined') description = options.description;
-        if (typeof options.type != 'undefined') type = options.type;
-        if (typeof options.position != 'undefined') position = options.position;
-        if (typeof options.html != 'undefined') html = options.html;
-    
-        window.dispatchEvent(new CustomEvent('toast-show', { detail: { type: type, message: message, description: description, position: position, html: html } }));
+        if (typeof custom != 'undefined') {
+            html = custom;
+        }
+        toast(this.title, { description: this.description, type: this.type, position: this.position, html: html })
     }
-    
-    window.customToastHTML = `
-                                        <div class='relative flex items-start justify-center p-4'>
-                                            <img src='https://cdn.devdojo.com/images/august2023/headshot-new.jpeg' class='mr-2 h-10 w-10 rounded-full'>
-                                            <div class='flex flex-col'>
-                                                <p class='text-sm font-medium text-gray-800'>New Friend Request</p>
-                                                <p class='mt-1 text-xs leading-none text-gray-800'>Friend request from John Doe.</p>
-                                                <div class='mt-3 flex'>
-                                                    <button type='button' @click='burnToast(toast.id)' class='inline-flex items-center rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'>Accept</button>
-                                                    <button type='button' @click='burnToast(toast.id)' class='ml-3 inline-flex items-center rounded bg-white px-2 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50'>Decline</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    `">
-        <div class="relative">
-            <p class="mb-2 text-center text-xs font-medium text-gray-500 sm:text-left">Types</p>
-            <div class="relative flex flex-col space-y-2 px-10 sm:flex-row sm:space-x-5 sm:space-y-0 sm:px-0">
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="title='Default Toast Notification'; type='default'; description=''; popToast()"
-                    :class="{ 'ring-2 ring-neutral-200/60': type=='default' && description=='' }">Default</button>
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="title='Toast Notification'; type='default'; description='This is an example toast notification'; popToast()"
-                    :class="{ 'ring-2 ring-neutral-200/60': type=='default' && description!='' }">With
-                    Description</button>
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="title='Success Notification'; type='success'; popToast()"
-                    :class="{ 'ring-2 ring-neutral-200/60': type=='success' }">Success</button>
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="title='Info Notification'; type='info'; popToast()"
-                    :class="{ 'ring-2 ring-neutral-200/60': type=='info' }">Info</button>
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="title='Warning Notification'; type='warning'; popToast()"
-                    :class="{ 'ring-2 ring-neutral-200/60': type=='warning' }">Warning</button>
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="title='Danger Notification'; type='danger'; popToast()"
-                    :class="{ 'ring-2 ring-neutral-200/60': type=='danger' }">Danger</button>
+}" x-init="window.toast = function(message, options = {}) {
+    let description = '';
+    let type = 'default';
+    let position = 'top-center';
+    let html = '';
+    if (typeof options.description != 'undefined') description = options.description;
+    if (typeof options.type != 'undefined') type = options.type;
+    if (typeof options.position != 'undefined') position = options.position;
+    if (typeof options.html != 'undefined') html = options.html;
 
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="popToast(customToastHTML)"
-                    :class="{ 'ring-2 ring-neutral-200/60': type=='success' }">Custom</button>
-            </div>
-        </div>
-        <div class="relative">
-            <p class="mb-2 text-center text-xs font-medium text-gray-500 sm:text-left">Position</p>
-            <div class="relative flex flex-col space-y-2 px-10 sm:flex-row sm:space-x-5 sm:space-y-0 sm:px-0">
-
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="position='top-left'; popToast()"
-                    :class="{ 'ring-2 ring-neutral-200/60': position=='top-left' }">Top Left</button>
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="position='top-center'; popToast()"
-                    :class="{ 'ring-2 ring-neutral-200/60': position=='top-center' }">Top Center</button>
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="position='top-right'; popToast()"
-                    :class="{ 'ring-2 ring-neutral-200/60': position=='top-right' }">Top Right</button>
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="position='bottom-right'; popToast()"
-                    :class="{ 'ring-2 ring-neutral-200/60': position=='bottom-right' }">Bottom Right</button>
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="position='bottom-center'; popToast()"
-                    :class="{ 'ring-2 ring-neutral-200/60': position=='bottom-center' }">Bottom Center</button>
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="position='bottom-left'; popToast()"
-                    :class="{ 'ring-2 ring-neutral-200/60': position=='bottom-left' }">Bottom Left</button>
-            </div>
-        </div>
-        <div class="relative">
-            <p class="mb-2 text-center text-xs font-medium text-gray-500 sm:text-left">Layout</p>
-            <div class="relative flex flex-col space-y-2 px-10 sm:flex-row sm:space-x-5 sm:space-y-0 sm:px-0">
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="expanded=false; window.dispatchEvent(new CustomEvent('set-toasts-layout', { detail: { layout: 'default' }}));"
-                    :class="{ 'ring-2 ring-neutral-200/60': !expanded }">Default</button>
-                <button
-                    class="inline-flex h-9 flex-shrink-0 items-center justify-center rounded-md border px-3 py-1 text-xs font-medium transition-colors hover:bg-gray-50 focus:bg-white focus:outline-none active:bg-white"
-                    @click="expanded=true; window.dispatchEvent(new CustomEvent('set-toasts-layout', { detail: { layout: 'expanded' }}));"
-                    :class="{ 'ring-2 ring-neutral-200/60': expanded }">Expanded</button>
-            </div>
-        </div>
-    </div>
+    window.dispatchEvent(new CustomEvent('toast-show', { detail: { type: type, message: message, description: description, position: position, html: html } }));
+}">
     <template x-teleport="body">
         <ul class="group fixed z-[99] block w-full sm:max-w-xs" x-data="{
             toasts: [],
@@ -186,27 +92,27 @@
                         topToast.style.top = '0px';
                     }
                 }
-        
+
                 let bottomPositionOfFirstToast = this.getBottomPositionOfElement(topToast);
-        
+
                 if (this.toasts.length == 1) return;
                 let middleToast = document.getElementById(this.toasts[1].id);
                 middleToast.style.zIndex = 90;
-        
+
                 if (this.expanded) {
                     middleToastPosition = topToast.getBoundingClientRect().height +
                         this.paddingBetweenToasts + 'px';
-        
+
                     if (this.position.includes('bottom')) {
                         middleToast.style.top = 'auto';
                         middleToast.style.bottom = middleToastPosition;
                     } else {
                         middleToast.style.top = middleToastPosition;
                     }
-        
+
                     middleToast.style.scale = '100%';
                     middleToast.style.transform = 'translateY(0px)';
-        
+
                 } else {
                     middleToast.style.scale = '94%';
                     if (this.position.includes('bottom')) {
@@ -216,8 +122,8 @@
                         middleToast.style.transform = 'translateY(16px)';
                     }
                 }
-        
-        
+
+
                 if (this.toasts.length == 2) return;
                 let bottomToast = document.getElementById(this.toasts[2].id);
                 bottomToast.style.zIndex = 80;
@@ -226,14 +132,14 @@
                         this.paddingBetweenToasts +
                         middleToast.getBoundingClientRect().height +
                         this.paddingBetweenToasts + 'px';
-        
+
                     if (this.position.includes('bottom')) {
                         bottomToast.style.top = 'auto';
                         bottomToast.style.bottom = bottomToastPosition;
                     } else {
                         bottomToast.style.top = bottomToastPosition;
                     }
-        
+
                     bottomToast.style.scale = '100%';
                     bottomToast.style.transform = 'translateY(0px)';
                 } else {
@@ -245,9 +151,9 @@
                         bottomToast.style.transform = 'translateY(32px)';
                     }
                 }
-        
-        
-        
+
+
+
                 if (this.toasts.length == 3) return;
                 let burnToast = document.getElementById(this.toasts[3].id);
                 burnToast.style.zIndex = 70;
@@ -258,14 +164,14 @@
                         this.paddingBetweenToasts +
                         bottomToast.getBoundingClientRect().height +
                         this.paddingBetweenToasts + 'px';
-        
+
                     if (this.position.includes('bottom')) {
                         burnToast.style.top = 'auto';
                         burnToast.style.bottom = burnToastPosition;
                     } else {
                         burnToast.style.top = burnToastPosition;
                     }
-        
+
                     burnToast.style.scale = '100%';
                     burnToast.style.transform = 'translateY(0px)';
                 } else {
@@ -273,40 +179,40 @@
                     this.alignBottom(topToast, burnToast);
                     burnToast.style.transform = 'translateY(48px)';
                 }
-        
+
                 burnToast.firstElementChild.classList.remove('opacity-100');
                 burnToast.firstElementChild.classList.add('opacity-0');
-        
+
                 let that = this;
                 // Burn 🔥 (remove) last toast
                 setTimeout(function() {
                     that.toasts.pop();
                 }, 300);
-        
+
                 if (this.position.includes('bottom')) {
                     middleToast.style.top = 'auto';
                 }
-        
+
                 return;
             },
             alignBottom(element1, element2) {
                 // Get the top position and height of the first element
                 let top1 = element1.offsetTop;
                 let height1 = element1.offsetHeight;
-        
+
                 // Get the height of the second element
                 let height2 = element2.offsetHeight;
-        
+
                 // Calculate the top position for the second element
                 let top2 = top1 + (height1 - height2);
-        
+
                 // Apply the calculated top position to the second element
                 element2.style.top = top2 + 'px';
             },
             alignTop(element1, element2) {
                 // Get the top position of the first element
                 let top1 = element1.offsetTop;
-        
+
                 // Apply the same top position to the second element
                 element2.style.top = top1 + 'px';
             },
@@ -334,13 +240,13 @@
                     $el.style.height = '0px';
                     return;
                 }
-        
+
                 lastToast = this.toasts[this.toasts.length - 1];
                 lastToastRectangle = document.getElementById(lastToast.id).getBoundingClientRect();
-        
+
                 firstToast = this.toasts[0];
                 firstToastRectangle = document.getElementById(firstToast.id).getBoundingClientRect();
-        
+
                 if (this.toastsHovered) {
                     if (this.position.includes('bottom')) {
                         $el.style.height = ((firstToastRectangle.top + firstToastRectangle.height) - lastToastRectangle.top) + 'px';
@@ -353,41 +259,41 @@
             }
         }"
             @set-toasts-layout.window="
-                layout=event.detail.layout;
-                if(layout == 'expanded'){
-                    expanded=true;
-                } else {
-                    expanded=false;
-                }
-                stackToasts();
-            "
+            layout=event.detail.layout;
+            if(layout == 'expanded'){
+                expanded=true;
+            } else {
+                expanded=false;
+            }
+            stackToasts();
+        "
             @toast-show.window="
-                event.stopPropagation();
-                if(event.detail.position){
-                    position = event.detail.position;
-                }
-                toasts.unshift({
-                    id: 'toast-' + Math.random().toString(16).slice(2),
-                    show: false,
-                    message: event.detail.message,
-                    description: event.detail.description,
-                    type: event.detail.type,
-                    html: event.detail.html
-                });
-            "
+            event.stopPropagation();
+            if(event.detail.position){
+                position = event.detail.position;
+            }
+            toasts.unshift({
+                id: 'toast-' + Math.random().toString(16).slice(2),
+                show: false,
+                message: event.detail.message,
+                description: event.detail.description,
+                type: event.detail.type,
+                html: event.detail.html
+            });
+        "
             @mouseenter="toastsHovered=true;" @mouseleave="toastsHovered=false" x-init="if (layout == 'expanded') {
                 expanded = true;
             }
             stackToasts();
             $watch('toastsHovered', function(value) {
-            
+
                 if (layout == 'default') {
                     if (position.includes('bottom')) {
                         resetBottom();
                     } else {
                         resetTop();
                     }
-            
+
                     if (value) {
                         // calculate the new positions
                         expanded = true;
@@ -421,7 +327,7 @@
                         $el.firstElementChild.classList.add('opacity-0', '-translate-y-full');
                     }
                     setTimeout(function() {
-                    
+
                         setTimeout(function() {
                             if (position.includes('bottom')) {
                                 $el.firstElementChild.classList.remove('opacity-0', 'translate-y-full');
@@ -429,13 +335,13 @@
                                 $el.firstElementChild.classList.remove('opacity-0', '-translate-y-full');
                             }
                             $el.firstElementChild.classList.add('opacity-100', 'translate-y-0');
-                    
+
                             setTimeout(function() {
                                 stackToasts();
                             }, 10);
                         }, 5);
                     }, 50);
-                    
+
                     setTimeout(function() {
                         setTimeout(function() {
                             $el.firstElementChild.classList.remove('opacity-100');
