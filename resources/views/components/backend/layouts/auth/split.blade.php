@@ -28,7 +28,7 @@
                     wire:navigate>
 
                     <span class="flex h-9 w-9 items-center justify-center rounded-md">
-                        <x-site-logo /> class="size-9 fill-current text-black dark:text-white" />
+                        <x-site-logo />
                     </span>
 
                     <span class="sr-only">{{ config('app.name', 'Laravel') }}</span>

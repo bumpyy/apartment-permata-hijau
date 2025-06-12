@@ -1879,10 +1879,34 @@ new #[Layout('components.frontend.app')] class extends Component {
     @endif
 
     <x-toast />
+
+    <style>
+        :root[data-applied-theme="light"] {
+            color-scheme: light;
+        }
+
+        :root[data-applied-theme="dark"] {
+            color-scheme: dark;
+        }
+    </style>
+    <script data-navigate-once>
+        if (localStorage.getItem('darkMode') === 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.dataset.theme = 'dark';
+        } else {
+            document.documentElement.dataset.theme = 'light';
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        }
+    </script>
+
 </div>
 
 @script
 <script>
+    Flux.dark = false;
+
     $js('showToast', (value) => {
 
         toast(value);
