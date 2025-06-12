@@ -120,6 +120,7 @@ new #[Layout('components.frontend.app')] class extends Component {
         $weeklyBookings = Booking::where('tenant_id', $tenant->id)
             ->whereBetween('date', [Carbon::now()->startOfWeek()->addWeek(1), Carbon::now()->endOfWeek()->addWeek(1)])
             ->where('status', '!=', 'cancelled')
+            ->distinct('date')
             ->count();
 
         // Calculate remaining quota (max 3 days per week)
@@ -145,15 +146,12 @@ new #[Layout('components.frontend.app')] class extends Component {
         // Get all bookings for this court in the date range
         $bookings = Booking::where('court_id', $this->courtNumber)
             ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-            ->with('tenant')
             ->where('status', '!=', 'cancelled')
             ->get();
 
         // Reset arrays
         $this->bookedSlots = [];
         $this->preliminaryBookedSlots = [];
-
-        $currentTenantId = $this->isLoggedIn ? auth('tenant')->id() : null;
 
         // Process each booking
         foreach ($bookings as $booking) {
@@ -287,10 +285,9 @@ new #[Layout('components.frontend.app')] class extends Component {
 
                 // QUOTA CHECK: Max 2 hours (slots) per day
                 if ($totalSlotsForDay >= 2) {
-
                     $this->quotaWarning = 'Maximum 2 hours per day allowed (including existing bookings).';
-                    $this->js("toast('{$this->quotaWarning}')");
                     // Don't add the slot, just show warning
+                    $this->js("toast('{$this->quotaWarning}')");
                 } else {
                     // Add the slot and clear any warnings
                     $this->selectedSlots[] = $slotKey;
@@ -1879,34 +1876,10 @@ new #[Layout('components.frontend.app')] class extends Component {
     @endif
 
     <x-toast />
-
-    <style>
-        :root[data-applied-theme="light"] {
-            color-scheme: light;
-        }
-
-        :root[data-applied-theme="dark"] {
-            color-scheme: dark;
-        }
-    </style>
-    <script data-navigate-once>
-        if (localStorage.getItem('darkMode') === 'true' || (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.dataset.theme = 'dark';
-        } else {
-            document.documentElement.dataset.theme = 'light';
-        }
-
-        function toggleDarkMode() {
-            document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-        }
-    </script>
-
 </div>
 
 @script
 <script>
-    Flux.dark = false;
-
     $js('showToast', (value) => {
 
         toast(value);
