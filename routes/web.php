@@ -19,7 +19,7 @@ Volt::route('dashboard', 'tenant.dashboard')
 //     ])
 //     ->name('dashboard');
 
-Volt::route('facilities', 'court-booking')
+Volt::route('facilities', 'courtBooking.main')
     ->name('facilities');
 
 Route::middleware(['auth:admin'])->group(function () {
@@ -30,4 +30,4 @@ Route::middleware(['auth:admin'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
