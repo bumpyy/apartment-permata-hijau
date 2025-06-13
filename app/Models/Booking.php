@@ -56,7 +56,7 @@ class Booking extends Model
 
     public function generateReference()
     {
-        return 'A' . str_pad($this->id, 4, '0', STR_PAD_LEFT);
+        return 'A'.str_pad($this->id, 4, '0', STR_PAD_LEFT);
     }
 
     public function calculatePrice()
