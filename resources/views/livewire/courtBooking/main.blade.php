@@ -10,62 +10,62 @@ use Livewire\Volt\Component;
 
 new #[Layout('components.frontend.app')] class extends Component {
     // === CORE PROPERTIES ===
-    public $courtNumber;                    // Which court we're booking (e.g., Court 2)
-    public $selectedDate;                   // Currently selected date in daily view
-    public $availableTimes = [];            // Available time slots for daily view
-    public $selectedSlots = [];             // Array of selected time slots (format: "YYYY-MM-DD-HH:MM")
-    public $quotaWarning = '';              // Warning message for quota violations
-    public $quotaInfo;                      // User's quota information (used/remaining)
+    public $courtNumber; // Which court we're booking (e.g., Court 2)
+    public $selectedDate; // Currently selected date in daily view
+    public $availableTimes = []; // Available time slots for daily view
+    public $selectedSlots = []; // Array of selected time slots (format: "YYYY-MM-DD-HH:MM")
+    public $quotaWarning = ''; // Warning message for quota violations
+    public $quotaInfo; // User's quota information (used/remaining)
 
     // === BOOKING STATE ===
-    public $bookingConfirmed = false;       // Whether booking is confirmed
-    public $confirmingBooking = false;      // Whether we're in confirmation process
-    public $bookingToConfirm;               // Booking data being confirmed
-    public $bookingType = 'free';           // Type of booking: 'free', 'premium', or 'mixed'
-    public $bookingReference;               // Generated booking reference number
-    public $pendingBookingData = [];        // Data for bookings being confirmed
+    public $bookingConfirmed = false; // Whether booking is confirmed
+    public $confirmingBooking = false; // Whether we're in confirmation process
+    public $bookingToConfirm; // Booking data being confirmed
+    public $bookingType = 'free'; // Type of booking: 'free', 'premium', or 'mixed'
+    public $bookingReference; // Generated booking reference number
+    public $pendingBookingData = []; // Data for bookings being confirmed
 
     // === UI STATE ===
-    public bool $compactView = false;       // Toggle between compact and full view
-    public $viewMode = 'weekly';            // Current view: 'weekly', 'monthly', or 'daily'
+    public bool $compactView = false; // Toggle between compact and full view
+    public $viewMode = 'monthly'; // Current view: 'weekly', 'monthly', or 'daily'
 
     // === DATE NAVIGATION ===
-    public $currentDate;                    // Current date being viewed
-    public $currentWeekStart;               // Start of current week being viewed
-    public $currentMonthStart;              // Start of current month being viewed
-    public $canGoBack = true;               // Whether user can navigate backwards
-    public $canGoForward = true;            // Whether user can navigate forwards
+    public $currentDate; // Current date being viewed
+    public $currentWeekStart; // Start of current week being viewed
+    public $currentMonthStart; // Start of current month being viewed
+    public $canGoBack = true; // Whether user can navigate backwards
+    public $canGoForward = true; // Whether user can navigate forwards
 
     // === USER & PERMISSIONS ===
-    public $isLoggedIn = false;             // Whether user is logged in
-    public $isPremiumBookingOpen = false;   // Whether premium booking is currently open
-    public $premiumBookingDate;             // Date when premium booking opens (25th of month)
+    public $isLoggedIn = false; // Whether user is logged in
+    public $isPremiumBookingOpen = false; // Whether premium booking is currently open
+    public $premiumBookingDate; // Date when premium booking opens (25th of month)
 
     // === DATA ARRAYS ===
-    public $weekDays = [];                  // Array of days for weekly view
-    public $monthDays = [];                 // Array of days for monthly view
-    public $timeSlots = [];                 // Array of time slots (8am-10pm)
-    public $bookedSlots = [];               // Array of confirmed bookings
-    public $preliminaryBookedSlots = [];   // Array of pending bookings
+    public $weekDays = []; // Array of days for weekly view
+    public $monthDays = []; // Array of days for monthly view
+    public $timeSlots = []; // Array of time slots (8am-10pm)
+    public $bookedSlots = []; // Array of confirmed bookings
+    public $preliminaryBookedSlots = []; // Array of pending bookings
 
     // === MODAL STATE ===
-    public $showTimeSelector = false;       // Show time selection modal (monthly view)
-    public $showDatePicker = false;         // Show date picker modal
-    public $showConfirmModal = false;       // Show booking confirmation modal
-    public $showThankYouModal = false;      // Show thank you modal after booking
-    public $showLoginReminder = false;      // Show login reminder modal
+    public $showTimeSelector = false; // Show time selection modal (monthly view)
+    public $showDatePicker = false; // Show date picker modal
+    public $showConfirmModal = false; // Show booking confirmation modal
+    public $showThankYouModal = false; // Show thank you modal after booking
+    public $showLoginReminder = false; // Show login reminder modal
 
     // === DATE PICKER STATE ===
-    public $selectedDateForTime;            // Date selected for time picker modal
-    public $availableTimesForDate = [];     // Available times for selected date
-    public $datePickerMode = 'day';         // Date picker mode: 'day', 'week', or 'month'
-    public $selectedMonth;                  // Selected month in date picker
-    public $selectedYear;                   // Selected year in date picker
-    public $availableMonths = [];           // Available months for selection
-    public $availableYears = [];            // Available years for selection
-    public $calendarDays = [];              // Calendar days for date picker
-    public $calendarWeeks = [];             // Calendar weeks for date picker
-    public $calendarMonths = [];            // Calendar months for date picker
+    public $selectedDateForTime; // Date selected for time picker modal
+    public $availableTimesForDate = []; // Available times for selected date
+    public $datePickerMode = 'day'; // Date picker mode: 'day', 'week', or 'month'
+    public $selectedMonth; // Selected month in date picker
+    public $selectedYear; // Selected year in date picker
+    public $availableMonths = []; // Available months for selection
+    public $availableYears = []; // Available years for selection
+    public $calendarDays = []; // Calendar days for date picker
+    public $calendarWeeks = []; // Calendar weeks for date picker
+    public $calendarMonths = []; // Calendar months for date picker
 
     /**
      * Initialize the component when it's first loaded
@@ -83,9 +83,7 @@ new #[Layout('components.frontend.app')] class extends Component {
         $this->currentMonthStart = now()->startOfMonth();
 
         // Calculate premium booking date (25th of current month, or next month if past 25th)
-        $this->premiumBookingDate = now()->day >= 12 ?
-            now()->addMonth()->day(25) :
-            now()->day(25);
+        $this->premiumBookingDate = now()->day >= 12 ? now()->addMonth()->day(25) : now()->day(25);
 
         // Check if premium booking is currently open
         $this->isPremiumBookingOpen = now()->gte($this->premiumBookingDate);
@@ -129,7 +127,7 @@ new #[Layout('components.frontend.app')] class extends Component {
         return [
             'weekly_remaining' => $weeklyRemaining,
             'weekly_used' => $weeklyBookings,
-            'weekly_total' => 3
+            'weekly_total' => 3,
         ];
     }
 
@@ -146,6 +144,7 @@ new #[Layout('components.frontend.app')] class extends Component {
         // Get all bookings for this court in the date range
         $bookings = Booking::where('court_id', $this->courtNumber)
             ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->with('tenant')
             ->where('status', '!=', 'cancelled')
             ->get();
 
@@ -162,7 +161,7 @@ new #[Layout('components.frontend.app')] class extends Component {
             $slotData = [
                 'key' => $slotKey,
                 'tenant_name' => $booking->tenant->name ?? 'Unknown',
-                'is_own_booking' => $this->isLoggedIn && $booking->tenant_id === auth('tenant')->id()
+                'is_own_booking' => $this->isLoggedIn && $booking->tenant_id === auth('tenant')->id(),
             ];
 
             // Separate confirmed vs pending bookings
@@ -242,7 +241,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                 'is_booked' => $isBooked,
                 'is_selected' => $isSelected,
                 'is_past' => $isPast,
-                'is_peak' => $startTime->hour >= 18  // After 6pm = peak hours
+                'is_peak' => $startTime->hour >= 18, // After 6pm = peak hours
             ];
 
             $startTime->addMinutes($interval);
@@ -309,57 +308,95 @@ new #[Layout('components.frontend.app')] class extends Component {
      * Validate current slot selections against quotas
      * Sets quotaWarning if any limits are exceeded
      */
-    private function validateSelections()
+    public function validateSelections()
     {
-        if (empty($this->selectedSlots)) {
-            $this->quotaWarning = '';
+        // If not logged in, no validation needed
+        if (!$this->isLoggedIn) {
             return;
         }
 
-        $selectedDays = [];
-        $dailySlotCounts = [];
+        $tenantId = auth('tenant')->id();
 
-        // Group selections by date
-        foreach ($this->selectedSlots as $slot) {
-            $parts = explode('-', $slot);
-            if (count($parts) >= 3) {
-                $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
-                $selectedDays[$date] = true;
+        // Get unique dates from selected slots
+        $selectedDates = collect($this->selectedSlots)
+            ->map(function ($slot) {
+                $parts = explode('-', $slot);
+                return $parts[0] . '-' . $parts[1] . '-' . $parts[2];
+            })
+            ->unique();
 
-                if (!isset($dailySlotCounts[$date])) {
-                    $dailySlotCounts[$date] = 0;
+        // Get existing bookings for the tenant
+        $existingBookings = Booking::getBookedDaysForTenant($tenantId);
+
+        // Count days with existing bookings
+        $bookedDaysCount = $existingBookings->count();
+
+        // Check if we're exceeding the 3-day limit
+        if ($selectedDates->count() + $bookedDaysCount > 3) {
+            // Check if all selected slots are for days that already have bookings
+            $allSlotsForExistingDays = true;
+
+            foreach ($selectedDates as $date) {
+                // If this date doesn't have existing bookings, we're adding a new day
+                if (!$existingBookings->has($date)) {
+                    $allSlotsForExistingDays = false;
+                    break;
                 }
-                $dailySlotCounts[$date]++;
-            }
-        }
 
-        // Check daily quota (2 hours per day) including existing bookings
-        if ($this->isLoggedIn) {
-            foreach ($dailySlotCounts as $date => $selectedCount) {
-                $existingBookingsForDate = Booking::where('court_id', $this->courtNumber)
-                    ->where('date', $date)
-                    ->where('status', '!=', 'cancelled')
-                    ->where('tenant_id', auth('tenant')->id())
+                // Check if the day already has 2 bookings (max quota per day)
+                $bookingsOnThisDay = $existingBookings->get($date)->count();
+                if ($bookingsOnThisDay >= 2) {
+                    $this->quotaWarning = 'Maximum 2 hours per day allowed.';
+                    return false;
+                }
+
+                // Count selected slots for this date
+                $selectedSlotsForThisDate = collect($this->selectedSlots)
+                    ->filter(function ($slot) use ($date) {
+                        return str_starts_with($slot, $date);
+                    })
                     ->count();
 
-                $totalForDay = $selectedCount + $existingBookingsForDate;
-
-                if ($totalForDay > 2) {
-                    $this->quotaWarning = "Maximum 2 hours per day allowed (including existing bookings).";
+                // Check if total would exceed daily limit
+                if ($bookingsOnThisDay + $selectedSlotsForThisDate > 2) {
+                    $this->quotaWarning = 'Maximum 2 hours per day allowed.';
                     return;
                 }
             }
 
-            // Check weekly quota (3 days per week)
-            $dayCount = count($selectedDays);
-            $remaining = $this->quotaInfo['weekly_remaining'] ?? 0;
-
-            if ($dayCount > $remaining) {
-                $this->quotaWarning = "You can only book {$remaining} more days this week.";
-            } else {
+            // If we're only adding slots to days that already have bookings
+            // AND we're not exceeding the 2-hour per day limit, allow it
+            if ($allSlotsForExistingDays) {
                 $this->quotaWarning = '';
+                return;
+            }
+
+            // Otherwise, we're trying to add a new day beyond the 3-day limit
+            $this->quotaWarning = 'You cannot book for more than 3 distinct days.';
+            return;
+        }
+
+        // For each selected date, check if we're exceeding the 2-hour per day limit
+        foreach ($selectedDates as $date) {
+            // Count existing bookings for this date
+            $existingBookingsForDate = $existingBookings->has($date) ? $existingBookings->get($date)->count() : 0;
+
+            // Count selected slots for this date
+            $selectedSlotsForThisDate = collect($this->selectedSlots)
+                ->filter(function ($slot) use ($date) {
+                    return str_starts_with($slot, $date);
+                })
+                ->count();
+
+            // Check if total would exceed daily limit
+            if ($existingBookingsForDate + $selectedSlotsForThisDate > 2) {
+                $this->quotaWarning = 'Maximum 2 hours per day allowed.';
+                return;
             }
         }
+
+        $this->quotaWarning = ''; // Clear any previous warnings
+        return;
     }
 
     /**
@@ -368,7 +405,6 @@ new #[Layout('components.frontend.app')] class extends Component {
      */
     public function confirmBooking()
     {
-
         // Check if user is logged in
         if (!$this->isLoggedIn) {
             $this->showLoginReminder = true;
@@ -427,28 +463,18 @@ new #[Layout('components.frontend.app')] class extends Component {
     public function processBooking()
     {
         $tenant = auth('tenant')->user();
-        $this->bookingReference = sprintf(
-            'BK%s-%s-%s-%s',
-            $tenant->id,
-            $this->courtNumber,
-            Carbon::today()->format('Y-m-d'),
-            strtoupper(Str::random(4))
-        );
+        $this->bookingReference = sprintf('BK%s-%s-%s-%s', $tenant->id, $this->courtNumber, Carbon::today()->format('Y-m-d'), strtoupper(Str::random(4)));
         // Create each booking in the database
         foreach ($this->pendingBookingData as $slot) {
             try {
                 // CREATE BOOKING RECORD
-                Booking::create([
-                    ...$slot,
-                    'tenant_id' => $tenant->id,
-                    'booking_reference' => $this->bookingReference
-                ]);
+                Booking::create([...$slot, 'tenant_id' => $tenant->id, 'booking_reference' => $this->bookingReference]);
             } catch (\Exception $e) {
                 // Log detailed error information for debugging
                 Log::error('Booking creation failed: ' . $e->getMessage(), [
                     'slot' => $slot,
                     'tenant_id' => $tenant->id,
-                    'court_id' => $this->courtNumber
+                    'court_id' => $this->courtNumber,
                 ]);
 
                 $this->quotaWarning = 'Failed to create booking. Please try again.';
@@ -510,7 +536,7 @@ new #[Layout('components.frontend.app')] class extends Component {
             $this->timeSlots[] = [
                 'start' => $start->format('H:i'),
                 'end' => $start->copy()->addHour()->format('H:i'),
-                'is_peak' => $start->hour >= 18 // After 6pm = peak hours (lights required)
+                'is_peak' => $start->hour >= 18, // After 6pm = peak hours (lights required)
             ];
             $start->addHour();
         }
@@ -529,15 +555,15 @@ new #[Layout('components.frontend.app')] class extends Component {
             $date = $start->copy()->addDays($i);
             $this->weekDays[] = [
                 'date' => $date->format('Y-m-d'),
-                'day_name' => $date->format('D'),           // Mon, Tue, etc.
-                'day_number' => $date->format('j'),         // 1, 2, 3, etc.
-                'month_name' => $date->format('M'),         // Jan, Feb, etc.
+                'day_name' => $date->format('D'), // Mon, Tue, etc.
+                'day_number' => $date->format('j'), // 1, 2, 3, etc.
+                'month_name' => $date->format('M'), // Jan, Feb, etc.
                 'is_today' => $date->isToday(),
                 'is_past' => $date->isPast(),
                 'is_bookable' => $this->canBookSlot($date),
                 'can_book_free' => $this->canBookFree($date),
                 'can_book_premium' => $this->canBookPremium($date),
-                'formatted_date' => $date->format('M j, Y')
+                'formatted_date' => $date->format('M j, Y'),
             ];
         }
     }
@@ -571,7 +597,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                 'booked_count' => $bookingCounts['booked'],
                 'pending_count' => $bookingCounts['pending'],
                 'selected_count' => $bookingCounts['selected'],
-                'available_count' => $bookingCounts['available']
+                'available_count' => $bookingCounts['available'],
             ];
             $start->addDay();
         }
@@ -589,19 +615,25 @@ new #[Layout('components.frontend.app')] class extends Component {
         $dateStr = $date->format('Y-m-d');
 
         // Count confirmed bookings for this date
-        $bookedCount = collect($this->bookedSlots)->filter(function ($slot) use ($dateStr) {
-            return str_starts_with($slot['key'], $dateStr);
-        })->count();
+        $bookedCount = collect($this->bookedSlots)
+            ->filter(function ($slot) use ($dateStr) {
+                return str_starts_with($slot['key'], $dateStr);
+            })
+            ->count();
 
         // Count pending bookings for this date
-        $pendingCount = collect($this->preliminaryBookedSlots)->filter(function ($slot) use ($dateStr) {
-            return str_starts_with($slot['key'], $dateStr);
-        })->count();
+        $pendingCount = collect($this->preliminaryBookedSlots)
+            ->filter(function ($slot) use ($dateStr) {
+                return str_starts_with($slot['key'], $dateStr);
+            })
+            ->count();
 
         // Count currently selected slots for this date
-        $selectedCount = collect($this->selectedSlots)->filter(function ($slot) use ($dateStr) {
-            return str_starts_with($slot, $dateStr);
-        })->count();
+        $selectedCount = collect($this->selectedSlots)
+            ->filter(function ($slot) use ($dateStr) {
+                return str_starts_with($slot, $dateStr);
+            })
+            ->count();
 
         // Calculate available slots (total 14 slots: 8am-10pm)
         $totalSlots = 14;
@@ -611,7 +643,7 @@ new #[Layout('components.frontend.app')] class extends Component {
             'booked' => $bookedCount,
             'pending' => $pendingCount,
             'selected' => $selectedCount,
-            'available' => max(0, $availableCount)
+            'available' => max(0, $availableCount),
         ];
     }
 
@@ -660,8 +692,12 @@ new #[Layout('components.frontend.app')] class extends Component {
      */
     public function getDateBookingType($date)
     {
-        if ($this->canBookFree($date)) return 'free';
-        if ($this->canBookPremium($date)) return 'premium';
+        if ($this->canBookFree($date)) {
+            return 'free';
+        }
+        if ($this->canBookPremium($date)) {
+            return 'premium';
+        }
         return 'none';
     }
 
@@ -675,7 +711,7 @@ new #[Layout('components.frontend.app')] class extends Component {
         return [
             'can_book_free' => $this->canBookFree($date),
             'can_book_premium' => $this->canBookPremium($date),
-            'is_bookable' => $this->canBookSlot($date)
+            'is_bookable' => $this->canBookSlot($date),
         ];
     }
 
@@ -835,7 +871,7 @@ new #[Layout('components.frontend.app')] class extends Component {
             9 => 'September',
             10 => 'October',
             11 => 'November',
-            12 => 'December'
+            12 => 'December',
         ];
 
         // Set up available years (current year + 2 years ahead)
@@ -867,7 +903,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                 'can_book_free' => $this->canBookFree($current),
                 'can_book_premium' => $this->canBookPremium($current),
                 'booking_type' => $this->getDateBookingType($current),
-                'formatted_date' => $current->format('M j, Y')
+                'formatted_date' => $current->format('M j, Y'),
             ];
             $current->addDay();
         }
@@ -895,7 +931,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                 'is_past_week' => $weekEnd->isPast(),
                 'can_book_free' => $this->canBookFree($current),
                 'can_book_premium' => $this->canBookPremium($current),
-                'is_bookable' => $this->canBookSlot($current)
+                'is_bookable' => $this->canBookSlot($current),
             ];
             $current->addWeek();
             $weekNumber++;
@@ -920,7 +956,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                 'can_book_free' => $this->canBookFree($monthStart),
                 'can_book_premium' => $this->canBookPremium($monthStart),
                 'booking_type' => $this->getDateBookingType($monthStart),
-                'is_bookable' => $this->canBookSlot($monthStart)
+                'is_bookable' => $this->canBookSlot($monthStart),
             ];
         }
     }
@@ -1031,7 +1067,8 @@ new #[Layout('components.frontend.app')] class extends Component {
 
 <div>
     <!-- Header -->
-    <div wire:click="$js.showToast('test param value')" class="relative overflow-hidden bg-gradient-to-r from-gray-600 to-gray-800 py-8 text-center text-white">
+    <div class="relative overflow-hidden bg-gradient-to-r from-gray-600 to-gray-800 py-8 text-center text-white"
+        wire:click="$js.showToast('test param value')">
         <div class="absolute inset-0 bg-black opacity-10"></div>
         <div class="relative z-10">
             <h1 class="text-3xl font-bold tracking-wide">🎾 TENNIS COURT BOOKING</h1>
@@ -1043,16 +1080,16 @@ new #[Layout('components.frontend.app')] class extends Component {
                     <div class="h-2 w-2 rounded-full bg-green-300"></div>
                     <span>🆓 Free Booking: Next Week</span>
                 </div>
-                @if($isPremiumBookingOpen)
-                <div class="flex items-center gap-2 rounded-full bg-purple-600 px-3 py-1">
-                    <div class="h-2 w-2 rounded-full bg-purple-300"></div>
-                    <span>⭐ Premium Booking: Open Today!</span>
-                </div>
+                @if ($isPremiumBookingOpen)
+                    <div class="flex items-center gap-2 rounded-full bg-purple-600 px-3 py-1">
+                        <div class="h-2 w-2 rounded-full bg-purple-300"></div>
+                        <span>⭐ Premium Booking: Open Today!</span>
+                    </div>
                 @else
-                <div class="flex items-center gap-2 rounded-full bg-gray-500 px-3 py-1">
-                    <div class="h-2 w-2 rounded-full bg-gray-300"></div>
-                    <span>⭐ Premium Opens: {{ $premiumBookingDate->format('M j, Y') }}</span>
-                </div>
+                    <div class="flex items-center gap-2 rounded-full bg-gray-500 px-3 py-1">
+                        <div class="h-2 w-2 rounded-full bg-gray-300"></div>
+                        <span>⭐ Premium Opens: {{ $premiumBookingDate->format('M j, Y') }}</span>
+                    </div>
                 @endif
             </div>
         </div>
@@ -1060,106 +1097,127 @@ new #[Layout('components.frontend.app')] class extends Component {
 
     <div class="container mx-auto min-h-screen bg-white px-4 py-6">
         <!-- View Mode Selector with Compact Toggle -->
-        <div class="mb-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+        <div class="mb-6 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <div class="inline-flex rounded-lg border border-gray-300 bg-white p-1 shadow-sm">
-                <button
-                    wire:click="switchView('weekly')"
-                    @class([ 'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200' , 'bg-blue-500 text-white shadow-sm'=> $viewMode === 'weekly',
-                    'text-gray-700 hover:bg-gray-100' => $viewMode !== 'weekly'
-                    ])>
-                    📅 Weekly
-                </button>
-                <button
-                    wire:click="switchView('monthly')"
-                    @class([ 'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200' , 'bg-blue-500 text-white shadow-sm'=> $viewMode === 'monthly',
-                    'text-gray-700 hover:bg-gray-100' => $viewMode !== 'monthly'
-                    ])>
+              
+                <button wire:click="switchView('monthly')" @class([
+                    'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200',
+                    'bg-blue-500 text-white shadow-sm' => $viewMode === 'monthly',
+                    'text-gray-700 hover:bg-gray-100' => $viewMode !== 'monthly',
+                ])>
                     📆 Monthly
                 </button>
-                <button
-                    wire:click="switchView('daily')"
-                    @class([ 'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200' , 'bg-blue-500 text-white shadow-sm'=> $viewMode === 'daily',
-                    'text-gray-700 hover:bg-gray-100' => $viewMode !== 'daily'
-                    ])>
+				
+				  <button wire:click="switchView('weekly')" @class([
+                    'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200',
+                    'bg-blue-500 text-white shadow-sm' => $viewMode === 'weekly',
+                    'text-gray-700 hover:bg-gray-100' => $viewMode !== 'weekly',
+                ])>
+                    📅 Weekly
+                </button>
+				
+                <button wire:click="switchView('daily')" @class([
+                    'rounded-md px-4 py-2 text-sm font-medium transition-all duration-200',
+                    'bg-blue-500 text-white shadow-sm' => $viewMode === 'daily',
+                    'text-gray-700 hover:bg-gray-100' => $viewMode !== 'daily',
+                ])>
                     🕐 Daily
                 </button>
+				
             </div>
 
             <!-- Compact View Toggle -->
-            <button
-                wire:click="toggleCompactView"
-                @class([ 'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200' , 'bg-gray-600 text-white'=> $compactView,
-                'bg-gray-100 text-gray-700 hover:bg-gray-200' => !$compactView
-                ])>
-                @if($compactView)
-                📱 Compact
+            <button wire:click="toggleCompactView" @class([
+                'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
+                'bg-gray-600 text-white' => $compactView,
+                'bg-gray-100 text-gray-700 hover:bg-gray-200' => !$compactView,
+            ])>
+                @if ($compactView)
+                    📱 Compact
                 @else
-                🖥️ Full
+                    🖥️ Full
                 @endif
             </button>
         </div>
 
         <!-- Navigation Controls -->
-        <div @class([ 'mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 shadow-sm' , 'p-2'=> $compactView,
-            'p-4' => !$compactView
-            ])>
-            <button
-                wire:click="previousPeriod"
-                @class([ 'flex items-center gap-2 rounded-lg transition-all duration-300' , 'px-2 py-1 text-sm'=> $compactView,
+        <div @class([
+            'mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 shadow-sm',
+            'p-2' => $compactView,
+            'p-4' => !$compactView,
+        ])>
+            <button wire:click="previousPeriod" @class([
+                'flex items-center gap-2 rounded-lg transition-all duration-300',
+                'px-2 py-1 text-sm' => $compactView,
                 'px-4 py-2' => !$compactView,
-                'bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 cursor-pointer shadow-sm'
-                ])>
+                'bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 cursor-pointer shadow-sm',
+            ])>
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
-                @if(!$compactView) Previous @endif
+                @if (!$compactView)
+                    Previous
+                @endif
             </button>
 
             <div class="flex items-center gap-2">
                 <div class="text-center">
-                    @if($viewMode === 'weekly')
-                    <h3 @class([ 'font-semibold' , 'text-sm'=> $compactView,
-                        'text-lg' => !$compactView
+                    @if ($viewMode === 'weekly')
+                        <h3 @class([
+                            'font-semibold',
+                            'text-sm' => $compactView,
+                            'text-lg' => !$compactView,
                         ])>
-                        {{ $currentWeekStart->format('M j') }} - {{ $currentWeekStart->copy()->addDays(6)->format('M j, Y') }}
-                    </h3>
+                            {{ $currentWeekStart->format('M j') }} -
+                            {{ $currentWeekStart->copy()->addDays(6)->format('M j, Y') }}
+                        </h3>
                     @elseif($viewMode === 'monthly')
-                    <h3 @class([ 'font-semibold' , 'text-sm'=> $compactView,
-                        'text-lg' => !$compactView
+                        <h3 @class([
+                            'font-semibold',
+                            'text-sm' => $compactView,
+                            'text-lg' => !$compactView,
                         ])>{{ $currentMonthStart->format('F Y') }}</h3>
                     @else
-                    <h3 @class([ 'font-semibold' , 'text-sm'=> $compactView,
-                        'text-lg' => !$compactView
+                        <h3 @class([
+                            'font-semibold',
+                            'text-sm' => $compactView,
+                            'text-lg' => !$compactView,
                         ])>{{ $currentDate->format('l, F j, Y') }}</h3>
                     @endif
                 </div>
 
                 <!-- Date Picker Button -->
-                <button
-                    wire:click="openDatePicker"
-                    @class([ 'rounded-lg bg-purple-100 text-purple-700 transition-all duration-300 hover:bg-purple-200' , 'px-2 py-1 text-xs'=> $compactView,
-                    'px-3 py-1 ml-2' => !$compactView
-                    ])>
-                    📅 @if(!$compactView) Jump to Date @endif
+                <button wire:click="openDatePicker" @class([
+                    'rounded-lg bg-purple-100 text-purple-700 transition-all duration-300 hover:bg-purple-200',
+                    'px-2 py-1 text-xs' => $compactView,
+                    'px-3 py-1 ml-2' => !$compactView,
+                ])>
+                    📅 @if (!$compactView)
+                        Jump to Date
+                    @endif
                 </button>
             </div>
 
             <div class="flex items-center gap-2">
-                <button
-                    wire:click="goToToday"
-                    @class([ 'rounded-lg bg-blue-100 text-blue-700 transition-all duration-300 hover:bg-blue-200' , 'px-2 py-1 text-xs'=> $compactView,
-                    'px-4 py-2' => !$compactView
-                    ])>
-                    📅 @if(!$compactView) Today @endif
+                <button wire:click="goToToday" @class([
+                    'rounded-lg bg-blue-100 text-blue-700 transition-all duration-300 hover:bg-blue-200',
+                    'px-2 py-1 text-xs' => $compactView,
+                    'px-4 py-2' => !$compactView,
+                ])>
+                    📅 @if (!$compactView)
+                        Today
+                    @endif
                 </button>
 
-                <button
-                    wire:click="nextPeriod"
-                    @class([ 'flex items-center gap-2 rounded-lg transition-all duration-300' , 'px-2 py-1 text-sm'=> $compactView,
+                <button wire:click="nextPeriod" @class([
+                    'flex items-center gap-2 rounded-lg transition-all duration-300',
+                    'px-2 py-1 text-sm' => $compactView,
                     'px-4 py-2' => !$compactView,
-                    'bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 cursor-pointer shadow-sm'
-                    ])>
-                    @if(!$compactView) Next @endif
+                    'bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 cursor-pointer shadow-sm',
+                ])>
+                    @if (!$compactView)
+                        Next
+                    @endif
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
@@ -1168,722 +1226,927 @@ new #[Layout('components.frontend.app')] class extends Component {
         </div>
 
         <!-- Booking Rules Info -->
-        @if(!$compactView)
-        <div class="mb-6 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-4">
-            <h3 class="mb-2 font-bold text-gray-800">📋 Booking Rules</h3>
-            <div class="grid gap-2 text-sm md:grid-cols-2">
-                <div class="flex items-center gap-2">
-                    <div class="h-3 w-3 rounded-full bg-green-500"></div>
-                    <span><strong>Free Booking:</strong> Next week only ({{ Carbon::today()->addWeek()->startOfWeek()->format('M j') }} - {{ Carbon::today()->addWeek()->endOfWeek()->format('M j') }})</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="h-3 w-3 rounded-full bg-purple-500"></div>
-                    <span><strong>Premium Booking:</strong> Beyond next week @if($isPremiumBookingOpen)(Open Now!)@else(Opens {{ $premiumBookingDate->format('M j') }})@endif</span>
+        @if (!$compactView)
+            <div class="mb-6 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-4">
+                <h3 class="mb-2 font-bold text-gray-800">📋 Booking Rules</h3>
+                <div class="grid gap-2 text-sm md:grid-cols-2">
+                    <div class="flex items-center gap-2">
+                        <div class="h-3 w-3 rounded-full bg-green-500"></div>
+                        <span><strong>Free Booking:</strong> Next week only
+                            ({{ Carbon::today()->addWeek()->startOfWeek()->format('M j') }} -
+                            {{ Carbon::today()->addWeek()->endOfWeek()->format('M j') }})</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="h-3 w-3 rounded-full bg-purple-500"></div>
+                        <span><strong>Premium Booking:</strong> Beyond next week @if ($isPremiumBookingOpen)
+                                (Open Now!)
+                            @else(Opens {{ $premiumBookingDate->format('M j') }})
+                            @endif
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
         @endif
 
         <!-- Login Prompt -->
-        @if(!$isLoggedIn)
-        <div @class([ 'mb-6 rounded-r-lg border-l-4 border-blue-400 bg-blue-50' , 'p-3'=> $compactView,
-            'p-6' => !$compactView
+        @if (!$isLoggedIn)
+            <div @class([
+                'mb-6 rounded-r-lg border-l-4 border-blue-400 bg-blue-50',
+                'p-3' => $compactView,
+                'p-6' => !$compactView,
             ])>
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <p @class([ 'text-blue-700' , 'text-xs'=> $compactView,
-                        'text-sm' => !$compactView
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p @class([
+                            'text-blue-700',
+                            'text-xs' => $compactView,
+                            'text-sm' => !$compactView,
                         ])>
-                        <strong>Login to see your booking quota</strong> and make reservations.
-                        <a class="underline transition-colors hover:text-blue-900" href="{{ route('login') }}">Sign in here</a>
-                    </p>
+                            <strong>Login to see your booking quota</strong> and make reservations.
+                            <a class="underline transition-colors hover:text-blue-900" href="{{ route('login') }}">Sign
+                                in here</a>
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
         @endif
 
         <!-- Quota Display -->
-        @if($isLoggedIn && !empty($quotaInfo))
-        <div @class([ 'mb-6 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 shadow-sm' , 'p-3'=> $compactView,
-            'p-6' => !$compactView
+        @if ($isLoggedIn && !empty($quotaInfo))
+            <div @class([
+                'mb-6 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 shadow-sm',
+                'p-3' => $compactView,
+                'p-6' => !$compactView,
             ])>
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 @class([ 'font-bold text-blue-800' , 'text-sm'=> $compactView,
-                        'text-lg' => !$compactView
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 @class([
+                            'font-bold text-blue-800',
+                            'text-sm' => $compactView,
+                            'text-lg' => !$compactView,
                         ])>Weekly Quota</h3>
-                    @if(!$compactView)
-                    <p class="text-sm text-blue-600">Maximum 3 days per week, 2 hours per day</p>
-                    @endif
-                </div>
-                <div class="text-right">
-                    <div @class([ 'font-bold text-blue-600' , 'text-xl'=> $compactView,
-                        'text-3xl' => !$compactView
-                        ])>
-                        {{ $quotaInfo['weekly_used'] ?? 0 }}/{{ $quotaInfo['weekly_total'] ?? 3 }}
+                        @if (!$compactView)
+                            <p class="text-sm text-blue-600">Maximum 3 days per week, 2 hours per day</p>
+                        @endif
                     </div>
-                    <div @class([ 'text-blue-600' , 'text-xs'=> $compactView,
-                        'text-sm' => !$compactView
+                    <div class="text-right">
+                        <div @class([
+                            'font-bold text-blue-600',
+                            'text-xl' => $compactView,
+                            'text-3xl' => !$compactView,
+                        ])>
+                            {{ $quotaInfo['weekly_used'] ?? 0 }}/{{ $quotaInfo['weekly_total'] ?? 3 }}
+                        </div>
+                        <div @class([
+                            'text-blue-600',
+                            'text-xs' => $compactView,
+                            'text-sm' => !$compactView,
                         ])>Days used next week</div>
+                    </div>
                 </div>
+                @if (($quotaInfo['weekly_remaining'] ?? 0) > 0)
+                    <div @class([
+                        'mt-2 text-green-600',
+                        'text-xs' => $compactView,
+                        'text-sm' => !$compactView,
+                    ])>
+                        ✅ You can book {{ $quotaInfo['weekly_remaining'] }} more days this week
+                    </div>
+                @else
+                    <div @class([
+                        'mt-2 text-red-600',
+                        'text-xs' => $compactView,
+                        'text-sm' => !$compactView,
+                    ])>
+                        ⚠️ You have reached your weekly booking limit
+                    </div>
+                @endif
             </div>
-            @if(($quotaInfo['weekly_remaining'] ?? 0) > 0)
-            <div @class([ 'mt-2 text-green-600' , 'text-xs'=> $compactView,
-                'text-sm' => !$compactView
-                ])>
-                ✅ You can book {{ $quotaInfo['weekly_remaining'] }} more days this week
-            </div>
-            @else
-            <div @class([ 'mt-2 text-red-600' , 'text-xs'=> $compactView,
-                'text-sm' => !$compactView
-                ])>
-                ⚠️ You have reached your weekly booking limit
-            </div>
-            @endif
-        </div>
         @endif
 
         <!-- Quota Warning -->
-        @if($quotaWarning)
-        <div @class([ 'mb-6 rounded-r-lg border-l-4 border-orange-400 bg-orange-50' , 'p-3'=> $compactView,
-            'p-4' => !$compactView
+        @if ($quotaWarning)
+            <div @class([
+                'mb-6 rounded-r-lg border-l-4 border-orange-400 bg-orange-50',
+                'p-3' => $compactView,
+                'p-4' => !$compactView,
             ])>
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <p @class([ 'text-orange-700' , 'text-xs'=> $compactView,
-                        'text-sm' => !$compactView
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p @class([
+                            'text-orange-700',
+                            'text-xs' => $compactView,
+                            'text-sm' => !$compactView,
                         ])>⚠️ {{ $quotaWarning }}</p>
+                    </div>
                 </div>
             </div>
-        </div>
         @endif
 
         <!-- Weekly View -->
-        @if($viewMode === 'weekly')
-        @include('livewire.courtBooking.partials.weekly-view')
+        @if ($viewMode === 'weekly')
+            @include('livewire.courtBooking.partials.weekly-view')
         @endif
 
         <!-- Monthly View -->
-        @if($viewMode === 'monthly')
-        @include('livewire.courtBooking.partials.monthly-view')
+        @if ($viewMode === 'monthly')
+            @include('livewire.courtBooking.partials.monthly-view')
         @endif
 
         <!-- Daily View -->
-        @if($viewMode === 'daily')
-        @include('livewire.courtBooking.partials.daily-view')
+        @if ($viewMode === 'daily')
+            @include('livewire.courtBooking.partials.daily-view')
         @endif
 
         <!-- Selection Summary -->
-        @if(count($selectedSlots) > 0)
-        <div @class([ 'mb-8 rounded-xl border border-green-200 bg-gradient-to-r from-green-50 to-blue-50 shadow-sm' , 'p-3'=> $compactView,
-            'p-6' => !$compactView
+        @if (count($selectedSlots) > 0)
+            <div @class([
+                'mb-8 rounded-xl border border-green-200 bg-gradient-to-r from-green-50 to-blue-50 shadow-sm',
+                'p-3' => $compactView,
+                'p-6' => !$compactView,
             ])>
-            <h4 @class([ 'mb-4 flex items-center gap-2 font-bold text-gray-800' , 'text-sm mb-2'=> $compactView,
-                '' => !$compactView
+                <h4 @class([
+                    'mb-4 flex items-center gap-2 font-bold text-gray-800',
+                    'text-sm mb-2' => $compactView,
+                    '' => !$compactView,
                 ])>
-                🎯 Selected Time Slots ({{ count($selectedSlots) }})
-                @if($bookingType === 'mixed')
-                <span @class([ 'rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white' , 'px-2 py-1 text-xs'=> !$compactView,
-                    'px-1 text-xs' => $compactView
-                    ])>@if($compactView) Mixed @else Mixed Booking @endif</span>
-                @endif
-            </h4>
-            <div @class([ 'flex flex-wrap' , 'gap-1'=> $compactView,
-                'gap-3' => !$compactView
+                    🎯 Selected Time Slots ({{ count($selectedSlots) }})
+                    @if ($bookingType === 'mixed')
+                        <span @class([
+                            'rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white',
+                            'px-2 py-1 text-xs' => !$compactView,
+                            'px-1 text-xs' => $compactView,
+                        ])>
+                            @if ($compactView)
+                                Mixed
+                            @else
+                                Mixed Booking
+                            @endif
+                        </span>
+                    @endif
+                </h4>
+                <div @class([
+                    'flex flex-wrap',
+                    'gap-1' => $compactView,
+                    'gap-3' => !$compactView,
                 ])>
-                @foreach($selectedSlots as $slot)
-                @php
-                $parts = explode('-', $slot);
-                if (count($parts) >= 4) {
-                $date = Carbon::createFromFormat('Y-m-d', $parts[0] . '-' . $parts[1] . '-' . $parts[2]);
-                $time = count($parts) == 4 ? $parts[3] : $parts[3] . ':' . $parts[4];
-                $slotType = $this->getSlotType($slot);
-                }
-                @endphp
-                @if(isset($date) && isset($time))
-                <span @class([ 'inline-flex items-center rounded-full font-medium transition-all duration-300 hover:scale-105' , 'px-2 py-1 text-xs'=> $compactView,
-                    'px-4 py-2 text-sm' => !$compactView,
-                    'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' => $slotType === 'free',
-                    'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300' => $slotType !== 'free'
-                    ])>
-                    @if($slotType === 'free') 🆓 @else ⭐ @endif
-                    {{ $date->format('M j') }} @if(!$compactView) at @endif {{ $time }}
-                    <button
-                        @class([ 'ml-2 transition-transform duration-200 hover:scale-110' , 'ml-1'=> $compactView,
-                        'text-green-600 hover:text-green-800' => $slotType === 'free',
-                        'text-purple-600 hover:text-purple-800' => $slotType !== 'free'
-                        ])
-                        wire:click="toggleTimeSlot('{{ $slot }}')">
-                        ✕
-                    </button>
-                </span>
-                @endif
-                @endforeach
+                    @foreach ($selectedSlots as $slot)
+                        @php
+                            $parts = explode('-', $slot);
+                            if (count($parts) >= 4) {
+                                $date = Carbon::createFromFormat(
+                                    'Y-m-d',
+                                    $parts[0] . '-' . $parts[1] . '-' . $parts[2],
+                                );
+                                $time = count($parts) == 4 ? $parts[3] : $parts[3] . ':' . $parts[4];
+                                $slotType = $this->getSlotType($slot);
+                            }
+                        @endphp
+                        @if (isset($date) && isset($time))
+                            <span @class([
+                                'inline-flex items-center rounded-full font-medium transition-all duration-300 hover:scale-105',
+                                'px-2 py-1 text-xs' => $compactView,
+                                'px-4 py-2 text-sm' => !$compactView,
+                                'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300' =>
+                                    $slotType === 'free',
+                                'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border border-purple-300' =>
+                                    $slotType !== 'free',
+                            ])>
+                                @if ($slotType === 'free')
+                                    🆓
+                                @else
+                                    ⭐
+                                @endif
+                                {{ $date->format('M j') }} @if (!$compactView)
+                                    at
+                                @endif {{ $time }}
+                                <button @class([
+                                    'ml-2 transition-transform duration-200 hover:scale-110',
+                                    'ml-1' => $compactView,
+                                    'text-green-600 hover:text-green-800' => $slotType === 'free',
+                                    'text-purple-600 hover:text-purple-800' => $slotType !== 'free',
+                                ])
+                                    wire:click="toggleTimeSlot('{{ $slot }}')">
+                                    ✕
+                                </button>
+                            </span>
+                        @endif
+                    @endforeach
+                </div>
             </div>
-        </div>
         @endif
 
         <!-- Compact View Legend -->
-        @if($compactView)
-        <div class="mb-4 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 p-3 text-xs">
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="flex items-center gap-1">
-                    <span class="font-bold text-green-700">F</span>
-                    <span>Free</span>
-                </div>
-                <div class="flex items-center gap-1">
-                    <span class="font-bold text-purple-700">P</span>
-                    <span>Premium</span>
-                </div>
-                <div class="flex items-center gap-1">
-                    <span class="text-lg">✓</span>
-                    <span>Selected</span>
-                </div>
-                <div class="flex items-center gap-1">
-                    <span class="text-lg">●</span>
-                    <span>Booked</span>
-                </div>
-                <div class="flex items-center gap-1">
-                    <span class="text-lg">⏳</span>
-                    <span>Pending</span>
-                </div>
-                <div class="flex items-center gap-1">
-                    <span>🔒</span>
-                    <span>Locked</span>
+        @if ($compactView)
+            <div class="mb-4 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 p-3 text-xs">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-1">
+                        <span class="font-bold text-green-700">F</span>
+                        <span>Free</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="font-bold text-purple-700">P</span>
+                        <span>Premium</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="text-lg">✓</span>
+                        <span>Selected</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="text-lg">●</span>
+                        <span>Booked</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="text-lg">⏳</span>
+                        <span>Pending</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span>🔒</span>
+                        <span>Locked</span>
+                    </div>
                 </div>
             </div>
-        </div>
         @endif
 
         <!-- Legend -->
-        @if(!$compactView)
-        <div class="mb-8 flex flex-wrap items-center gap-6 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 p-6 text-sm">
-            <div class="flex items-center gap-2">
-                <div class="h-4 w-4 rounded border-l-4 border-red-400 bg-red-100"></div>
-                <span class="font-medium">Booked</span>
+        @if (!$compactView)
+            <div
+                class="mb-8 flex flex-wrap items-center gap-6 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 p-6 text-sm">
+                <div class="flex items-center gap-2">
+                    <div class="h-4 w-4 rounded border-l-4 border-red-400 bg-red-100"></div>
+                    <span class="font-medium">Booked</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="h-4 w-4 rounded border-l-4 border-yellow-400 bg-yellow-100"></div>
+                    <span class="font-medium">Pending</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="h-4 w-4 rounded border-l-4 border-green-500 bg-green-100"></div>
+                    <span class="font-medium">🆓 Free Selected</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="h-4 w-4 rounded border-l-4 border-purple-500 bg-purple-100"></div>
+                    <span class="font-medium">⭐ Premium Selected</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="h-4 w-4 rounded bg-gray-100"></div>
+                    <span class="font-medium">🔒 Locked/Past</span>
+                </div>
+                <div class="ml-auto max-w-md text-xs italic text-gray-600">
+                    *💡 After 6pm additional charges apply for court lights
+                </div>
             </div>
-            <div class="flex items-center gap-2">
-                <div class="h-4 w-4 rounded border-l-4 border-yellow-400 bg-yellow-100"></div>
-                <span class="font-medium">Pending</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="h-4 w-4 rounded border-l-4 border-green-500 bg-green-100"></div>
-                <span class="font-medium">🆓 Free Selected</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="h-4 w-4 rounded border-l-4 border-purple-500 bg-purple-100"></div>
-                <span class="font-medium">⭐ Premium Selected</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="h-4 w-4 rounded bg-gray-100"></div>
-                <span class="font-medium">🔒 Locked/Past</span>
-            </div>
-            <div class="ml-auto max-w-md text-xs italic text-gray-600">
-                *💡 After 6pm additional charges apply for court lights
-            </div>
-        </div>
         @endif
 
         <!-- Confirm Button -->
         <div class="flex justify-end">
-            <button
-                wire:click="confirmBooking"
-                @disabled(count($selectedSlots)===0 || $quotaWarning)
-                @class([ 'transform rounded-xl font-bold shadow-lg transition-all duration-500 hover:scale-105' , 'px-4 py-2 text-xs'=> $compactView,
+            <button wire:click="confirmBooking" @disabled(count($selectedSlots) === 0 || $quotaWarning) @class([
+                'transform rounded-xl font-bold shadow-lg transition-all duration-500 hover:scale-105',
+                'px-4 py-2 text-xs' => $compactView,
                 'px-8 py-4 text-sm' => !$compactView,
-                'bg-gray-300 text-gray-500 cursor-not-allowed' => count($selectedSlots) === 0,
+                'bg-gray-300 text-gray-500 cursor-not-allowed' =>
+                    count($selectedSlots) === 0,
                 'bg-orange-400 text-white cursor-not-allowed' => $quotaWarning,
-                'bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 text-white hover:from-gray-800 hover:via-gray-900 hover:to-black cursor-pointer hover:shadow-xl' => !$quotaWarning && count($selectedSlots) > 0
-                ])>
-                @if($quotaWarning)
-                ⚠️ @if($compactView) QUOTA @else QUOTA EXCEEDED @endif
+                'bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 text-white hover:from-gray-800 hover:via-gray-900 hover:to-black cursor-pointer hover:shadow-xl' =>
+                    !$quotaWarning && count($selectedSlots) > 0,
+            ])>
+                @if ($quotaWarning)
+                    ⚠️ @if ($compactView)
+                        QUOTA
+                    @else
+                        QUOTA EXCEEDED
+                    @endif
                 @else
-                🎾 @if($compactView) BOOK @else CONFIRM @endif
-                @if(!$compactView)
-                @if($bookingType === 'mixed') MIXED @else {{ strtoupper($bookingType) }} @endif
-                BOOKING(S)
-                @endif
-                @if(count($selectedSlots) > 0) ({{ count($selectedSlots) }}) @endif
+                    🎾 @if ($compactView)
+                        BOOK
+                    @else
+                        CONFIRM
+                    @endif
+                    @if (!$compactView)
+                        @if ($bookingType === 'mixed')
+                            MIXED
+                        @else
+                            {{ strtoupper($bookingType) }}
+                        @endif
+                        BOOKING(S)
+                    @endif
+                    @if (count($selectedSlots) > 0)
+                        ({{ count($selectedSlots) }})
+                    @endif
                 @endif
             </button>
         </div>
     </div>
 
     <!-- Time Selector Modal for Monthly View -->
-    @if($showTimeSelector)
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-        <div @class([ 'w-full transform rounded-xl bg-white shadow-2xl' , 'max-w-lg'=> $compactView,
-            'max-w-2xl' => !$compactView
+    @if ($showTimeSelector)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+            <div @class([
+                'w-full transform rounded-xl bg-white shadow-2xl',
+                'max-w-lg' => $compactView,
+                'max-w-2xl' => !$compactView,
             ])>
-            <!-- Header -->
-            <div class="border-b border-gray-200 bg-gray-50 p-4 rounded-t-xl">
-                <div class="flex items-center justify-between">
-                    <h3 @class([ 'font-bold text-gray-800' , 'text-sm'=> $compactView,
-                        'text-lg' => !$compactView
+                <!-- Header -->
+                <div class="rounded-t-xl border-b border-gray-200 bg-gray-50 p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 @class([
+                            'font-bold text-gray-800',
+                            'text-sm' => $compactView,
+                            'text-lg' => !$compactView,
                         ])>
-                        🕐 Select Time for {{ Carbon::parse($selectedDateForTime)->format($compactView ? 'M j, Y' : 'l, F j, Y') }}
-                    </h3>
-                    <button
-                        wire:click="closeTimeSelector"
-                        class="text-gray-400 hover:text-gray-600 transition-colors">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
+                            🕐 Select Time for
+                            {{ Carbon::parse($selectedDateForTime)->format($compactView ? 'M j, Y' : 'l, F j, Y') }}
+                        </h3>
+                        <button class="text-gray-400 transition-colors hover:text-gray-600"
+                            wire:click="closeTimeSelector">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    @php $dayInfo = $this->getDateBookingInfo(Carbon::parse($selectedDateForTime)); @endphp
+                    <div class="mt-2 flex items-center gap-2">
+                        @if ($dayInfo['can_book_free'])
+                            <span @class([
+                                'rounded-full bg-green-200 text-green-700',
+                                'px-2 py-1 text-xs' => !$compactView,
+                                'px-1 text-xs' => $compactView,
+                            ])>🆓 @if (!$compactView)
+                                    Free Booking Available
+                                @endif
+                            </span>
+                        @endif
+                        @if ($dayInfo['can_book_premium'])
+                            <span @class([
+                                'rounded-full bg-purple-200 text-purple-700',
+                                'px-2 py-1 text-xs' => !$compactView,
+                                'px-1 text-xs' => $compactView,
+                            ])>⭐ @if (!$compactView)
+                                    Premium Booking Available
+                                @endif
+                            </span>
+                        @endif
+                    </div>
                 </div>
-                @php $dayInfo = $this->getDateBookingInfo(Carbon::parse($selectedDateForTime)); @endphp
-                <div class="mt-2 flex items-center gap-2">
-                    @if($dayInfo['can_book_free'])
-                    <span @class([ 'rounded-full bg-green-200 text-green-700' , 'px-2 py-1 text-xs'=> !$compactView,
-                        'px-1 text-xs' => $compactView
-                        ])>🆓 @if(!$compactView) Free Booking Available @endif</span>
-                    @endif
-                    @if($dayInfo['can_book_premium'])
-                    <span @class([ 'rounded-full bg-purple-200 text-purple-700' , 'px-2 py-1 text-xs'=> !$compactView,
-                        'px-1 text-xs' => $compactView
-                        ])>⭐ @if(!$compactView) Premium Booking Available @endif</span>
-                    @endif
-                </div>
-            </div>
 
-            <!-- Time Slots Grid -->
-            <div @class([ 'max-h-96 overflow-y-auto' , 'p-2'=> $compactView,
-                'p-4' => !$compactView
+                <!-- Time Slots Grid -->
+                <div @class([
+                    'max-h-96 overflow-y-auto',
+                    'p-2' => $compactView,
+                    'p-4' => !$compactView,
                 ])>
-                <div @class([ 'grid gap-2' , 'grid-cols-3'=> $compactView,
-                    'sm:grid-cols-2 lg:grid-cols-3' => !$compactView
+                    <div @class([
+                        'grid gap-2',
+                        'grid-cols-3' => $compactView,
+                        'sm:grid-cols-2 lg:grid-cols-3' => !$compactView,
                     ])>
-                    @foreach($availableTimesForDate as $timeSlot)
-                    <div
-                        @class([ 'rounded-lg border text-center transition-all duration-200' , 'p-2'=> $compactView,
-                        'p-3' => !$compactView,
-                        'bg-gray-100 text-gray-400' => $timeSlot['is_past'] && !$timeSlot['is_booked'],
-                        'bg-red-100 text-red-800 border-red-300' => $timeSlot['is_booked'],
-                        'bg-green-100 text-green-800 border-green-300 cursor-pointer hover:bg-green-200' => $timeSlot['is_available'] && $timeSlot['slot_type'] === 'free' && !$timeSlot['is_selected'],
-                        'bg-purple-100 text-purple-800 border-purple-300 cursor-pointer hover:bg-purple-200' => $timeSlot['is_available'] && $timeSlot['slot_type'] === 'premium' && !$timeSlot['is_selected'],
-                        'bg-green-200 text-green-900 border-green-400 shadow-inner' => $timeSlot['is_selected'] && $timeSlot['slot_type'] === 'free',
-                        'bg-purple-200 text-purple-900 border-purple-400 shadow-inner' => $timeSlot['is_selected'] && $timeSlot['slot_type'] === 'premium',
-                        ])
-                        @if($timeSlot['is_available'])
-                        wire:click="toggleTimeSlot('{{ $timeSlot['slot_key'] }}')"
-                        @endif>
-                        <div @class([ 'font-semibold' , 'text-xs'=> $compactView,
-                            '' => !$compactView
-                            ])>{{ $timeSlot['start_time'] }}@if(!$compactView) - {{ $timeSlot['end_time'] }}@endif</div>
-                        @if($timeSlot['is_past'])
-                        <div class="text-xs">@if($compactView) - @else Past @endif</div>
-                        @elseif($timeSlot['is_booked'])
-                        <div class="text-xs">Booked</div>
-                        @elseif($timeSlot['is_selected'])
-                        <div class="text-xs">✓ @if(!$compactView) Selected @endif</div>
-                        @elseif($timeSlot['is_available'])
-                        <div class="text-xs">{{ $timeSlot['slot_type'] === 'free' ? '🆓' : '⭐' }} @if(!$compactView){{ $timeSlot['slot_type'] === 'free' ? ' Free' : ' Premium' }}@endif</div>
-                        @if($timeSlot['is_peak'] && !$compactView)
-                        <div class="text-xs text-orange-600">💡 Lights required</div>
-                        @endif
-                        @endif
+                        @foreach ($availableTimesForDate as $timeSlot)
+                            <div @class([
+                                'rounded-lg border text-center transition-all duration-200',
+                                'p-2' => $compactView,
+                                'p-3' => !$compactView,
+                                'bg-gray-100 text-gray-400' =>
+                                    $timeSlot['is_past'] && !$timeSlot['is_booked'],
+                                'bg-red-100 text-red-800 border-red-300' => $timeSlot['is_booked'],
+                                'bg-green-100 text-green-800 border-green-300 cursor-pointer hover:bg-green-200' =>
+                                    $timeSlot['is_available'] &&
+                                    $timeSlot['slot_type'] === 'free' &&
+                                    !$timeSlot['is_selected'],
+                                'bg-purple-100 text-purple-800 border-purple-300 cursor-pointer hover:bg-purple-200' =>
+                                    $timeSlot['is_available'] &&
+                                    $timeSlot['slot_type'] === 'premium' &&
+                                    !$timeSlot['is_selected'],
+                                'bg-green-200 text-green-900 border-green-400 shadow-inner' =>
+                                    $timeSlot['is_selected'] && $timeSlot['slot_type'] === 'free',
+                                'bg-purple-200 text-purple-900 border-purple-400 shadow-inner' =>
+                                    $timeSlot['is_selected'] && $timeSlot['slot_type'] === 'premium',
+                            ])
+                                @if ($timeSlot['is_available']) wire:click="toggleTimeSlot('{{ $timeSlot['slot_key'] }}')" @endif>
+                                <div @class([
+                                    'font-semibold',
+                                    'text-xs' => $compactView,
+                                    '' => !$compactView,
+                                ])>{{ $timeSlot['start_time'] }}@if (!$compactView)
+                                        - {{ $timeSlot['end_time'] }}
+                                    @endif
+                                </div>
+                                @if ($timeSlot['is_past'])
+                                    <div class="text-xs">
+                                        @if ($compactView)
+                                            -
+                                        @else
+                                            Past
+                                        @endif
+                                    </div>
+                                @elseif($timeSlot['is_booked'])
+                                    <div class="text-xs">Booked</div>
+                                @elseif($timeSlot['is_selected'])
+                                    <div class="text-xs">✓ @if (!$compactView)
+                                            Selected
+                                        @endif
+                                    </div>
+                                @elseif($timeSlot['is_available'])
+                                    <div class="text-xs">{{ $timeSlot['slot_type'] === 'free' ? '🆓' : '⭐' }}
+                                        @if (!$compactView)
+                                            {{ $timeSlot['slot_type'] === 'free' ? ' Free' : ' Premium' }}
+                                        @endif
+                                    </div>
+                                    @if ($timeSlot['is_peak'] && !$compactView)
+                                        <div class="text-xs text-orange-600">💡 Lights required</div>
+                                    @endif
+                                @endif
+                            </div>
+                        @endforeach
                     </div>
-                    @endforeach
                 </div>
-            </div>
 
-            <!-- Footer -->
-            <div class="border-t border-gray-200 p-4 rounded-b-xl">
-                <div class="flex justify-between items-center">
-                    @if(!$compactView)
-                    <div class="text-sm text-gray-600">
-                        Click on available time slots to select them for booking
-                    </div>
-                    @endif
-                    <button
-                        wire:click="closeTimeSelector"
-                        @class([ 'bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors' , 'px-3 py-1 text-sm'=> $compactView,
-                        'px-4 py-2' => !$compactView
+                <!-- Footer -->
+                <div class="rounded-b-xl border-t border-gray-200 p-4">
+                    <div class="flex items-center justify-between">
+                        @if (!$compactView)
+                            <div class="text-sm text-gray-600">
+                                Click on available time slots to select them for booking
+                            </div>
+                        @endif
+                        <button wire:click="closeTimeSelector" @class([
+                            'bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors',
+                            'px-3 py-1 text-sm' => $compactView,
+                            'px-4 py-2' => !$compactView,
                         ])>
-                        Done
-                    </button>
+                            Done
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     @endif
 
     <!-- Enhanced Date Picker Modal -->
-    @if($showDatePicker)
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-        <div @class([ 'w-full transform rounded-xl bg-white shadow-2xl' , 'max-w-lg'=> $compactView,
-            'max-w-2xl' => !$compactView
+    @if ($showDatePicker)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+            <div @class([
+                'w-full transform rounded-xl bg-white shadow-2xl',
+                'max-w-lg' => $compactView,
+                'max-w-2xl' => !$compactView,
             ])>
-            <!-- Header -->
-            <div class="border-b border-gray-200 bg-gray-50 p-4 rounded-t-xl">
-                <h3 @class([ 'font-bold text-gray-800' , 'text-sm'=> $compactView,
-                    'text-lg' => !$compactView
+                <!-- Header -->
+                <div class="rounded-t-xl border-b border-gray-200 bg-gray-50 p-4">
+                    <h3 @class([
+                        'font-bold text-gray-800',
+                        'text-sm' => $compactView,
+                        'text-lg' => !$compactView,
                     ])>📅 Jump to Date</h3>
 
-                <!-- Date Picker Mode Selector -->
-                <div class="mt-3 flex gap-1 rounded-lg bg-white p-1 border">
-                    <button
-                        wire:click="setDatePickerMode('day')"
-                        @class([ 'flex-1 rounded-md font-medium transition-all duration-200' , 'px-2 py-1 text-xs'=> $compactView,
-                        'px-3 py-2 text-sm' => !$compactView,
-                        'bg-blue-500 text-white' => $datePickerMode === 'day',
-                        'text-gray-700 hover:bg-gray-100' => $datePickerMode !== 'day'
+                    <!-- Date Picker Mode Selector -->
+                    <div class="mt-3 flex gap-1 rounded-lg border bg-white p-1">
+                        <button wire:click="setDatePickerMode('day')" @class([
+                            'flex-1 rounded-md font-medium transition-all duration-200',
+                            'px-2 py-1 text-xs' => $compactView,
+                            'px-3 py-2 text-sm' => !$compactView,
+                            'bg-blue-500 text-white' => $datePickerMode === 'day',
+                            'text-gray-700 hover:bg-gray-100' => $datePickerMode !== 'day',
                         ])>
-                        📅 Day
-                    </button>
-                    <button
-                        wire:click="setDatePickerMode('week')"
-                        @class([ 'flex-1 rounded-md font-medium transition-all duration-200' , 'px-2 py-1 text-xs'=> $compactView,
-                        'px-3 py-2 text-sm' => !$compactView,
-                        'bg-blue-500 text-white' => $datePickerMode === 'week',
-                        'text-gray-700 hover:bg-gray-100' => $datePickerMode !== 'week'
+                            📅 Day
+                        </button>
+                        <button wire:click="setDatePickerMode('week')" @class([
+                            'flex-1 rounded-md font-medium transition-all duration-200',
+                            'px-2 py-1 text-xs' => $compactView,
+                            'px-3 py-2 text-sm' => !$compactView,
+                            'bg-blue-500 text-white' => $datePickerMode === 'week',
+                            'text-gray-700 hover:bg-gray-100' => $datePickerMode !== 'week',
                         ])>
-                        📅 Week
-                    </button>
-                    <button
-                        wire:click="setDatePickerMode('month')"
-                        @class([ 'flex-1 rounded-md font-medium transition-all duration-200' , 'px-2 py-1 text-xs'=> $compactView,
-                        'px-3 py-2 text-sm' => !$compactView,
-                        'bg-blue-500 text-white' => $datePickerMode === 'month',
-                        'text-gray-700 hover:bg-gray-100' => $datePickerMode !== 'month'
+                            📅 Week
+                        </button>
+                        <button wire:click="setDatePickerMode('month')" @class([
+                            'flex-1 rounded-md font-medium transition-all duration-200',
+                            'px-2 py-1 text-xs' => $compactView,
+                            'px-3 py-2 text-sm' => !$compactView,
+                            'bg-blue-500 text-white' => $datePickerMode === 'month',
+                            'text-gray-700 hover:bg-gray-100' => $datePickerMode !== 'month',
                         ])>
-                        📅 Month
-                    </button>
+                            📅 Month
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Month/Year Selectors -->
-            <div class="border-b border-gray-200 p-4">
-                <div class="flex gap-4">
-                    <div class="flex-1">
-                        <label @class([ 'block font-medium text-gray-700 mb-1' , 'text-xs'=> $compactView,
-                            'text-sm' => !$compactView
+                <!-- Month/Year Selectors -->
+                <div class="border-b border-gray-200 p-4">
+                    <div class="flex gap-4">
+                        <div class="flex-1">
+                            <label @class([
+                                'block font-medium text-gray-700 mb-1',
+                                'text-xs' => $compactView,
+                                'text-sm' => !$compactView,
                             ])>Month</label>
-                        <select wire:model.live="selectedMonth" @class([ 'w-full rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500' , 'px-2 py-1 text-xs'=> $compactView,
-                            'px-3 py-2 text-sm' => !$compactView
+                            <select wire:model.live="selectedMonth" @class([
+                                'w-full rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500',
+                                'px-2 py-1 text-xs' => $compactView,
+                                'px-3 py-2 text-sm' => !$compactView,
                             ])>
-                            @foreach($availableMonths as $value => $name)
-                            <option value="{{ $value }}">{{ $name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="flex-1">
-                        <label @class([ 'block font-medium text-gray-700 mb-1' , 'text-xs'=> $compactView,
-                            'text-sm' => !$compactView
+                                @foreach ($availableMonths as $value => $name)
+                                    <option value="{{ $value }}">{{ $name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex-1">
+                            <label @class([
+                                'block font-medium text-gray-700 mb-1',
+                                'text-xs' => $compactView,
+                                'text-sm' => !$compactView,
                             ])>Year</label>
-                        <select wire:model.live="selectedYear" @class([ 'w-full rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500' , 'px-2 py-1 text-xs'=> $compactView,
-                            'px-3 py-2 text-sm' => !$compactView
+                            <select wire:model.live="selectedYear" @class([
+                                'w-full rounded-lg border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500',
+                                'px-2 py-1 text-xs' => $compactView,
+                                'px-3 py-2 text-sm' => !$compactView,
                             ])>
-                            @foreach($availableYears as $year)
-                            <option value="{{ $year }}">{{ $year }}</option>
-                            @endforeach
-                        </select>
+                                @foreach ($availableYears as $year)
+                                    <option value="{{ $year }}">{{ $year }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Calendar Content -->
-            <div @class([ 'max-h-96 overflow-y-auto' , 'p-2'=> $compactView,
-                'p-4' => !$compactView
+                <!-- Calendar Content -->
+                <div @class([
+                    'max-h-96 overflow-y-auto',
+                    'p-2' => $compactView,
+                    'p-4' => !$compactView,
                 ])>
-                @if($datePickerMode === 'day')
-                <!-- Day Picker -->
-                <div class="grid grid-cols-7 gap-1 mb-2">
-                    @foreach(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $dayName)
-                    <div @class([ 'text-center font-medium text-gray-500' , 'p-1 text-xs'=> $compactView,
-                        'p-2 text-xs' => !$compactView
-                        ])>{{ $compactView ? substr($dayName, 0, 1) : $dayName }}</div>
-                    @endforeach
-                </div>
+                    @if ($datePickerMode === 'day')
+                        <!-- Day Picker -->
+                        <div class="mb-2 grid grid-cols-7 gap-1">
+                            @foreach (['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $dayName)
+                                <div @class([
+                                    'text-center font-medium text-gray-500',
+                                    'p-1 text-xs' => $compactView,
+                                    'p-2 text-xs' => !$compactView,
+                                ])>
+                                    {{ $compactView ? substr($dayName, 0, 1) : $dayName }}
+                                </div>
+                            @endforeach
+                        </div>
 
-                <div class="grid grid-cols-7 gap-1">
-                    @foreach($calendarDays as $day)
-                    <button
-                        wire:click="selectDate('{{ $day['date'] }}')"
-                        @class([ 'aspect-square rounded-lg transition-all duration-200 hover:scale-105' , 'p-1 text-xs'=> $compactView,
-                        'p-2 text-sm' => !$compactView,
-                        'text-gray-900 hover:bg-blue-50 border border-transparent hover:border-blue-200' => $day['is_current_month'] && !$day['is_past'] && !$day['is_today'] && $day['booking_type'] === 'none',
-                        'text-gray-400 bg-gray-50' => !$day['is_current_month'] || $day['is_past'],
-                        'bg-blue-500 text-white font-bold' => $day['is_today'],
-                        'bg-green-100 text-green-800 border border-green-300 hover:bg-green-200' => $day['can_book_free'] && !$day['is_today'],
-                        'bg-purple-100 text-purple-800 border border-purple-300 hover:bg-purple-200' => $day['can_book_premium'] && !$day['is_today'] && !$day['can_book_free'],
-                        'cursor-pointer' => $day['is_current_month'],
-                        'cursor-not-allowed' => !$day['is_current_month']
-                        ])
-                        @disabled(!$day['is_current_month'])
-                        title="{{ $day['formatted_date'] }} - {{ $day['booking_type'] === 'free' ? 'Free Booking' : ($day['booking_type'] === 'premium' ? 'Premium Booking' : 'Not Available') }}">
-                        <div class="font-medium">{{ $day['day_number'] }}</div>
-                        @if($day['can_book_free'])
-                        <div class="text-xs">🆓</div>
-                        @elseif($day['can_book_premium'])
-                        <div class="text-xs">⭐</div>
-                        @endif
-                    </button>
-                    @endforeach
-                </div>
-
-                @elseif($datePickerMode === 'week')
-                <!-- Week Picker -->
-                <div class="space-y-2">
-                    @foreach($calendarWeeks as $week)
-                    <button
-                        wire:click="selectWeek('{{ $week['week_start'] }}')"
-                        @class([ 'w-full rounded-lg border text-left transition-all duration-200 hover:scale-105' , 'p-2'=> $compactView,
-                        'p-3' => !$compactView,
-                        'bg-blue-100 border-blue-300 text-blue-800' => $week['is_current_week'],
-                        'bg-gray-100 border-gray-300 text-gray-500' => $week['is_past_week'],
-                        'bg-green-100 border-green-300 text-green-800 hover:bg-green-200' => $week['can_book_free'] && !$week['is_current_week'] && !$week['is_past_week'],
-                        'bg-purple-100 border-purple-300 text-purple-800 hover:bg-purple-200' => $week['can_book_premium'] && !$week['can_book_free'] && !$week['is_current_week'] && !$week['is_past_week'],
-                        'bg-white border-gray-300 hover:bg-gray-50' => !$week['is_bookable'] && !$week['is_current_week'] && !$week['is_past_week']
+                        <div class="grid grid-cols-7 gap-1">
+                            @foreach ($calendarDays as $day)
+                                <button wire:click="selectDate('{{ $day['date'] }}')" @class([
+                                    'aspect-square rounded-lg transition-all duration-200 hover:scale-105',
+                                    'p-1 text-xs' => $compactView,
+                                    'p-2 text-sm' => !$compactView,
+                                    'text-gray-900 hover:bg-blue-50 border border-transparent hover:border-blue-200' =>
+                                        $day['is_current_month'] &&
+                                        !$day['is_past'] &&
+                                        !$day['is_today'] &&
+                                        $day['booking_type'] === 'none',
+                                    'text-gray-400 bg-gray-50' => !$day['is_current_month'] || $day['is_past'],
+                                    'bg-blue-500 text-white font-bold' => $day['is_today'],
+                                    'bg-green-100 text-green-800 border border-green-300 hover:bg-green-200' =>
+                                        $day['can_book_free'] && !$day['is_today'],
+                                    'bg-purple-100 text-purple-800 border border-purple-300 hover:bg-purple-200' =>
+                                        $day['can_book_premium'] && !$day['is_today'] && !$day['can_book_free'],
+                                    'cursor-pointer' => $day['is_current_month'],
+                                    'cursor-not-allowed' => !$day['is_current_month'],
+                                ])
+                                    @disabled(!$day['is_current_month'])
+                                    title="{{ $day['formatted_date'] }} - {{ $day['booking_type'] === 'free' ? 'Free Booking' : ($day['booking_type'] === 'premium' ? 'Premium Booking' : 'Not Available') }}">
+                                    <div class="font-medium">{{ $day['day_number'] }}</div>
+                                    @if ($day['can_book_free'])
+                                        <div class="text-xs">🆓</div>
+                                    @elseif($day['can_book_premium'])
+                                        <div class="text-xs">⭐</div>
+                                    @endif
+                                </button>
+                            @endforeach
+                        </div>
+                    @elseif($datePickerMode === 'week')
+                        <!-- Week Picker -->
+                        <div class="space-y-2">
+                            @foreach ($calendarWeeks as $week)
+                                <button wire:click="selectWeek('{{ $week['week_start'] }}')"
+                                    @class([
+                                        'w-full rounded-lg border text-left transition-all duration-200 hover:scale-105',
+                                        'p-2' => $compactView,
+                                        'p-3' => !$compactView,
+                                        'bg-blue-100 border-blue-300 text-blue-800' => $week['is_current_week'],
+                                        'bg-gray-100 border-gray-300 text-gray-500' => $week['is_past_week'],
+                                        'bg-green-100 border-green-300 text-green-800 hover:bg-green-200' =>
+                                            $week['can_book_free'] &&
+                                            !$week['is_current_week'] &&
+                                            !$week['is_past_week'],
+                                        'bg-purple-100 border-purple-300 text-purple-800 hover:bg-purple-200' =>
+                                            $week['can_book_premium'] &&
+                                            !$week['can_book_free'] &&
+                                            !$week['is_current_week'] &&
+                                            !$week['is_past_week'],
+                                        'bg-white border-gray-300 hover:bg-gray-50' =>
+                                            !$week['is_bookable'] &&
+                                            !$week['is_current_week'] &&
+                                            !$week['is_past_week'],
+                                    ])>
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div @class([
+                                                'font-medium',
+                                                'text-sm' => $compactView,
+                                                '' => !$compactView,
+                                            ])>Week {{ $week['week_number'] }}</div>
+                                            <div @class([
+                                                'opacity-75',
+                                                'text-xs' => $compactView,
+                                                'text-sm' => !$compactView,
+                                            ])>{{ $week['formatted_range'] }}</div>
+                                        </div>
+                                        <div class="text-right">
+                                            @if ($week['is_current_week'])
+                                                <span @class([
+                                                    'bg-blue-200 px-2 py-1 rounded',
+                                                    'text-xs' => $compactView || !$compactView,
+                                                ])>Current</span>
+                                            @elseif($week['is_past_week'])
+                                                <span @class([
+                                                    'bg-gray-200 px-2 py-1 rounded',
+                                                    'text-xs' => $compactView || !$compactView,
+                                                ])>Past</span>
+                                            @elseif($week['can_book_free'])
+                                                <span @class([
+                                                    'bg-green-200 px-2 py-1 rounded',
+                                                    'text-xs' => $compactView || !$compactView,
+                                                ])>🆓 Free</span>
+                                            @elseif($week['can_book_premium'])
+                                                <span @class([
+                                                    'bg-purple-200 px-2 py-1 rounded',
+                                                    'text-xs' => $compactView || !$compactView,
+                                                ])>⭐ Premium</span>
+                                            @else
+                                                <span @class([
+                                                    'bg-gray-200 px-2 py-1 rounded',
+                                                    'text-xs' => $compactView || !$compactView,
+                                                ])>🔒 Locked</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </button>
+                            @endforeach
+                        </div>
+                    @else
+                        <!-- Month Picker -->
+                        <div @class([
+                            'grid gap-3',
+                            'grid-cols-2' => $compactView,
+                            'grid-cols-3' => !$compactView,
                         ])>
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <div @class([ 'font-medium' , 'text-sm'=> $compactView,
-                                    '' => !$compactView
-                                    ])>Week {{ $week['week_number'] }}</div>
-                                <div @class([ 'opacity-75' , 'text-xs'=> $compactView,
-                                    'text-sm' => !$compactView
-                                    ])>{{ $week['formatted_range'] }}</div>
-                            </div>
-                            <div class="text-right">
-                                @if($week['is_current_week'])
-                                <span @class([ 'bg-blue-200 px-2 py-1 rounded' , 'text-xs'=> $compactView || !$compactView
-                                    ])>Current</span>
-                                @elseif($week['is_past_week'])
-                                <span @class([ 'bg-gray-200 px-2 py-1 rounded' , 'text-xs'=> $compactView || !$compactView
-                                    ])>Past</span>
-                                @elseif($week['can_book_free'])
-                                <span @class([ 'bg-green-200 px-2 py-1 rounded' , 'text-xs'=> $compactView || !$compactView
-                                    ])>🆓 Free</span>
-                                @elseif($week['can_book_premium'])
-                                <span @class([ 'bg-purple-200 px-2 py-1 rounded' , 'text-xs'=> $compactView || !$compactView
-                                    ])>⭐ Premium</span>
-                                @else
-                                <span @class([ 'bg-gray-200 px-2 py-1 rounded' , 'text-xs'=> $compactView || !$compactView
-                                    ])>🔒 Locked</span>
-                                @endif
-                            </div>
+                            @foreach ($calendarMonths as $month)
+                                <button wire:click="selectMonth('{{ $month['month_start'] }}')"
+                                    @class([
+                                        'rounded-lg border text-center transition-all duration-200 hover:scale-105',
+                                        'p-2' => $compactView,
+                                        'p-4' => !$compactView,
+                                        'bg-blue-100 border-blue-300 text-blue-800' => $month['is_current_month'],
+                                        'bg-gray-100 border-gray-300 text-gray-500' => $month['is_past_month'],
+                                        'bg-green-100 border-green-300 text-green-800 hover:bg-green-200' =>
+                                            $month['can_book_free'] &&
+                                            !$month['is_current_month'] &&
+                                            !$month['is_past_month'],
+                                        'bg-purple-100 border-purple-300 text-purple-800 hover:bg-purple-200' =>
+                                            $month['can_book_premium'] &&
+                                            !$month['can_book_free'] &&
+                                            !$month['is_current_month'] &&
+                                            !$month['is_past_month'],
+                                        'bg-white border-gray-300 hover:bg-gray-50' =>
+                                            !$month['is_bookable'] &&
+                                            !$month['is_current_month'] &&
+                                            !$month['is_past_month'],
+                                    ])>
+                                    <div @class([
+                                        'font-medium',
+                                        'text-sm' => $compactView,
+                                        '' => !$compactView,
+                                    ])>{{ $month['month_name'] }}</div>
+                                    <div @class(['mt-1', 'text-xs' => $compactView || !$compactView])>
+                                        @if ($month['is_current_month'])
+                                            Current
+                                        @elseif($month['is_past_month'])
+                                            Past
+                                        @elseif($month['booking_type'] === 'mixed')
+                                            🆓⭐ @if (!$compactView)
+                                                Mixed
+                                            @endif
+                                        @elseif($month['can_book_free'])
+                                            🆓 @if (!$compactView)
+                                                Free
+                                            @endif
+                                        @elseif($month['can_book_premium'])
+                                            ⭐ @if (!$compactView)
+                                                Premium
+                                            @endif
+                                        @else
+                                            🔒 @if (!$compactView)
+                                                Locked
+                                            @endif
+                                        @endif
+                                    </div>
+                                </button>
+                            @endforeach
                         </div>
-                    </button>
-                    @endforeach
-                </div>
-
-                @else
-                <!-- Month Picker -->
-                <div @class([ 'grid gap-3' , 'grid-cols-2'=> $compactView,
-                    'grid-cols-3' => !$compactView
-                    ])>
-                    @foreach($calendarMonths as $month)
-                    <button
-                        wire:click="selectMonth('{{ $month['month_start'] }}')"
-                        @class([ 'rounded-lg border text-center transition-all duration-200 hover:scale-105' , 'p-2'=> $compactView,
-                        'p-4' => !$compactView,
-                        'bg-blue-100 border-blue-300 text-blue-800' => $month['is_current_month'],
-                        'bg-gray-100 border-gray-300 text-gray-500' => $month['is_past_month'],
-                        'bg-green-100 border-green-300 text-green-800 hover:bg-green-200' => $month['can_book_free'] && !$month['is_current_month'] && !$month['is_past_month'],
-                        'bg-purple-100 border-purple-300 text-purple-800 hover:bg-purple-200' => $month['can_book_premium'] && !$month['can_book_free'] && !$month['is_current_month'] && !$month['is_past_month'],
-                        'bg-white border-gray-300 hover:bg-gray-50' => !$month['is_bookable'] && !$month['is_current_month'] && !$month['is_past_month']
-                        ])>
-                        <div @class([ 'font-medium' , 'text-sm'=> $compactView,
-                            '' => !$compactView
-                            ])>{{ $month['month_name'] }}</div>
-                        <div @class([ 'mt-1' , 'text-xs'=> $compactView || !$compactView
-                            ])>
-                            @if($month['is_current_month'])
-                            Current
-                            @elseif($month['is_past_month'])
-                            Past
-                            @elseif($month['booking_type'] === 'mixed')
-                            🆓⭐ @if(!$compactView) Mixed @endif
-                            @elseif($month['can_book_free'])
-                            🆓 @if(!$compactView) Free @endif
-                            @elseif($month['can_book_premium'])
-                            ⭐ @if(!$compactView) Premium @endif
-                            @else
-                            🔒 @if(!$compactView) Locked @endif
-                            @endif
-                        </div>
-                    </button>
-                    @endforeach
-                </div>
-                @endif
-            </div>
-
-            <!-- Footer -->
-            <div class="border-t border-gray-200 p-4 rounded-b-xl">
-                <div class="flex justify-between items-center">
-                    @if(!$compactView)
-                    <div class="text-xs text-gray-500">
-                        <div class="flex items-center gap-4">
-                            <span class="flex items-center gap-1">
-                                <div class="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
-                                🆓 Free
-                            </span>
-                            <span class="flex items-center gap-1">
-                                <div class="w-3 h-3 bg-purple-100 border border-purple-300 rounded"></div>
-                                ⭐ Premium
-                            </span>
-                            <span class="flex items-center gap-1">
-                                <div class="w-3 h-3 bg-gray-100 rounded"></div>
-                                🔒 Locked
-                            </span>
-                        </div>
-                    </div>
                     @endif
-                    <button
-                        wire:click="closeDatePicker"
-                        @class([ 'text-gray-600 hover:text-gray-800 transition-colors' , 'px-3 py-1 text-sm'=> $compactView,
-                        'px-4 py-2' => !$compactView
+                </div>
+
+                <!-- Footer -->
+                <div class="rounded-b-xl border-t border-gray-200 p-4">
+                    <div class="flex items-center justify-between">
+                        @if (!$compactView)
+                            <div class="text-xs text-gray-500">
+                                <div class="flex items-center gap-4">
+                                    <span class="flex items-center gap-1">
+                                        <div class="h-3 w-3 rounded border border-green-300 bg-green-100"></div>
+                                        🆓 Free
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <div class="h-3 w-3 rounded border border-purple-300 bg-purple-100"></div>
+                                        ⭐ Premium
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <div class="h-3 w-3 rounded bg-gray-100"></div>
+                                        🔒 Locked
+                                    </span>
+                                </div>
+                            </div>
+                        @endif
+                        <button wire:click="closeDatePicker" @class([
+                            'text-gray-600 hover:text-gray-800 transition-colors',
+                            'px-3 py-1 text-sm' => $compactView,
+                            'px-4 py-2' => !$compactView,
                         ])>
-                        Cancel
-                    </button>
+                            Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     @endif
 
-    @if($showConfirmModal)
-    <div class="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div class="animate-scale-in mx-4 w-full max-w-lg transform rounded-xl bg-white p-6 shadow-2xl">
-            <h3 class="mb-6 text-xl font-bold">
-                @if ($bookingType === 'mixed')
-                🎾 Mixed Booking Confirmation
-                @else
-                🎾 {{ ucfirst($bookingType) }} Booking Confirmation
-                @endif
-            </h3>
+    @if ($showConfirmModal)
+        <div class="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div class="animate-scale-in mx-4 w-full max-w-lg transform rounded-xl bg-white p-6 shadow-2xl">
+                <h3 class="mb-6 text-xl font-bold">
+                    @if ($bookingType === 'mixed')
+                        🎾 Mixed Booking Confirmation
+                    @else
+                        🎾 {{ ucfirst($bookingType) }} Booking Confirmation
+                    @endif
+                </h3>
 
-            <div class="mb-6 space-y-4">
-                @foreach ($pendingBookingData as $booking)
-                <div class="rounded-lg border bg-gray-50 p-4">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <div class="font-semibold">{{ $booking['date']->format('l, F j, Y') }}</div>
-                            <div class="text-lg">{{ $booking['start_time'] . ' - ' . $booking['end_time'] }}</div>
-                            @if ($booking['is_light_required'])
-                            <div class="mt-1 text-sm text-orange-600">
-                                💡 additional IDR 50k/hour for tennis court lights
-                            </div>
-                            @endif
-                        </div>
-                        <span
-                            @class([ 'bg-blue-100 text-blue-800'=> $booking['booking_type'] === 'free',
-                            'bg-purple-100 text-purple-800' => $booking['booking_type'] !== 'free',
-                            'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
-                            ])
-                            @if ($booking['booking_type'] === 'free')
-                            🆓
+                <div class="mb-6 space-y-4">
+                    @foreach ($pendingBookingData as $booking)
+                        <div class="rounded-lg border bg-gray-50 p-4">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="font-semibold">{{ $booking['date']->format('l, F j, Y') }}</div>
+                                    <div class="text-lg">{{ $booking['start_time'] . ' - ' . $booking['end_time'] }}
+                                    </div>
+                                    @if ($booking['is_light_required'])
+                                        <div class="mt-1 text-sm text-orange-600">
+                                            💡 additional IDR 50k/hour for tennis court lights
+                                        </div>
+                                    @endif
+                                </div>
+                                <span @class([
+                                    'bg-blue-100 text-blue-800' => $booking['booking_type'] === 'free',
+                                    'bg-purple-100 text-purple-800' => $booking['booking_type'] !== 'free',
+                                    'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
+                                ])
+                                    @if ($booking['booking_type'] === 'free') 🆓
                             @else
-                            ⭐
-                            @endif
-                            {{ strtoupper($booking['booking_type']) }}
-                        </span>
-                    </div>
+                            ⭐ @endif
+                                    {{ strtoupper($booking['booking_type']) }} </span>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
-                @endforeach
-            </div>
 
-            <div class="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-gray-600">
-                <p>💳 *Please process the payment to the Receptionist before using the tennis court</p>
-                <p>⚠️ *Please be responsible with your bookings. Failure to comply may result in being blacklisted.
-                </p>
-            </div>
+                <div class="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-gray-600">
+                    <p>💳 *Please process the payment to the Receptionist before using the tennis court</p>
+                    <p>⚠️ *Please be responsible with your bookings. Failure to comply may result in being blacklisted.
+                    </p>
+                </div>
 
-            <div class="flex justify-end gap-3">
-                <button class="rounded-lg px-6 py-2 text-gray-600 transition-colors hover:text-gray-800"
-                    wire:click="closeModal">
-                    Cancel
-                </button>
-                <button
-                    class="transform rounded-lg bg-gradient-to-r from-gray-700 to-gray-900 px-6 py-2 text-white transition-all duration-300 hover:scale-105 hover:from-gray-800 hover:to-black"
-                    wire:click="processBooking">
-                    🎾 CONFIRM BOOKING(S)
-                </button>
+                <div class="flex justify-end gap-3">
+                    <button class="rounded-lg px-6 py-2 text-gray-600 transition-colors hover:text-gray-800"
+                        wire:click="closeModal">
+                        Cancel
+                    </button>
+                    <button
+                        class="transform rounded-lg bg-gradient-to-r from-gray-700 to-gray-900 px-6 py-2 text-white transition-all duration-300 hover:scale-105 hover:from-gray-800 hover:to-black"
+                        wire:click="processBooking">
+                        🎾 CONFIRM BOOKING(S)
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
     @endif
 
     <!-- Thank You Modal -->
-    @if($showThankYouModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div @class([ 'mx-4 w-full transform rounded-xl bg-white text-center shadow-2xl' , 'max-w-sm p-6'=> $compactView,
-            'max-w-md p-8' => !$compactView
+    @if ($showThankYouModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div @class([
+                'mx-4 w-full transform rounded-xl bg-white text-center shadow-2xl',
+                'max-w-sm p-6' => $compactView,
+                'max-w-md p-8' => !$compactView,
             ])>
-            <div @class([ 'mb-4' , 'text-4xl'=> $compactView,
-                'text-6xl' => !$compactView
+                <div @class([
+                    'mb-4',
+                    'text-4xl' => $compactView,
+                    'text-6xl' => !$compactView,
                 ])>🎾</div>
-            <h3 @class([ 'mb-4 font-bold' , 'text-lg'=> $compactView,
-                'text-xl' => !$compactView
+                <h3 @class([
+                    'mb-4 font-bold',
+                    'text-lg' => $compactView,
+                    'text-xl' => !$compactView,
                 ])>Thank you for your booking!</h3>
-            <div @class([ 'mb-6 rounded-lg bg-gray-100 font-bold text-gray-800' , 'py-2 text-xl'=> $compactView,
-                'py-4 text-3xl' => !$compactView
+                <div @class([
+                    'mb-6 rounded-lg bg-gray-100 font-bold text-gray-800',
+                    'py-2 text-xl' => $compactView,
+                    'py-4 text-3xl' => !$compactView,
                 ])>
-                #{{ $bookingReference }}
+                    #{{ $bookingReference }}
+                </div>
+                <button @class([
+                    'transform rounded-lg bg-gradient-to-r from-gray-600 to-gray-800 text-white transition-all duration-300 hover:scale-105 hover:from-gray-700 hover:to-gray-900',
+                    'px-6 py-2 text-sm' => $compactView,
+                    'px-8 py-3' => !$compactView,
+                ]) wire:click="closeModal">
+                    🏠 @if ($compactView)
+                        BACK
+                    @else
+                        BACK TO BOOKING
+                    @endif
+                </button>
             </div>
-            <button
-                @class([ 'transform rounded-lg bg-gradient-to-r from-gray-600 to-gray-800 text-white transition-all duration-300 hover:scale-105 hover:from-gray-700 hover:to-gray-900' , 'px-6 py-2 text-sm'=> $compactView,
-                'px-8 py-3' => !$compactView
-                ])
-                wire:click="closeModal">
-                🏠 @if($compactView) BACK @else BACK TO BOOKING @endif
-            </button>
         </div>
-    </div>
     @endif
 
     <!-- Login Reminder Modal -->
-    @if($showLoginReminder)
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div @class([ 'mx-4 w-full transform rounded-xl bg-white shadow-2xl' , 'max-w-sm p-4'=> $compactView,
-            'max-w-md p-6' => !$compactView
+    @if ($showLoginReminder)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div @class([
+                'mx-4 w-full transform rounded-xl bg-white shadow-2xl',
+                'max-w-sm p-4' => $compactView,
+                'max-w-md p-6' => !$compactView,
             ])>
-            <h3 @class([ 'mb-4 font-bold' , 'text-base'=> $compactView,
-                'text-lg' => !$compactView
+                <h3 @class([
+                    'mb-4 font-bold',
+                    'text-base' => $compactView,
+                    'text-lg' => !$compactView,
                 ])>🔐 Login Required</h3>
-            <p @class([ 'mb-6 text-gray-600' , 'text-sm'=> $compactView,
-                '' => !$compactView
+                <p @class([
+                    'mb-6 text-gray-600',
+                    'text-sm' => $compactView,
+                    '' => !$compactView,
                 ])>Please log in to your tenant account to proceed with booking.</p>
-            <div class="flex justify-end gap-3">
-                <button
-                    @class([ 'text-gray-600 transition-colors hover:text-gray-800' , 'px-3 py-1 text-sm'=> $compactView,
-                    'px-4 py-2' => !$compactView
-                    ])
-                    wire:click="closeModal">
-                    Cancel
-                </button>
-                <button
-                    @class([ 'rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700' , 'px-3 py-1 text-sm'=> $compactView,
-                    'px-4 py-2' => !$compactView
-                    ])
-                    wire:click="redirectToLogin">
-                    🔑 Login
-                </button>
+                <div class="flex justify-end gap-3">
+                    <button @class([
+                        'text-gray-600 transition-colors hover:text-gray-800',
+                        'px-3 py-1 text-sm' => $compactView,
+                        'px-4 py-2' => !$compactView,
+                    ]) wire:click="closeModal">
+                        Cancel
+                    </button>
+                    <button @class([
+                        'rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700',
+                        'px-3 py-1 text-sm' => $compactView,
+                        'px-4 py-2' => !$compactView,
+                    ]) wire:click="redirectToLogin">
+                        🔑 Login
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
     @endif
 
-    <x-toast />
+    @include('components.toast')
 </div>
 
 @script
-<script>
-    $js('showToast', (value) => {
+    <script>
+        $js('showToast', (value) => {
 
-        toast(value);
+            toast(value);
 
-    })
-</script>
+        })
+    </script>
 @endscript

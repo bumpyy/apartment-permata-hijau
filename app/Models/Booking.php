@@ -56,7 +56,7 @@ class Booking extends Model
 
     public function generateReference()
     {
-        return 'A'.str_pad($this->id, 4, '0', STR_PAD_LEFT);
+        return 'A' . str_pad($this->id, 4, '0', STR_PAD_LEFT);
     }
 
     public function calculatePrice()
@@ -93,6 +93,24 @@ class Booking extends Model
             'cancelled' => 'CANCELLED',
             default => strtoupper($this->status)
         };
+    }
+
+    public static function getBookedDaysForTenant($tenantId, $startDate = null, $endDate = null)
+    {
+        $query = self::where('tenant_id', $tenantId)
+            ->where('status', '!=', 'cancelled');
+
+        if ($startDate) {
+            $query->where('date', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->where('date', '<=', $endDate);
+        }
+
+        return $query->get()->groupBy(function ($booking) {
+            return $booking->date->format('Y-m-d');
+        });
     }
 
     protected static function boot()

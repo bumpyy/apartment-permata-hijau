@@ -5,6 +5,8 @@ import { animate } from "animejs";
 
 window.animate = animate;
 
+Flux.dark = false;
+
 document.addEventListener(
     "alpine:init",
     () => {
