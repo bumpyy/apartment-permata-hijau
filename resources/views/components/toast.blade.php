@@ -352,7 +352,7 @@
                             }
                             setTimeout(function() {
                                 deleteToastWithId(toast.id)
-                            }, 300);
+                            }, 600);
                         }, 5);
                     }, 4000);" @mouseover="toastHovered=true"
                     @mouseout="toastHovered=false" :class="{ 'toast-no-description': !toast.description }">

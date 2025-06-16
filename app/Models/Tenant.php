@@ -95,19 +95,17 @@ class Tenant extends Authenticatable
      */
     public function getFreeBookingQuotaAttribute()
     {
-        $weekStart = Carbon::now()->startOfWeek();
-
         $used = $this->bookings()
             ->where('status', '!=', 'cancelled')
             ->where('booking_type', 'free')
             // ->where('booking_week_start', $weekStart->format('Y-m-d'))
-            ->where('date', '>=', Carbon::now())
-            ->count();
+            ->where('date', '>=', Carbon::today())
+            ->get();
 
         return [
-            'used' => $used,
+            'used' => $used->groupBy('date')->count(),
             'total' => $this->booking_limit,
-            'remaining' => max(0, $this->booking_limit - $used),
+            'remaining' => max(0, $this->booking_limit - $used->groupBy('date')->count()),
         ];
     }
 
@@ -125,17 +123,17 @@ class Tenant extends Authenticatable
         $used = $this->bookings()
             ->where('status', '!=', 'cancelled')
             ->where('booking_type', 'premium')
-            ->where('date', '>=', Carbon::now())
-            ->count();
+            ->where('date', '>=', Carbon::today())
+            ->get();
 
         // Premium quota is calculated based on weeks ahead
         $weeksAhead = 4; // 1 month = ~4 weeks
         $totalPremiumQuota = $this->booking_limit * $weeksAhead;
 
         return [
-            'used' => $used,
+            'used' => $used->groupBy('date')->count(),
             'total' => $totalPremiumQuota,
-            'remaining' => max(0, $totalPremiumQuota - $used),
+            'remaining' => max(0, $totalPremiumQuota - $used->groupBy('date')->count()),
         ];
     }
 
@@ -153,13 +151,14 @@ class Tenant extends Authenticatable
     {
         $used = $this->bookings()
             ->where('status', '!=', 'cancelled')
-            ->where('date', '>=', Carbon::now())
-            ->count();
+            ->where('date', '>=', Carbon::today())
+            ->get();
 
         return [
-            'used' => $used,
+            'used' => $used->groupBy('date')->count(),
             'total' => $this->booking_limit,
-            'remaining' => max(0, $this->booking_limit - $used),
+            'remaining' => max(0, $this->booking_limit - $used->groupBy('date')->count()),
+            'dates' => $used,
         ];
     }
 

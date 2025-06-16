@@ -1,3 +1,3 @@
-<x-backend.layouts.auth.split :title="$title ?? null">
+<x-layouts.auth.card :title="$title ?? null">
     {{ $slot }}
-</x-backend.layouts.auth.split>
+</x-layouts.auth.card>

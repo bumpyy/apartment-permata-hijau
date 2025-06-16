@@ -9,13 +9,14 @@
     <flux:sidebar class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900" sticky stashable>
         <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-        <a class="me-5 flex items-center space-x-2 rtl:space-x-reverse" href="{{ route('dashboard') }}" wire:navigate>
+        <a class="me-5 flex items-center space-x-2 rtl:space-x-reverse" href="{{ route('admin.dashboard') }}"
+            wire:navigate>
             <x-site-logo />
         </a>
 
         <flux:navlist variant="outline">
             <flux:navlist.group class="grid" :heading="__('Platform')">
-                <flux:navlist.item icon="home" :href="route('dashboard')"
+                <flux:navlist.item icon="home" :href="route('admin.dashboard')"
                     current="{{ request()->routeIs('dashboard') }}" wire:navigate>{{ __('Dashboard') }}
                 </flux:navlist.item>
             </flux:navlist.group>
@@ -62,7 +63,8 @@
                 <flux:menu.separator />
 
                 <flux:menu.radio.group>
-                    <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}
+                    <flux:menu.item :href="route('admin.settings.profile')" icon="cog" wire:navigate>
+                        {{ __('Settings') }}
                     </flux:menu.item>
                 </flux:menu.radio.group>
 
@@ -109,7 +111,8 @@
                 <flux:menu.separator />
 
                 <flux:menu.radio.group>
-                    <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}
+                    <flux:menu.item :href="route('admin.settings.profile')" icon="cog" wire:navigate>
+                        {{ __('Settings') }}
                     </flux:menu.item>
                 </flux:menu.radio.group>
 

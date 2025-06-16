@@ -1,9 +1,9 @@
 import anchor from "@alpinejs/anchor";
 import collapse from "@alpinejs/collapse";
 import focus from "@alpinejs/focus";
-import { animate } from "animejs";
+import { animate, stagger } from "animejs";
 
-window.animate = animate;
+window.anime = { animate, stagger };
 
 Flux.dark = false;
 
@@ -14,5 +14,5 @@ document.addEventListener(
         window.Alpine.plugin(anchor);
         window.Alpine.plugin(focus);
     },
-    { once: true }
+    { once: true },
 );

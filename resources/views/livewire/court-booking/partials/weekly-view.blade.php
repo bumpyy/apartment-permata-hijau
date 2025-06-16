@@ -112,7 +112,7 @@
                             'p-3' => !$compactView,
                             'bg-gray-100 text-gray-400' =>
                                 ($isPastSlot || !$day['is_bookable']) && !$showBookingInfo,
-                            'bg-red-100 text-red-800 cursor-pointer border-l-4 border-red-400' => $isBooked,
+                            'bg-blue-100 text-blue-800 cursor-pointer border-l-4 border-blue-400' => $isBooked,
                             'bg-yellow-100 text-yellow-800 cursor-pointer border-l-4 border-yellow-400' => $isPreliminary,
                             'bg-green-100 text-green-800 border-l-4 border-green-500 transform scale-95 shadow-inner' =>
                                 $isSelected && $slotType === 'free',
@@ -152,7 +152,7 @@
                                 </div>
                             @elseif($isBooked)
                                 <div @class([
-                                    'font-bold text-red-700 flex items-center justify-center',
+                                    'font-bold text-blue-700 flex items-center justify-center',
                                     'text-xs' => $compactView || !$compactView,
                                 ])>
                                     @if ($compactView)

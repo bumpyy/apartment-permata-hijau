@@ -1,86 +1,100 @@
 <?php
 // TODO: OPTIMIZE THESE QUERIES
-use function Livewire\Volt\{layout, state, mount};
+
+namespace App\Http\Livewire\Tenant;
+
 use App\Models\Booking;
 use Carbon\Carbon;
+use Livewire\Attributes\Layout;
+use Livewire\Volt\Component;
 
-layout('components.frontend.app');
+new #[Layout('components.frontend.layouts.app')] class extends Component
+{
+    public $tenant;
 
-state([
-    'tenant' => null,
-    'upcomingBookings' => [],
-    'pastBookings' => [],
-    'quotaInfo' => [],
-    'stats' => [],
-    'activeTab' => 'upcoming',
-]);
+    public $upcomingBookings = [];
 
-mount(function () {
-    $this->tenant = auth('tenant')->user();
-    $this->loadBookings();
-    $this->loadQuotaInfo();
-    $this->loadStats();
-});
+    public $pastBookings = [];
 
-$loadBookings = function () {
-    $this->upcomingBookings = $this->tenant->bookings()
-        ->where('date', '>=', Carbon::today())
-        ->where('status', '!=', 'cancelled')
-        ->with('court')
-        ->orderBy('date')
-        ->orderBy('start_time')
-        ->get();
+    public $quotaInfo = [];
 
-    $this->pastBookings = $this->tenant->bookings()
-        ->where('date', '<', Carbon::today())
-        ->with('court')
-        ->orderBy('date', 'desc')
-        ->orderBy('start_time', 'desc')
-        ->limit(20)
-        ->get();
-};
+    public $stats = [];
 
-$loadQuotaInfo = function () {
-    $this->quotaInfo = [
-        'free' => $this->tenant->free_booking_quota,
-        'premium' => $this->tenant->premium_booking_quota,
-        'weekly_remaining' => $this->tenant->remaining_weekly_quota
-    ];
-};
+    public $activeTab = 'upcoming';
 
-$loadStats = function () {
-    $this->stats = [
-        'total_bookings' => $this->tenant->bookings()->count(),
-        'this_month' => $this->tenant->bookings()
-            ->whereMonth('date', Carbon::now()->month)
-            ->whereYear('date', Carbon::now()->year)
-            ->count(),
-        'confirmed' => $this->tenant->bookings()
-            ->where('status', 'confirmed')
-            ->where('date', '>=', Carbon::today())
-            ->count(),
-        'pending' => $this->tenant->bookings()
-            ->where('status', 'pending')
-            ->where('date', '>=', Carbon::today())
-            ->count(),
-    ];
-};
-
-$setActiveTab = function ($tab) {
-    $this->activeTab = $tab;
-};
-
-$cancelBooking = function ($bookingId) {
-    $booking = Booking::find($bookingId);
-    if ($booking && $booking->tenant_id === $this->tenant->id) {
-        $booking->update(['status' => 'cancelled']);
+    public function mount()
+    {
+        $this->tenant = auth('tenant')->user();
         $this->loadBookings();
         $this->loadQuotaInfo();
         $this->loadStats();
-        session()->flash('message', 'Booking cancelled successfully!');
     }
-};
 
+    public function loadBookings()
+    {
+        $this->upcomingBookings = $this->tenant->bookings()
+            ->where('date', '>=', Carbon::today())
+            ->where('status', '!=', 'cancelled')
+            ->with('court')
+            ->orderBy('date')
+            ->orderBy('start_time')
+            ->get();
+
+        $this->pastBookings = $this->tenant->bookings()
+            ->where('date', '<', Carbon::today())
+            ->with('court')
+            ->orderBy('date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->limit(20)
+            ->get();
+    }
+
+    public function loadQuotaInfo()
+    {
+        $this->quotaInfo = [
+            'free' => $this->tenant->free_booking_quota,
+            'premium' => $this->tenant->premium_booking_quota,
+            'combined' => $this->tenant->combined_booking_quota,
+            // 'weekly_remaining' => $this->tenant->remaining_weekly_quota,
+        ];
+    }
+
+    public function loadStats()
+    {
+        $this->stats = [
+            'total_bookings' => $this->tenant->bookings()->count(),
+            'this_month' => $this->tenant->bookings()
+                ->whereMonth('date', Carbon::now()->month)
+                ->whereYear('date', Carbon::now()->year)
+                ->count(),
+            'confirmed' => $this->tenant->bookings()
+                ->where('status', 'confirmed')
+                ->where('date', '>=', Carbon::today())
+                ->count(),
+            'pending' => $this->tenant->bookings()
+                ->where('status', 'pending')
+                ->where('date', '>=', Carbon::today())
+                ->count(),
+        ];
+    }
+
+    public function setActiveTab($tab)
+    {
+        $this->activeTab = $tab;
+    }
+
+    public function cancelBooking($bookingId)
+    {
+        $booking = Booking::find($bookingId);
+        if ($booking && $booking->tenant_id === $this->tenant->id) {
+            $booking->update(['status' => 'cancelled']);
+            $this->loadBookings();
+            $this->loadQuotaInfo();
+            $this->loadStats();
+            session()->flash('message', 'Booking cancelled successfully!');
+        }
+    }
+}
 ?>
 
 <section>
@@ -111,7 +125,7 @@ $cancelBooking = function ($bookingId) {
         <div class="container py-8">
             <!-- Quick Stats -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="stat-card bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300">
+                <div class="stat-card bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300 translate-y-4 opacity-0">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600">Total Bookings</p>
@@ -125,7 +139,7 @@ $cancelBooking = function ($bookingId) {
                     </div>
                 </div>
 
-                <div class="stat-card bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300">
+                <div class="stat-card bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300 translate-y-4 opacity-0">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600">This Month</p>
@@ -139,7 +153,7 @@ $cancelBooking = function ($bookingId) {
                     </div>
                 </div>
 
-                <div class="stat-card bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300">
+                <div class="stat-card bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300 translate-y-4 opacity-0">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600">Confirmed</p>
@@ -153,7 +167,7 @@ $cancelBooking = function ($bookingId) {
                     </div>
                 </div>
 
-                <div class="stat-card bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300">
+                <div class="stat-card bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300 translate-y-4 opacity-0">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600">Pending</p>
@@ -170,42 +184,34 @@ $cancelBooking = function ($bookingId) {
 
             <!-- Quota Overview -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="quota-card bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="quota-card translate-y-4 opacity-0 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
                     <div class="flex items-center justify-between mb-4">
-                        <h4 class="font-bold text-blue-800">🆓 Free Booking Quota</h4>
+                        <h4 class="font-bold text-blue-800">🆓 Free Booking Used</h4>
                         <div class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">Weekly</div>
                     </div>
                     <p class="text-4xl font-bold text-blue-600 mb-3">
-                        {{ $quotaInfo['free']['used'] }}/{{ $quotaInfo['free']['total'] }}
+                        {{ $quotaInfo['free']['used'] }}
                     </p>
                     <p class="text-sm text-blue-600 mb-4">Up to 7 days ahead</p>
-                    <div class="bg-blue-200 rounded-full h-3">
-                        <div class="bg-blue-500 h-3 rounded-full transition-all duration-500"
-                            style="width: {{ $quotaInfo['free']['total'] > 0 ? ($quotaInfo['free']['used'] / $quotaInfo['free']['total']) * 100 : 0 }}%"></div>
-                    </div>
                 </div>
 
-                <div class="quota-card bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="quota-card translate-y-4 opacity-0 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
                     <div class="flex items-center justify-between mb-4">
-                        <h4 class="font-bold text-purple-800">⭐ Premium Booking Quota</h4>
+                        <h4 class="font-bold text-purple-800">⭐ Premium Booking Used</h4>
                         <div class="text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded-full">Monthly</div>
                     </div>
                     <p class="text-4xl font-bold text-purple-600 mb-3">
-                        {{ $quotaInfo['premium']['used'] }}/{{ $quotaInfo['premium']['total'] }}
+                        {{ $quotaInfo['premium']['used'] }}
                     </p>
                     <p class="text-sm text-purple-600 mb-4">Up to 1 month ahead</p>
-                    <div class="bg-purple-200 rounded-full h-3">
-                        <div class="bg-purple-500 h-3 rounded-full transition-all duration-500"
-                            style="width: {{ $quotaInfo['premium']['total'] > 0 ? ($quotaInfo['premium']['used'] / $quotaInfo['premium']['total']) * 100 : 0 }}%"></div>
-                    </div>
                 </div>
 
-                <div class="quota-card bg-gradient-to-br from-green-50 to-green-100 border border-green-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="quota-card translate-y-4 opacity-0 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
                     <div class="flex items-center justify-between mb-4">
                         <h4 class="font-bold text-green-800">📊 Weekly Remaining</h4>
                         <div class="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full">Available</div>
                     </div>
-                    <p class="text-4xl font-bold text-green-600 mb-3">{{ $quotaInfo['weekly_remaining'] }}</p>
+                    <p class="text-4xl font-bold text-green-600 mb-3">{{ $quotaInfo['combined']['remaining'] }}</p>
                     <p class="text-sm text-green-600 mb-4">This week's balance</p>
                     <a href="{{ route('facilities') }}"
                         class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
@@ -322,7 +328,7 @@ $cancelBooking = function ($bookingId) {
                     @if(count($pastBookings) > 0)
                     <div class="space-y-4">
                         @foreach($pastBookings as $booking)
-                        <div class="booking-card bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-6 opacity-75">
+                        <div class="booking-card -translate-x-12 opacity-0 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-6">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-4">
                                     <div class="flex-shrink-0">
@@ -377,70 +383,11 @@ $cancelBooking = function ($bookingId) {
         </div>
     </div>
 
-    <style>
-        .stat-card {
-            animation: slideInUp 0.6s ease-out;
-        }
-
-        .stat-card:nth-child(2) {
-            animation-delay: 0.1s;
-        }
-
-        .stat-card:nth-child(3) {
-            animation-delay: 0.2s;
-        }
-
-        .stat-card:nth-child(4) {
-            animation-delay: 0.3s;
-        }
-
-        .quota-card {
-            animation: slideInUp 0.6s ease-out;
-        }
-
-        .quota-card:nth-child(2) {
-            animation-delay: 0.1s;
-        }
-
-        .quota-card:nth-child(3) {
-            animation-delay: 0.2s;
-        }
-
-        .booking-card {
-            animation: slideInLeft 0.6s ease-out;
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-    </style>
-
-    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+@script
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
             // Animate stats cards
-            anime({
-                targets: '.stat-card',
+            anime.animate(
+                '.stat-card',{
                 translateY: [30, 0],
                 opacity: [0, 1],
                 delay: anime.stagger(100),
@@ -449,8 +396,8 @@ $cancelBooking = function ($bookingId) {
             });
 
             // Animate quota cards
-            anime({
-                targets: '.quota-card',
+            anime.animate(
+                '.quota-card',{
                 translateY: [30, 0],
                 opacity: [0, 1],
                 delay: anime.stagger(100, {
@@ -461,8 +408,8 @@ $cancelBooking = function ($bookingId) {
             });
 
             // Animate booking cards
-            anime({
-                targets: '.booking-card',
+            anime.animate(
+                '.booking-card',{
                 translateX: [-30, 0],
                 opacity: [0, 1],
                 delay: anime.stagger(50, {
@@ -471,6 +418,7 @@ $cancelBooking = function ($bookingId) {
                 duration: 500,
                 easing: 'easeOutQuad'
             });
-        });
+
     </script>
+@endscript
 </section>

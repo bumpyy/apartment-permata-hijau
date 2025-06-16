@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Middleware\UserOnlyAccess;
+use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\RedirectIfAuthenticated;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Support\Facades\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,12 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // $middleware->redirectUsersTo(function (Request $request) {
-        //     return $request->user()->isAdmin() ? '/' : '/home';
-        // });
-
         $middleware->alias([
-            'user.only' => UserOnlyAccess::class,
+            'guest' => RedirectIfAuthenticated::class,
+            'auth' => Authenticate::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

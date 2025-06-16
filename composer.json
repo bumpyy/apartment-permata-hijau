@@ -17,7 +17,8 @@
         "livewire/volt": "^1.7.0",
         "mallardduck/blade-lucide-icons": "^1.23",
         "spatie/laravel-data": "^4.15",
-        "spatie/laravel-permission": "^6.19"
+        "spatie/laravel-permission": "^6.19",
+        "spatie/laravel-settings": "^3.4"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.15",

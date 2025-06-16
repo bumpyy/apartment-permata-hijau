@@ -2,8 +2,6 @@
     @vite(['resources/js/home.js'])
 @endPushOnce
 
-@props(['data' => []])
-
 <section class="bg-primary/75 mb-20 bg-[url('../img/slider-bg.png')] py-20 bg-blend-multiply">
 
     <div class="container mb-12 w-max text-white">
@@ -39,14 +37,12 @@
         </div>
 
         <div class="glide__arrows" data-glide-el="controls">
-            <button
-                class="glide__arrow glide__arrow--left -left-4 rounded-full border-none bg-white shadow-none sm:left-0"
+            <button class="glide__arrow glide__arrow--left rounded-full border-none bg-white shadow-none sm:left-0"
                 data-glide-dir="<">
                 <x-lucide-chevron-left class="size-8 text-black" />
             </button>
 
-            <button
-                class="glide__arrow glide__arrow--right -right-4 rounded-full border-none bg-white shadow-none sm:right-0"
+            <button class="glide__arrow glide__arrow--right rounded-full border-none bg-white shadow-none sm:right-0"
                 data-glide-dir=">">
                 <x-lucide-chevron-right class="size-8 text-black" />
             </button>

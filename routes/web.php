@@ -13,21 +13,28 @@ Volt::route('dashboard', 'tenant.dashboard')
     ])
     ->name('tenant.dashboard');
 
-// Route::view('dashboard', 'dashboard')
-//     ->middleware([
-//         'auth:tenant',
-//     ])
-//     ->name('dashboard');
+Volt::route('dashboard', 'tenant.dashboard')
+    ->middleware([
+        'auth:tenant',
+    ])
+    ->name('tenant.dashboard');
 
-Volt::route('facilities', 'courtBooking.main')
+Volt::route('facilities', 'court-booking.main')
     ->name('facilities');
 
-Route::middleware(['auth:admin'])->group(function () {
-    Route::redirect('settings', 'settings/profile');
+Route::redirect('admin/settings', 'admin/settings/profile');
+Route::redirect('admin', 'admin/dashboard');
 
-    Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
-    Volt::route('settings/password', 'settings.password')->name('settings.password');
-    Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
-});
+Route::middleware(['auth:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+
+        Volt::route('dashboard', 'admin.dashboard')->name('dashboard');
+
+        Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
+        Volt::route('settings/password', 'settings.password')->name('settings.password');
+        Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
+    });
 
 require __DIR__.'/auth.php';
