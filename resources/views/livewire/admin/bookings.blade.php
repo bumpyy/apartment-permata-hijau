@@ -1,9 +1,12 @@
 <?php
 
-use function Livewire\Volt\{layout, state, mount};
 use App\Models\Booking;
 
-layout('components.frontend.app');
+use function Livewire\Volt\layout;
+use function Livewire\Volt\mount;
+use function Livewire\Volt\state;
+
+layout('components.frontend.layouts.app');
 
 state([
     'bookings' => [],

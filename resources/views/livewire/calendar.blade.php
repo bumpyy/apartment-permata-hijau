@@ -1,23 +1,35 @@
 <?php
 
-use Carbon\Carbon;
 use App\Models\Booking;
 use App\Models\Court;
+use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new #[Layout('components.frontend.app')] class extends Component {
+new #[Layout('components.frontend.layouts.app')] class extends Component
+{
     public $currentMonth;
+
     public $currentYear;
+
     public $calendarDays = [];
+
     public $bookings = [];
+
     public $courts = [];
+
     public $selectedCourt = null;
+
     public $selectedDate = null;
+
     public $selectedDateBookings = [];
+
     public $showDayDetail = false;
+
     public $isLoading = true;
+
     public $viewMode = 'month'; // 'month' or 'week'
+
     public $weekStart = null;
 
     public function mount($viewMode = 'month', $date = null)
@@ -79,11 +91,11 @@ new #[Layout('components.frontend.app')] class extends Component {
                 'day' => $currentDay->day,
                 'isCurrentMonth' => $currentDay->month === $date->month,
                 'isToday' => $currentDay->isToday(),
-                'isPast' => $currentDay->isPast() && !$currentDay->isToday(),
+                'isPast' => $currentDay->isPast() && ! $currentDay->isToday(),
                 'isWeekend' => $currentDay->isWeekend(),
                 'dayOfWeek' => $currentDay->dayOfWeek,
                 'formattedDate' => $currentDay->format('M j'),
-                'bookings' => []
+                'bookings' => [],
             ];
 
             $week[] = $dayData;
@@ -98,7 +110,7 @@ new #[Layout('components.frontend.app')] class extends Component {
         }
 
         // Add the last week if it's not empty
-        if (!empty($week)) {
+        if (! empty($week)) {
             $weeks[] = $week;
         }
 
@@ -119,12 +131,12 @@ new #[Layout('components.frontend.app')] class extends Component {
                 'day' => $currentDay->day,
                 'isCurrentMonth' => $currentDay->month === Carbon::now()->month,
                 'isToday' => $currentDay->isToday(),
-                'isPast' => $currentDay->isPast() && !$currentDay->isToday(),
+                'isPast' => $currentDay->isPast() && ! $currentDay->isToday(),
                 'isWeekend' => $currentDay->isWeekend(),
                 'dayOfWeek' => $currentDay->dayOfWeek,
                 'formattedDate' => $currentDay->format('M j'),
                 'dayName' => $currentDay->format('D'),
-                'bookings' => []
+                'bookings' => [],
             ];
 
             $currentDay->addDay();
@@ -135,7 +147,7 @@ new #[Layout('components.frontend.app')] class extends Component {
 
     public function loadBookings()
     {
-        if (!$this->selectedCourt) {
+        if (! $this->selectedCourt) {
             return;
         }
 
@@ -159,7 +171,7 @@ new #[Layout('components.frontend.app')] class extends Component {
         $bookingsByDate = [];
         foreach ($bookings as $booking) {
             $date = $booking->date->format('Y-m-d');
-            if (!isset($bookingsByDate[$date])) {
+            if (! isset($bookingsByDate[$date])) {
                 $bookingsByDate[$date] = [];
             }
             $bookingsByDate[$date][] = $booking;
@@ -171,7 +183,7 @@ new #[Layout('components.frontend.app')] class extends Component {
                 foreach ($week as &$day) {
                     $date = $day['date'];
                     $day['bookings'] = $bookingsByDate[$date] ?? [];
-                    $day['hasBookings'] = !empty($day['bookings']);
+                    $day['hasBookings'] = ! empty($day['bookings']);
                     $day['bookingCount'] = count($day['bookings']);
                 }
             }
@@ -179,7 +191,7 @@ new #[Layout('components.frontend.app')] class extends Component {
             foreach ($this->calendarDays[0] as &$day) {
                 $date = $day['date'];
                 $day['bookings'] = $bookingsByDate[$date] ?? [];
-                $day['hasBookings'] = !empty($day['bookings']);
+                $day['hasBookings'] = ! empty($day['bookings']);
                 $day['bookingCount'] = count($day['bookings']);
             }
         }
@@ -234,7 +246,7 @@ new #[Layout('components.frontend.app')] class extends Component {
     {
         $this->viewMode = $this->viewMode === 'month' ? 'week' : 'month';
 
-        if ($this->viewMode === 'week' && !$this->weekStart) {
+        if ($this->viewMode === 'week' && ! $this->weekStart) {
             $this->weekStart = Carbon::now()->startOfWeek();
         }
 
@@ -279,17 +291,17 @@ new #[Layout('components.frontend.app')] class extends Component {
         $endOfWeek = $this->weekStart->copy()->addDays(6);
 
         if ($this->weekStart->month === $endOfWeek->month) {
-            return $this->weekStart->format('F j') . ' - ' . $endOfWeek->format('j, Y');
-        } else if ($this->weekStart->year === $endOfWeek->year) {
-            return $this->weekStart->format('F j') . ' - ' . $endOfWeek->format('F j, Y');
+            return $this->weekStart->format('F j').' - '.$endOfWeek->format('j, Y');
+        } elseif ($this->weekStart->year === $endOfWeek->year) {
+            return $this->weekStart->format('F j').' - '.$endOfWeek->format('F j, Y');
         } else {
-            return $this->weekStart->format('F j, Y') . ' - ' . $endOfWeek->format('F j, Y');
+            return $this->weekStart->format('F j, Y').' - '.$endOfWeek->format('F j, Y');
         }
     }
 
     public function getFormattedSelectedDateProperty()
     {
-        if (!$this->selectedDate) {
+        if (! $this->selectedDate) {
             return '';
         }
 
@@ -305,7 +317,7 @@ new #[Layout('components.frontend.app')] class extends Component {
     {
         $this->viewMode = $mode;
 
-        if ($mode === 'day' && !$this->selectedDate) {
+        if ($mode === 'day' && ! $this->selectedDate) {
             $this->selectedDate = Carbon::now()->format('Y-m-d');
         }
 

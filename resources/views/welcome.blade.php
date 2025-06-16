@@ -1,4 +1,4 @@
-<x-frontend.app :title="__('Welcome')">
+<x-frontend.layouts.app :title="__('Welcome')">
 
     <x-home.banner />
 
@@ -19,4 +19,4 @@
 
     <x-home.tabs />
 
-</x-frontend.app>
+</x-frontend.layouts.app>

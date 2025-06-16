@@ -1,12 +1,14 @@
 <?php
 
-use function Livewire\Volt\{layout, state, mount};
-
 use App\Models\Booking;
 use App\Models\Tenant;
 use Carbon\Carbon;
 
-layout('components.frontend.app');
+use function Livewire\Volt\layout;
+use function Livewire\Volt\mount;
+use function Livewire\Volt\state;
+
+layout('components.frontend.layouts.app');
 
 state([
     'selectedCourt' => 2,
@@ -39,15 +41,16 @@ $selectTenant = function ($tenantId) {
         $this->selectedTenant = $tenant->tenant_id;
         $this->tenantName = $tenant->name;
         $this->tenantPhone = $tenant->phone;
-        $this->bookingLimit = $tenant->remaining_bookings . '/' . $tenant->booking_limit;
+        $this->bookingLimit = $tenant->remaining_bookings.'/'.$tenant->booking_limit;
     }
 };
 
 $confirmBooking = function () {
     $tenant = Tenant::where('tenant_id', $this->selectedTenant)->first();
 
-    if (!$tenant) {
+    if (! $tenant) {
         session()->flash('error', 'Please select a valid tenant.');
+
         return;
     }
 
@@ -71,7 +74,7 @@ $confirmBooking = function () {
     $booking->booking_reference = $booking->generateReference();
     $booking->save();
 
-    session()->flash('message', 'Booking created successfully! Reference: #' . $booking->booking_reference);
+    session()->flash('message', 'Booking created successfully! Reference: #'.$booking->booking_reference);
 
     $this->reset(['selectedTenant', 'tenantName', 'tenantPhone', 'bookingLimit']);
 };

@@ -5,8 +5,7 @@
             </flux:navlist.item>
             <flux:navlist.item :href="route('admin.settings.password')" wire:navigate>{{ __('Password') }}
             </flux:navlist.item>
-            <flux:navlist.item :href="route('admin.settings.appearance')" wire:navigate>{{ __('Appearance') }}
-            </flux:navlist.item>
+
         </flux:navlist>
     </div>
 

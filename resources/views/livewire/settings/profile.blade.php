@@ -11,8 +11,10 @@ use Livewire\Volt\Component;
 new
     #[Layout('components.backend.layouts.app')]
     #[Title('Profile')]
-    class extends Component {
+    class extends Component
+    {
         public string $name = '';
+
         public string $email = '';
 
         /**
@@ -29,7 +31,7 @@ new
          */
         public function updateProfileInformation(): void
         {
-            $user = Auth::user();
+            $user = Auth::guard('admin')->user();
 
             $validated = $this->validate([
                 'name' => ['required', 'string', 'max:255'],
@@ -40,7 +42,7 @@ new
                     'lowercase',
                     'email',
                     'max:255',
-                    Rule::unique(User::class)->ignore($user->id)
+                    Rule::unique(User::class)->ignore($user->id),
                 ],
             ]);
 
@@ -60,10 +62,10 @@ new
          */
         public function resendVerificationNotification(): void
         {
-            $user = Auth::user();
+            $user = Auth::guard('admin')->user();
 
             if ($user->hasVerifiedEmail()) {
-                $this->redirectIntended(default: route('dashboard', absolute: false));
+                $this->redirectIntended(default: route('admin.dashboard', absolute: false));
 
                 return;
             }

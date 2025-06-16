@@ -9,7 +9,8 @@ use Livewire\Volt\Component;
 new
     #[Layout('components.backend.layouts.app')]
     #[Title('delete-user-form')]
-    class extends Component {
+    class extends Component
+    {
         public string $password = '';
 
         /**
@@ -21,7 +22,7 @@ new
                 'password' => ['required', 'string', 'current_password'],
             ]);
 
-            tap(Auth::user(), $logout(...))->delete();
+            tap(Auth::guard('admin')->user(), $logout(...))->delete();
 
             $this->redirect('/', navigate: true);
         }
