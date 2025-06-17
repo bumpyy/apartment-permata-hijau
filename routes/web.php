@@ -33,12 +33,15 @@ Route::middleware(['auth:admin'])
         Volt::route('calendar', 'admin.calendar')->name('calendar');
 
         Volt::route('dashboard', 'admin.dashboard')->name('dashboard');
-        Volt::route('calendar', 'admin.calendar')->name('calendar');
-        Volt::route('dashboard', 'admin.dashboard')->name('dashboard');
-        Volt::route('calendar', 'admin.calendar')->name('calendar');
+        Volt::route('booking-list', 'admin.booking-list')->name('booking-list');
+        Volt::route('tenant-list', 'admin.tenant-list')->name('tenant-list');
 
-        Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
-        Volt::route('settings/password', 'settings.password')->name('settings.password');
+        Volt::route('settings/premium', 'admin.settings.premium-booking')->name('settings.premium');
+        Volt::route('settings/tenants', 'admin.settings.tenants')->name('settings.tenants');
+        Volt::route('settings/site', 'admin.settings.site')->name('settings.site');
+
+        Volt::route('settings/profile', 'admin.settings.profile')->name('settings.profile');
+        Volt::route('settings/password', 'admin.settings.password')->name('settings.password');
         // Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
     });
 

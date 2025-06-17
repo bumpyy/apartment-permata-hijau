@@ -1,10 +1,22 @@
+<?php
+use Livewire\Volt\Component;
+
+new class extends Component
+{
+    public $pendingBookings;
+
+    public function mount()
+    {
+        $this->pendingBookings = \App\Models\Booking::where('status', 'pending')->count();
+    }
+};
+?>
 <!DOCTYPE html>
 <html class="dark" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     @include('partials.head')
 </head>
-
 <body class="min-h-screen bg-white dark:bg-zinc-800">
     <flux:sidebar class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900" sticky stashable>
 
@@ -16,17 +28,21 @@
             </x-slot>
         </flux:brand>
 
+        @volt('sidebar')
         <flux:navlist variant="outline">
             <flux:navlist.item icon="home" :href="route('admin.dashboard')">Home</flux:navlist.item>
-            <flux:navlist.item icon="inbox" badge="12" href="#">Inbox</flux:navlist.item>
-            <flux:navlist.item icon="document-text" href="#">Documents</flux:navlist.item>
             <flux:navlist.item icon="calendar" :href="route('admin.calendar')">Calendar</flux:navlist.item>
-            <flux:navlist.group class="max-lg:hidden" expandable :expanded="false" heading="Settings">
-                <flux:navlist.item href="#">Premium Booking Setting</flux:navlist.item>
-                <flux:navlist.item href="#">Tenant Settings</flux:navlist.item>
-                <flux:navlist.item href="#">Site Settings</flux:navlist.item>
-            </flux:navlist.group>
-        </flux:navlist>
+            <flux:navlist.item icon="inbox" :badge="$pendingBookings" :href="route('admin.booking-list')">Bookings</flux:navlist.item>
+            <flux:navlist.item icon="inbox" :href="route('admin.tenant-list')">Tenants</flux:navlist.item>
+            <flux:navlist.group class="max-lg:hidden" expandable :expanded="true" heading="Settings">
+                <flux:navlist.item wire:navigate :href="route('admin.settings.premium')">Premium Booking Setting
+                    </flux:navlist.item>
+                    <flux:navlist.item wire:navigate :href="route('admin.settings.tenants')">Tenants Settings
+                        </flux:navlist.item>
+                        <flux:navlist.item wire:navigate :href="route('admin.settings.site')">Site Settings</flux:navlist.item>
+                    </flux:navlist.group>
+                </flux:navlist>
+                @endvolt
 
 
         <flux:spacer />
@@ -139,7 +155,6 @@
 
     @fluxScripts
 </body>
-
 
 
 </html>

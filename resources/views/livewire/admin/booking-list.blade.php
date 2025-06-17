@@ -1,81 +1,40 @@
 <?php
 // TODO: OPTIMIZE THESE QUERIES
 
-namespace App\Http\Livewire\Tenant;
-
 use App\Models\Booking;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new #[Layout('components.frontend.layouts.app')] class extends Component
+new #[Layout('components.backend.layouts.app')] class extends Component
 {
-    public $tenant;
-
     public $upcomingBookings = [];
 
     public $pastBookings = [];
-
-    public $quotaInfo = [];
-
-    public $stats = [];
 
     public $activeTab = 'upcoming';
 
     public function mount()
     {
-        $this->tenant = auth('tenant')->user();
         $this->loadBookings();
-        $this->loadQuotaInfo();
-        $this->loadStats();
     }
 
     public function loadBookings()
     {
-        $this->upcomingBookings = $this->tenant->bookings()
-            ->where('date', '>=', Carbon::today())
+        $this->upcomingBookings = Booking::where('date', '>=', Carbon::today())
             ->where('status', '!=', 'cancelled')
             ->with('court')
             ->orderBy('date')
             ->orderBy('start_time')
             ->get();
 
-        $this->pastBookings = $this->tenant->bookings()
-            ->where('date', '<', Carbon::today())
+        $this->pastBookings = Booking::where('date', '<', Carbon::today())
             ->with('court')
             ->orderBy('date', 'desc')
             ->orderBy('start_time', 'desc')
             ->limit(20)
             ->get();
-    }
 
-    public function loadQuotaInfo()
-    {
-        $this->quotaInfo = [
-            'free' => $this->tenant->free_booking_quota,
-            'premium' => $this->tenant->premium_booking_quota,
-            'combined' => $this->tenant->combined_booking_quota,
-            // 'weekly_remaining' => $this->tenant->remaining_weekly_quota,
-        ];
-    }
-
-    public function loadStats()
-    {
-        $this->stats = [
-            'total_bookings' => $this->tenant->bookings()->count(),
-            'this_month' => $this->tenant->bookings()
-                ->whereMonth('date', Carbon::now()->month)
-                ->whereYear('date', Carbon::now()->year)
-                ->count(),
-            'confirmed' => $this->tenant->bookings()
-                ->where('status', 'confirmed')
-                ->where('date', '>=', Carbon::today())
-                ->count(),
-            'pending' => $this->tenant->bookings()
-                ->where('status', 'pending')
-                ->where('date', '>=', Carbon::today())
-                ->count(),
-        ];
     }
 
     public function setActiveTab($tab)
@@ -86,139 +45,17 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     public function cancelBooking($bookingId)
     {
         $booking = Booking::find($bookingId);
-        if ($booking && $booking->tenant_id === $this->tenant->id) {
-            $booking->update(['status' => 'cancelled']);
-            $this->loadBookings();
-            $this->loadQuotaInfo();
-            $this->loadStats();
-            session()->flash('message', 'Booking cancelled successfully!');
-        }
+        $booking->update(['status' => 'cancelled']);
+        $this->loadBookings();
+        session()->flash('message', 'Booking cancelled successfully!');
     }
 }
 ?>
 
 <section>
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-12">
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-4xl font-bold mb-2">🎾 Welcome back, {{ $tenant->name }}!</h1>
-                        <p class="text-blue-100 text-lg">{{ $tenant->display_name }} • Manage your tennis court bookings</p>
-                    </div>
-
-                    <form method="POST" action="{{ route('logout') }}" class="text-right">
-                        @csrf
-                        <button type="submit" class="py-2 px-4 bg-white rounded-lg shadow-lg text-blue-600 hover:text-blue-800 transition-colors">
-                            Logout
-                        </button>
-                    </form>
-                    <!-- <div class="text-right">
-                        <div class="text-sm text-blue-200">{{ Carbon::now()->format('l, F j, Y') }}</div>
-                        <div class="text-lg font-semibold">{{ Carbon::now()->format('g:i A') }}</div>
-                    </div> -->
-                </div>
-            </div>
-        </div>
 
         <div class="container py-8">
-            <!-- Quick Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="stat-card bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Total Bookings</p>
-                            <p class="text-3xl font-bold text-gray-900">{{ $stats['total_bookings'] }}</p>
-                        </div>
-                        <div class="p-3 bg-blue-100 rounded-full">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stat-card bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300 ">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">This Month</p>
-                            <p class="text-3xl font-bold text-gray-900">{{ $stats['this_month'] }}</p>
-                        </div>
-                        <div class="p-3 bg-green-100 rounded-full">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stat-card bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300 ">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Confirmed</p>
-                            <p class="text-3xl font-bold text-green-600">{{ $stats['confirmed'] }}</p>
-                        </div>
-                        <div class="p-3 bg-green-100 rounded-full">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stat-card bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all duration-300 ">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Pending</p>
-                            <p class="text-3xl font-bold text-orange-600">{{ $stats['pending'] }}</p>
-                        </div>
-                        <div class="p-3 bg-orange-100 rounded-full">
-                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quota Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="quota-card bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="font-bold text-blue-800">🆓 Free Booking Used</h4>
-                        <div class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">Weekly</div>
-                    </div>
-                    <p class="text-4xl font-bold text-blue-600 mb-3">
-                        {{ $quotaInfo['free']['used'] }}
-                    </p>
-                    <p class="text-sm text-blue-600 mb-4">Up to 7 days ahead</p>
-                </div>
-
-                <div class="quota-card bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="font-bold text-purple-800">⭐ Premium Booking Used</h4>
-                        <div class="text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded-full">Monthly</div>
-                    </div>
-                    <p class="text-4xl font-bold text-purple-600 mb-3">
-                        {{ $quotaInfo['premium']['used'] }}
-                    </p>
-                    <p class="text-sm text-purple-600 mb-4">Up to 1 month ahead</p>
-                </div>
-
-                <div class="quota-card bg-gradient-to-br from-green-50 to-green-100 border border-green-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="font-bold text-green-800">📊 Weekly Remaining</h4>
-                        <div class="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full">Available</div>
-                    </div>
-                    <p class="text-4xl font-bold text-green-600 mb-3">{{ $quotaInfo['combined']['remaining'] }}</p>
-                    <p class="text-sm text-green-600 mb-4">This week's balance</p>
-                    <a href="{{ route('facilities') }}"
-                        class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                        🎾 Book Now
-                    </a>
-                </div>
-            </div>
 
             @if (session()->has('message'))
             <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg mb-6">
@@ -382,30 +219,4 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             </div>
         </div>
     </div>
-
-@script
-    <script>
-            // Animate stats cards
-            anime.animate(
-                '.stat-card',{
-                translateY: [30, 0],
-                opacity: [0, 1],
-                delay: anime.stagger(100),
-                duration: 600,
-                easing: 'easeOutQuad'
-            });
-
-            // Animate quota cards
-            anime.animate(
-                '.quota-card',{
-                translateY: [30, 0],
-                opacity: [0, 1],
-                delay: anime.stagger(100, {
-                    start: 200
-                }),
-                duration: 600,
-                easing: 'easeOutQuad'
-            });
-    </script>
-@endscript
 </section>

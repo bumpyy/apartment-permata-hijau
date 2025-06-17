@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Booking;
-use App\Models\Tenant;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -2063,10 +2062,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 @script
 <script>
     $js('showToast', (value) => {
-
         toast(value);
-
     })
-
 </script>
 @endscript

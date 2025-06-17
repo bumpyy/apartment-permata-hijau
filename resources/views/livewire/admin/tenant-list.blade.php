@@ -5,11 +5,6 @@ use Livewire\Volt\Component;
 
 new
 #[Layout('components.backend.layouts.app')]
-class extends Component
-{
-    //
-}; ?>
+class extends Component {}; ?>
 
-<div>
-    //
-</div>
+<div><livewire:tenants-table/></div>
