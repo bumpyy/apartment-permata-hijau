@@ -5,7 +5,10 @@ import { animate, stagger } from "animejs";
 
 window.anime = { animate, stagger };
 
-Flux.dark = false;
+document.addEventListener("DOMContentLoaded", () => {
+    Flux.dark = false;
+    Flux.appearance = "light";
+});
 
 document.addEventListener(
     "alpine:init",
@@ -14,5 +17,5 @@ document.addEventListener(
         window.Alpine.plugin(anchor);
         window.Alpine.plugin(focus);
     },
-    { once: true },
+    { once: true }
 );

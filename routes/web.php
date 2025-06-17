@@ -30,6 +30,12 @@ Route::middleware(['auth:admin'])
         Route::redirect('/', '/admin/dashboard');
 
         Volt::route('dashboard', 'admin.dashboard')->name('dashboard');
+        Volt::route('calendar', 'admin.calendar')->name('calendar');
+
+        Volt::route('dashboard', 'admin.dashboard')->name('dashboard');
+        Volt::route('calendar', 'admin.calendar')->name('calendar');
+        Volt::route('dashboard', 'admin.dashboard')->name('dashboard');
+        Volt::route('calendar', 'admin.calendar')->name('calendar');
 
         Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
         Volt::route('settings/password', 'settings.password')->name('settings.password');

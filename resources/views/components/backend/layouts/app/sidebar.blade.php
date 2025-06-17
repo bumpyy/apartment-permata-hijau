@@ -7,24 +7,31 @@
 
 <body class="min-h-screen bg-white dark:bg-zinc-800">
     <flux:sidebar class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900" sticky stashable>
+
         <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-        <a class="me-5 flex items-center space-x-2 rtl:space-x-reverse" href="{{ route('admin.dashboard') }}"
-            wire:navigate>
-            <x-site-logo />
-        </a>
+        <flux:brand :href="route('admin.dashboard')" :name="config('app.name')">
+            <x-slot name="logo">
+                <x-site-logo class="flex size-10 shrink-0 items-center justify-center rounded" />
+            </x-slot>
+        </flux:brand>
 
         <flux:navlist variant="outline">
-            <flux:navlist.group class="grid" :heading="__('Platform')">
-                <flux:navlist.item icon="home" :href="route('admin.dashboard')"
-                    current="{{ request()->routeIs('dashboard') }}" wire:navigate>{{ __('Dashboard') }}
-                </flux:navlist.item>
+            <flux:navlist.item icon="home" :href="route('admin.dashboard')">Home</flux:navlist.item>
+            <flux:navlist.item icon="inbox" badge="12" href="#">Inbox</flux:navlist.item>
+            <flux:navlist.item icon="document-text" href="#">Documents</flux:navlist.item>
+            <flux:navlist.item icon="calendar" :href="route('admin.calendar')">Calendar</flux:navlist.item>
+            <flux:navlist.group class="max-lg:hidden" expandable :expanded="false" heading="Settings">
+                <flux:navlist.item href="#">Premium Booking Setting</flux:navlist.item>
+                <flux:navlist.item href="#">Tenant Settings</flux:navlist.item>
+                <flux:navlist.item href="#">Site Settings</flux:navlist.item>
             </flux:navlist.group>
         </flux:navlist>
 
+
         <flux:spacer />
 
-        <flux:navlist variant="outline">
+        {{-- <flux:navlist variant="outline">
             <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit"
                 target="_blank">
                 {{ __('Repository') }}
@@ -34,7 +41,7 @@
                 target="_blank">
                 {{ __('Documentation') }}
             </flux:navlist.item>
-        </flux:navlist>
+        </flux:navlist> --}}
 
         <!-- Desktop User Menu -->
         <flux:dropdown position="bottom" align="start">
@@ -132,5 +139,7 @@
 
     @fluxScripts
 </body>
+
+
 
 </html>
