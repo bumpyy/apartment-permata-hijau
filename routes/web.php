@@ -34,7 +34,9 @@ Route::middleware(['auth:admin'])
 
         Volt::route('dashboard', 'admin.dashboard')->name('dashboard');
         Volt::route('booking-list', 'admin.booking-list')->name('booking-list');
-        Volt::route('tenant-list', 'admin.tenant-list')->name('tenant-list');
+        Volt::route('tenant', 'admin.tenant-list')->name('tenant.list');
+
+        Volt::route('tenant/{id}', 'admin.tenant-details')->name('tenant.show');
 
         Volt::route('settings/premium', 'admin.settings.premium-booking')->name('settings.premium');
         Volt::route('settings/tenants', 'admin.settings.tenants')->name('settings.tenants');

@@ -1,73 +1,94 @@
 <?php
 
-use function Livewire\Volt\{state, mount};
-use App\Models\Tenant;
+namespace App\Http\Livewire\Admin;
+
 use App\Models\Booking;
+use App\Models\Tenant;
 use Carbon\Carbon;
+use Livewire\Attributes\Layout;
+use Livewire\Volt\Component;
 
-state([
-    'tenant' => null,
-    'tenantId' => '',
-    'freeBookings' => [],
-    'premiumBookings' => [],
-    'freeQuota' => [],
-    'premiumQuota' => [],
-]);
+new
+#[Layout('components.backend.layouts.app')]
+class extends Component
+{
+    public $tenant = null;
 
-mount(function ($tenantId = null) {
-    if ($tenantId) {
-        $this->tenantId = $tenantId;
-        $this->loadTenantDetails();
-    }
-});
+    public $tenantId = '';
 
-$loadTenantDetails = function () {
-    $this->tenant = Tenant::where('tenant_id', $this->tenantId)->orWhere('id', $this->tenantId)->first();
+    public $freeBookings = [];
 
-    if (!$this->tenant) {
-        session()->flash('error', 'Tenant not found');
-        return;
+    public $premiumBookings = [];
+
+    public function mount($id = null)
+    {
+        if ($id) {
+            $this->tenantId = $id;
+            $this->loadTenantDetails();
+        }
     }
 
-    $this->loadBookings();
-    $this->loadQuotas();
-};
+    public function loadTenantDetails()
+    {
+        $this->tenant = Tenant::where('tenant_id', $this->tenantId)->orWhere('id', $this->tenantId)->first();
 
-$loadBookings = function () {
-    $this->freeBookings = $this->tenant->bookings()->where('booking_type', 'free')->where('status', '!=', 'cancelled')->where('date', '>=', Carbon::now())->with('court')->orderBy('date')->orderBy('start_time')->get();
+        if (! $this->tenant) {
+            session()->flash('error', 'Tenant not found');
 
-    $this->premiumBookings = $this->tenant->bookings()->where('booking_type', 'premium')->where('status', '!=', 'cancelled')->where('date', '>=', Carbon::now())->with('court')->orderBy('date')->orderBy('start_time')->get();
-};
+            return;
+        }
 
-$loadQuotas = function () {
-    $this->freeQuota = $this->tenant->free_booking_quota;
-    $this->premiumQuota = $this->tenant->premium_booking_quota;
-};
+        $this->loadBookings();
+    }
 
-$confirmPayment = function ($bookingId) {
-    $booking = Booking::find($bookingId);
-    $booking->update([
-        'status' => 'confirmed',
-        'approved_by' => auth()->id(),
-        'approved_at' => now(),
-    ]);
+    public function loadBookings()
+    {
+        $this->freeBookings = $this->tenant->bookings()
+            ->where('booking_type', 'free')
+            ->where('status', '!=', 'cancelled')
+            ->where('date', '>=', Carbon::now())
+            ->with('court')
+            ->orderBy('date')
+            ->orderBy('start_time')
+            ->get();
 
-    $this->loadBookings();
-    session()->flash('message', 'Payment confirmed successfully!');
-};
+        $this->premiumBookings = $this->tenant->bookings()
+            ->where('booking_type', 'premium')
+            ->where('status', '!=', 'cancelled')
+            ->where('date', '>=', Carbon::now())
+            ->with('court')
+            ->orderBy('date')
+            ->orderBy('start_time')
+            ->get();
+    }
 
-$denyBooking = function ($bookingId) {
-    $booking = Booking::find($bookingId);
-    $booking->update([
-        'status' => 'cancelled',
-        'approved_by' => auth()->id(),
-        'approved_at' => now(),
-    ]);
+    public function confirmPayment($bookingId)
+    {
+        $booking = Booking::find($bookingId);
+        $booking->update([
+            'status' => 'confirmed',
+            'approved_by' => auth('admin')->id(),
+            'approved_at' => now(),
+        ]);
 
-    $this->loadBookings();
-    $this->loadQuotas();
-    session()->flash('message', 'Booking denied successfully!');
-};
+        $this->loadBookings();
+        session()->flash('message', 'Payment confirmed successfully!');
+    }
+
+    public function denyBooking($bookingId)
+    {
+        $booking = Booking::find($bookingId);
+        $booking->update([
+            'status' => 'cancelled',
+            'approved_by' => auth('admin')->id(),
+            'approved_at' => now(),
+        ]);
+
+        $this->loadBookings();
+        $this->loadQuotas();
+        session()->flash('message', 'Booking denied successfully!');
+    }
+}
 
 ?>
 
@@ -76,18 +97,6 @@ $denyBooking = function ($bookingId) {
         <!-- Search Section -->
         <div class="mb-6">
             <h1 class="mb-4 text-3xl font-bold">Tenant Details</h1>
-
-            <div class="flex items-end gap-4">
-                <div class="flex-1">
-                    <label class="mb-2 block text-sm font-medium">Search Tenant</label>
-                    <input class="w-full rounded border border-gray-300 p-3" type="text" wire:model="tenantId"
-                        placeholder="Enter Tenant ID or Name">
-                </div>
-                <button class="rounded bg-gray-700 px-6 py-3 text-white transition-colors hover:bg-gray-800"
-                    wire:click="loadTenantDetails">
-                    Search
-                </button>
-            </div>
         </div>
 
         @if (session()->has('message'))
@@ -123,9 +132,6 @@ $denyBooking = function ($bookingId) {
         <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
             <!-- Free Booking Quota -->
             <div class="rounded-lg bg-white p-6 shadow">
-                <h3 class="mb-4 text-lg font-bold">FREE BOOKING QUOTA:
-                    <span class="text-red-600">{{ $freeQuota['used'] ?? 0 }}/{{ $freeQuota['total'] ?? 3 }}</span>
-                </h3>
 
                 @if (!empty($freeBookings))
                 @foreach ($freeBookings as $booking)
@@ -172,10 +178,6 @@ $denyBooking = function ($bookingId) {
 
             <!-- Premium Booking Quota -->
             <div class="rounded-lg bg-white p-6 shadow">
-                <h3 class="mb-4 text-lg font-bold">PREMIUM BOOKING QUOTA:
-                    <span
-                        class="text-red-600">{{ $premiumQuota['used'] ?? 0 }}/{{ $premiumQuota['total'] ?? 9 }}</span>
-                </h3>
 
                 @if (!empty($premiumBookings))
                 @foreach ($premiumBookings as $booking)

@@ -20,6 +20,7 @@ class TenantsTable extends Table
             Column::make('email', 'Email'),
             Column::make('status', 'Status')->component('columns.tenants.status'),
             Column::make('created_at', 'Created At')->component('columns.common.human-diff'),
+            Column::make('id', '')->component('columns.tenants.detail'),
         ];
     }
 
