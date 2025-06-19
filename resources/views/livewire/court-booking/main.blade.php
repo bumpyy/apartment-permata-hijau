@@ -109,7 +109,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     public function mount(PremiumSettings $premiumSettings)
     {
         // Set default court (hardcoded to Court 2 for now)
-        $this->courtNumber = 2;
+        $this->courtNumber = request()->route('id');
 
         // Initialize dates to today
         $this->selectedDate = now()->format('Y-m-d');
@@ -735,15 +735,15 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     /**
      * Check if premium booking is available for this date
      * Rule: Premium booking for dates beyond next week, and only if premium booking is open
-     *
-     * @param  Carbon  $date
-     * @return bool
      */
-    public function canBookPremium($date)
+    public function canBookPremium(Carbon $date): bool
     {
         $nextWeekEnd = now()->addWeek()->endOfWeek();
+        $premiumEnd = now()->addMonth()->endOfMonth();
 
-        return $date->gt($nextWeekEnd) && $date->lte(now()->addMonth()->endOfMonth()) && $this->isPremiumBookingOpen;
+        return $date->gt($nextWeekEnd)
+            && $date->lte($premiumEnd)
+            && $this->isPremiumBookingOpen;
     }
 
     /**
@@ -1147,7 +1147,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     <div class="relative overflow-hidden bg-gradient-to-r from-gray-600 to-gray-800 py-8 text-center text-white" >
         <div class="absolute inset-0 bg-black opacity-10"></div>
         <div class="relative z-10">
-            <h1 class="text-3xl font-bold tracking-wide">🎾 TENNIS COURT BOOKING</h1>
+            <h1 class="text-3xl font-bold tracking-wide">🎾 TENNIS COURT {{ $this->courtNumber }} BOOKING</h1>
             <p class="mt-2 text-gray-200">Reserve your perfect playing time</p>
 
             <!-- Booking Status Indicators -->

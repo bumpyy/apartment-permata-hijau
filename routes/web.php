@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FacilitiesController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -19,8 +20,11 @@ Volt::route('dashboard', 'tenant.dashboard')
     ])
     ->name('tenant.dashboard');
 
-Volt::route('facilities', 'court-booking.main')
+Route::get('facilities', FacilitiesController::class)
     ->name('facilities');
+
+Volt::route('facilities/tennis/court/{id}', 'court-booking.main')
+    ->name('tennis.court.booking');
 
 Route::middleware(['auth:admin'])
     ->prefix('admin')
