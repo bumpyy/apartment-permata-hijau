@@ -1,3 +1,5 @@
+@props(['data' => []])
+
 @pushOnce('scripts')
     @vite(['resources/js/home.js'])
 @endPushOnce
