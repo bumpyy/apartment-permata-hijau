@@ -104,7 +104,8 @@
                             $isPastSlot = $slotDateTime->isPast();
                             $canBook = $day['is_bookable'] && !$isPastSlot && !$isBooked && !$isPreliminary;
 
-                            $showBookingInfo = ($isPastSlot || !$day['is_bookable']) && ($isBooked || $isPreliminary);
+                            // $showBookingInfo = ($isPastSlot || !$day['is_bookable']) && ($isBooked || $isPreliminary);
+                            $showBookingInfo = false;
                         @endphp
                         <td @class([
                             'time-slot text-center transition-all duration-200',
