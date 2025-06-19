@@ -151,7 +151,7 @@ class Tenant extends Authenticatable
     {
         $used = $this->bookings()
             ->where('status', '!=', 'cancelled')
-            ->where('date', '>=', Carbon::today())
+            ->where('date', '>=', Carbon::today()->format('Y-m-d'))
             ->get();
 
         return [

@@ -371,7 +371,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             ->unique();
 
         // Get existing bookings for the tenant
-        $existingBookings = Booking::getBookedDaysForTenant($tenantId, Carbon::now());
+        $existingBookings = Booking::getBookedDaysForTenant($tenantId, Carbon::now()->format('Y-m-d'));
 
         // Count days with existing bookings
         $bookedDaysCount = $existingBookings->count();
@@ -1143,6 +1143,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 }; ?>
 
 <div>
+
     <!-- Header -->
     <div class="relative overflow-hidden bg-gradient-to-r from-gray-600 to-gray-800 py-8 text-center text-white" >
         <div class="absolute inset-0 bg-black opacity-10"></div>

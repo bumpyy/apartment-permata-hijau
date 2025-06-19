@@ -1,5 +1,5 @@
 <x-frontend.layouts.app>
-    <div class="bg-white">
+    <div class="flex min-h-dvh flex-col justify-center bg-white">
         <div class="mx-auto max-w-xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
             <h2 class="text-2xl font-bold tracking-tight text-gray-900">Shop by Collection</h2>
             <p class="mt-4 text-base text-gray-500">Each season, we collaborate with world-class designers to create a
