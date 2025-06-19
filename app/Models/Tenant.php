@@ -99,7 +99,7 @@ class Tenant extends Authenticatable
             ->where('status', '!=', 'cancelled')
             ->where('booking_type', 'free')
             // ->where('booking_week_start', $weekStart->format('Y-m-d'))
-            ->where('date', '>=', Carbon::today())
+            ->where('date', '>=', Carbon::today()->format('Y-m-d'))
             ->get();
 
         return [
@@ -123,7 +123,7 @@ class Tenant extends Authenticatable
         $used = $this->bookings()
             ->where('status', '!=', 'cancelled')
             ->where('booking_type', 'premium')
-            ->where('date', '>=', Carbon::today())
+            ->where('date', '>=', Carbon::today()->format('Y-m-d'))
             ->get();
 
         // Premium quota is calculated based on weeks ahead

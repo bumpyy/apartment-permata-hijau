@@ -21,14 +21,14 @@ new #[Layout('components.backend.layouts.app')] class extends Component
 
     public function loadBookings()
     {
-        $this->upcomingBookings = Booking::where('date', '>=', Carbon::today())
+        $this->upcomingBookings = Booking::where('date', '>=', Carbon::today()->format('Y-m-d'))
             ->where('status', '!=', 'cancelled')
             ->with('court')
             ->orderBy('date')
             ->orderBy('start_time')
             ->get();
 
-        $this->pastBookings = Booking::where('date', '<', Carbon::today())
+        $this->pastBookings = Booking::where('date', '<', Carbon::today()->format('Y-m-d'))
             ->with('court')
             ->orderBy('date', 'desc')
             ->orderBy('start_time', 'desc')

@@ -371,7 +371,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             ->unique();
 
         // Get existing bookings for the tenant
-        $existingBookings = Booking::getBookedDaysForTenant($tenantId, Carbon::now()->format('Y-m-d'));
+        $existingBookings = Booking::getBookedDaysForTenant($tenantId, Carbon::today()->format('Y-m-d'));
 
         // Count days with existing bookings
         $bookedDaysCount = $existingBookings->count();
