@@ -1,50 +1,51 @@
 <?php
 
 use App\Models\Booking;
+use Livewire\Attributes\Layout;
+use Livewire\Volt\Component;
 
-use function Livewire\Volt\layout;
-use function Livewire\Volt\mount;
-use function Livewire\Volt\state;
+new #[Layout('components.frontend.layouts.app')] class extends Component
+{
+    public $bookings = [];
 
-layout('components.frontend.layouts.app');
+    public function mount()
+    {
+        $this->loadBookings();
+    }
 
-state([
-    'bookings' => [],
-]);
+    public function loadBookings()
+    {
+        $this->bookings = Booking::with(['tenant', 'court'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('status');
+    }
 
-mount(function () {
-    $this->loadBookings();
-});
+    public function confirmBooking($bookingId)
+    {
+        $booking = Booking::find($bookingId);
+        $booking->update([
+            'status' => 'confirmed',
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+        ]);
 
-$loadBookings = function () {
-    $this->bookings = Booking::with(['tenant', 'court'])
-        ->orderBy('created_at', 'desc')
-        ->get()
-        ->groupBy('status');
-};
+        $this->loadBookings();
+        session()->flash('message', 'Booking confirmed successfully!');
+    }
 
-$confirmBooking = function ($bookingId) {
-    $booking = Booking::find($bookingId);
-    $booking->update([
-        'status' => 'confirmed',
-        'approved_by' => auth()->id(),
-        'approved_at' => now(),
-    ]);
+    public function denyBooking($bookingId)
+    {
+        $booking = Booking::find($bookingId);
+        $booking->update([
+            'status' => 'cancelled',
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+        ]);
 
-    $this->loadBookings();
-    session()->flash('message', 'Booking confirmed successfully!');
-};
-
-$denyBooking = function ($bookingId) {
-    $booking = Booking::find($bookingId);
-    $booking->update([
-        'status' => 'cancelled',
-        'approved_by' => auth()->id(),
-        'approved_at' => now(),
-    ]);
-
-    $this->loadBookings();
-    session()->flash('message', 'Booking denied successfully!');
+        $this->loadBookings();
+        session()->flash('message', 'Booking denied successfully!');
+    }
 };
 
 ?>

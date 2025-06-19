@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Booking;
+use App\Settings\PremiumSettings;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -105,7 +106,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
      * Initialize the component when it's first loaded
      * Sets up default values and loads initial data
      */
-    public function mount()
+    public function mount(PremiumSettings $premiumSettings)
     {
         // Set default court (hardcoded to Court 2 for now)
         $this->courtNumber = 2;
@@ -117,7 +118,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $this->currentMonthStart = now()->startOfMonth();
 
         // Calculate premium booking date (25th of current month, or next month if past 25th)
-        $this->premiumBookingDate = now()->day > 15 ? now()->addMonth()->day(25) : now()->day(15);
+        $this->premiumBookingDate = now()->day > $premiumSettings->open_date ? now()->addMonth()->day($premiumSettings->open_date) : now()->day($premiumSettings->open_date);
 
         // Check if premium booking is currently open
         $this->isPremiumBookingOpen = now()->gte($this->premiumBookingDate);
