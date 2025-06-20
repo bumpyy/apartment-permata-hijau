@@ -33,7 +33,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     public function loadBookings()
     {
         $this->upcomingBookings = $this->tenant->bookings()
-            ->where('date', '>=', Carbon::today())
+            ->where('date', '>=', Carbon::today()->format('Y-m-d'))
             ->where('status', '!=', 'cancelled')
             ->with('court')
             ->orderBy('date')
@@ -41,7 +41,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             ->get();
 
         $this->pastBookings = $this->tenant->bookings()
-            ->where('date', '<', Carbon::today())
+            ->where('date', '<', Carbon::today()->format('Y-m-d'))
             ->with('court')
             ->orderBy('date', 'desc')
             ->orderBy('start_time', 'desc')
