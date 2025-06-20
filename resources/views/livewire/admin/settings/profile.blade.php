@@ -22,8 +22,8 @@ new
          */
         public function mount(): void
         {
-            $this->name = Auth::user()->name;
-            $this->email = Auth::user()->email;
+            $this->name = Auth::user('admin')->name;
+            $this->email = Auth::user('admin')->email;
         }
 
         /**
