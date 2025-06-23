@@ -12,6 +12,8 @@ new #[Layout('components.backend.layouts.app')] class extends Component
 
     public $typeFilter = '';
 
+    public $courtFilter = '';
+
     public $selectedDate = '';
 
     public $bookings = [];
@@ -30,11 +32,12 @@ new #[Layout('components.backend.layouts.app')] class extends Component
     }
 
     #[On('filter-bar-updated')]
-    public function updateFilters($searchTerm, $statusFilter, $typeFilter)
+    public function updateFilters($searchTerm, $statusFilter, $typeFilter, $courtFilter)
     {
         $this->searchTerm = $searchTerm;
         $this->statusFilter = $statusFilter;
         $this->typeFilter = $typeFilter;
+        $this->courtFilter = $courtFilter;
         $this->updateBookings();
     }
 
@@ -52,9 +55,21 @@ new #[Layout('components.backend.layouts.app')] class extends Component
             ->when($this->typeFilter, function ($query, $type) {
                 return $query->where('booking_type', $type);
             })
-            ->with(['court', 'tenant'])
+            ->when($this->courtFilter, function ($query, $court) {
+                return $query->where('court_id', $court);
+            })
             ->where('date', $this->selectedDate)
+            ->with(['court', 'tenant'])
             ->get();
+    }
+
+    public function cancelBooking($bookingId)
+    {
+        $booking = Booking::find($bookingId);
+        $booking->update(['status' => 'cancelled']);
+        $this->updateBookings();
+
+        session()->flash('message', 'Booking cancelled successfully!');
     }
 };
 ?>
@@ -75,17 +90,17 @@ new #[Layout('components.backend.layouts.app')] class extends Component
         </div>
 
         <!-- {/* Stats Cards */} -->
-        <livewire:admin.booking.stats-cards :search-term="$searchTerm" :status-filter="$statusFilter" :type-filter="$typeFilter" />
+        <livewire:admin.booking.stats-cards :$searchTerm :$statusFilter :$typeFilter />
 
         <!-- {/* Filter Bar */} -->
-        <livewire:admin.booking.filter-bar wire:model="searchTerm" wire:model="statusFilter" wire:model="typeFilter" />
+        <livewire:admin.booking.filter-bar :$searchTerm :$statusFilter :$typeFilter :$courtFilter/>
 
         <!-- {/* Main Content */} -->
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <livewire:admin.booking.calendar :search-term="$searchTerm" :status-filter="$statusFilter" :type-filter="$typeFilter" />
+            <livewire:admin.booking.calendar />
 
-            <livewire:admin.booking.booking-list :search-term="$searchTerm" :status-filter="$statusFilter" :type-filter="$typeFilter" :selected-date="$selectedDate"
-                :bookings="$bookings" />
+            <livewire:admin.booking.booking-list :$selectedDate
+                :$bookings />
         </div>
     </div>
 </div>

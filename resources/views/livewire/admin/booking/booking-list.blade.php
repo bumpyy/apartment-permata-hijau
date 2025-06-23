@@ -4,7 +4,7 @@
     </h2>
 
     <div class="space-y-3">
-        @forelse ($bookings as $booking)
+        @forelse ($bookings->sortBy('start_time') as $booking)
             {{-- @dd($booking->status === 'pending') --}}
             <div class="group relative rounded-xl bg-gray-50 p-4 transition-all duration-200 hover:bg-gray-100 hover:shadow-md"
                 key="{{ $booking->id }}">
@@ -27,15 +27,13 @@
                                 {{ $booking->status }}
                             </span>
                             </span>
-                            {{-- <span
-                                    class="{{ getTypeColor($booking->type) }} rounded-full px-2 py-1 text-xs font-medium">
-                                    {{ $booking->type }}
-                                </span> --}}
+                            <span class="rounded-full px-2 py-1 text-xs font-medium">
+                                {{ $booking->booking_type }}
+                            </span>
                         </div>
                         <p class="mb-1 text-sm text-gray-600">
-                            {{ $booking->startTime }} - {{ $booking->endTime }}
+                            {{ $booking->start_time->format('H:i') }} - {{ $booking->end_time->format('H:i') }}
                         </p>
-                        <p class="text-sm font-medium text-gray-700">{{ $booking->property }}</p>
                         @if ($booking->notes)
                             <p class="mt-1 text-sm text-gray-500">{{ $booking->notes }}</p>
                         @endif
@@ -68,7 +66,7 @@
                             @if ($booking->status !== 'cancelled')
                                 <button
                                     class="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-700 transition-colors duration-150 hover:bg-red-50"
-                                    @click="open = false">
+                                    @click="open = false" wire:click="$parent.cancelBooking({{ $booking->id }})">
                                     <flux:icon.trash class="h-4 w-4" />
                                     Cancel Booking
                                 </button>

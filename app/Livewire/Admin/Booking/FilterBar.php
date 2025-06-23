@@ -7,23 +7,31 @@ use Livewire\Component;
 
 class FilterBar extends Component
 {
-    #[Url(except: '')]
+    #[Url(except: '', as: 'q')]
     public $searchTerm = '';
 
-    #[Url(except: '')]
+    #[Url(except: '', as: 'status')]
     public string $statusFilter = '';
 
-    #[Url(except: '')]
+    #[Url(except: '', as: 'type')]
     public string $typeFilter = '';
+
+    #[Url(except: '', as: 'court')]
+    public string $courtFilter = '';
 
     public function mount()
     {
-        $this->dispatch('filter-bar-updated', $this->searchTerm, $this->statusFilter, $this->typeFilter);
+        $this->dispatchFilterUpdate();
     }
 
-    public function updated($property)
+    public function updated()
     {
-        $this->dispatch('filter-bar-updated', $this->searchTerm, $this->statusFilter, $this->typeFilter);
+        $this->dispatchFilterUpdate();
+    }
+
+    private function dispatchFilterUpdate()
+    {
+        $this->dispatch('filter-bar-updated', $this->searchTerm, $this->statusFilter, $this->typeFilter, $this->courtFilter);
     }
 
     public function render()
