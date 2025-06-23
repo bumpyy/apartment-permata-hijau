@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\User;
 use App\Settings\PremiumSettings;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -26,8 +25,7 @@ new
         /**
          * Update the profile information for the currently authenticated user.
          */
-        public function updatePremiumDate(
-            PremiumSettings $premiumSettings): void
+        public function updatePremiumDate(PremiumSettings $premiumSettings): void
         {
             $premiumSettings->open_date = $this->date;
 
@@ -38,7 +36,6 @@ new
     }; ?>
 
 <section class="w-full">
-
     <form wire:submit="updatePremiumDate" class="my-6 w-full space-y-6">
             <flux:input wire:model="date" :label="__('Date')" type="number" min="1" max="31" autofocus required />
 

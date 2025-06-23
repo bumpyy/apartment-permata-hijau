@@ -34,10 +34,10 @@ Route::middleware(['auth:admin'])
         Route::redirect('/', '/admin/dashboard');
 
         Volt::route('dashboard', 'admin.dashboard')->name('dashboard');
-        Volt::route('calendar', 'admin.calendar')->name('calendar');
+        // Volt::route('calendar', 'admin.calendar')->name('calendar');
 
         Volt::route('dashboard', 'admin.dashboard')->name('dashboard');
-        Volt::route('booking-list', 'admin.booking-list')->name('booking-list');
+        Volt::route('booking', 'admin.booking')->name('booking.list');
         Volt::route('tenant', 'admin.tenant-list')->name('tenant.list');
 
         Volt::route('tenant/{id}', 'admin.tenant-details')->name('tenant.show');

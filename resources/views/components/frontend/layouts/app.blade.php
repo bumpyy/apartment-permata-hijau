@@ -4,7 +4,7 @@
 <head>
     @include('partials.head')
 
-    @stack('scripts')
+
 </head>
 
 <body class="min-h-screen bg-white">
@@ -100,8 +100,8 @@
         </div>
     </footer>
 
+    @stack('scripts')
     @fluxScripts
-
 </body>
 
 </html>
