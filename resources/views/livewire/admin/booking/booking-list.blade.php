@@ -5,7 +5,7 @@
 
     <div class="space-y-3">
         @forelse ($bookings as $booking)
-            {{-- @dd($booking) --}}
+            {{-- @dd($booking->status === 'pending') --}}
             <div class="group relative rounded-xl bg-gray-50 p-4 transition-all duration-200 hover:bg-gray-100 hover:shadow-md"
                 key="{{ $booking->id }}">
                 <div class="flex items-center gap-4">
@@ -41,26 +41,26 @@
                         @endif
                     </div>
 
-                    <div class="relative">
+                    <div class="relative" x-data="{ open: false }" @click.outside="open = false">
                         <button
                             class="rounded-lg p-2 text-gray-400 opacity-0 transition-colors duration-200 hover:bg-white hover:text-gray-600 group-hover:opacity-100"
-                            onclick="document.getElementById('menu-{{ $booking->id }}').classList.toggle('hidden')">
-                            <MoreVertical class="h-5 w-5" />
+                            @click="open = !open">
+                            <flux:icon.chevron-down class="h-5 w-5" />
                         </button>
 
-                        <div class="absolute right-0 top-full z-10 mt-2 hidden w-48 rounded-lg border border-gray-200 bg-white py-2 shadow-lg"
-                            id="menu-{{ $booking->id }}">
+                        <div class="absolute right-0 top-full z-10 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-2 shadow-lg"
+                            id="menu-{{ $booking->id }}" x-show="open">
                             <button
                                 class="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors duration-150 hover:bg-gray-50"
-                                onclick="document.getElementById('menu-{{ $booking->id }}').classList.add('hidden')">
-                                <Edit2 class="h-4 w-4" />
+                                class="h-4 w-4" @click="open = false">
+                                <flux:icon.pencil />
                                 Edit Booking
                             </button>
                             @if ($booking->status === 'pending')
                                 <button
                                     class="flex w-full items-center gap-3 px-4 py-2 text-sm text-emerald-700 transition-colors duration-150 hover:bg-emerald-50"
-                                    onclick="document.getElementById('menu-{{ $booking->id }}').classList.add('hidden')">
-                                    <Check class="h-4 w-4" />
+                                    @click="open = false">
+                                    <flux:icon.check class="h-4 w-4" />
                                     Confirm Booking
                                 </button>
                             @endif
@@ -68,8 +68,8 @@
                             @if ($booking->status !== 'cancelled')
                                 <button
                                     class="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-700 transition-colors duration-150 hover:bg-red-50"
-                                    onclick="document.getElementById('menu-{{ $booking->id }}').classList.add('hidden')">
-                                    <X class="h-4 w-4" />
+                                    @click="open = false">
+                                    <flux:icon.trash class="h-4 w-4" />
                                     Cancel Booking
                                 </button>
                             @endif

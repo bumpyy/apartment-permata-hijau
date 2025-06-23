@@ -1,8 +1,5 @@
 <?php
-// TODO: OPTIMIZE THESE QUERIES
-
 use App\Models\Booking;
-use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
@@ -58,14 +55,6 @@ new #[Layout('components.backend.layouts.app')] class extends Component
             ->with(['court', 'tenant'])
             ->where('date', $this->selectedDate)
             ->get();
-        // ->groupBy(function ($item) {
-        //     return Carbon::parse($item->date)->format('Y-m-d');
-        // });
-        // ->map(fn ($items) => $items->map(fn ($b) => [
-        //     'type' => $b->booking_type,
-        //     'status' => $b->status,
-        // ]))
-        // ->toArray();
     }
 };
 ?>
