@@ -68,9 +68,11 @@
     }
 }" x-init="init('{{ $currentYear }}', '{{ $currentMonth }}')">
     <div class="mb-4 flex items-center justify-between">
-        <button class="cursor-pointer text-gray-500 hover:text-black" @click="prevMonth">&lt;</button>
+        <button class="cursor-pointer text-gray-500 hover:text-black"
+            @click="prevMonth"><flux:icon.chevron-left /></button>
         <div class="text-lg font-semibold" x-text="monthName + ' ' + year"></div>
-        <button class="cursor-pointer text-gray-500 hover:text-black" @click="nextMonth">&gt;</button>
+        <button class="cursor-pointer text-gray-500 hover:text-black"
+            @click="nextMonth"><flux:icon.chevron-right /></button>
     </div>
 
     <div class="grid grid-cols-7 gap-2 text-center text-sm font-medium text-gray-500">

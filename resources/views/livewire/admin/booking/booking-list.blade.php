@@ -1,9 +1,9 @@
-<div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-    <h2 className="text-lg font-semibold text-gray-900 mb-6">
+<div class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+    <h2 class="mb-6 text-lg font-semibold text-gray-900">
         Schedule for {{ $selectedDate }}
     </h2>
 
-    <div className="space-y-3">
+    <div class="space-y-3">
         @forelse ($bookings as $booking)
             {{-- @dd($booking) --}}
             <div class="group relative rounded-xl bg-gray-50 p-4 transition-all duration-200 hover:bg-gray-100 hover:shadow-md"
@@ -64,6 +64,7 @@
                                     Confirm Booking
                                 </button>
                             @endif
+
                             @if ($booking->status !== 'cancelled')
                                 <button
                                     class="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-700 transition-colors duration-150 hover:bg-red-50"
@@ -77,11 +78,11 @@
                 </div>
             </div>
         @empty
-            <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Clock className="w-8 h-8 text-gray-400" />
+            <div class="py-12 text-center">
+                <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                    <Clock class="h-8 w-8 text-gray-400" />
                 </div>
-                <p className="text-gray-500 text-sm">No bookings scheduled for this date</p>
+                <p class="text-sm text-gray-500">No bookings scheduled for this date</p>
             </div>
         @endforelse
     </div>

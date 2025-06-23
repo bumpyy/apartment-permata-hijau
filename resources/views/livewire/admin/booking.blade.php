@@ -21,7 +21,7 @@ new #[Layout('components.backend.layouts.app')] class extends Component
 
     public function mount()
     {
-        $this->selectedDate = today()->addDay(2)->format('Y-m-d');
+        $this->selectedDate = today()->format('Y-m-d');
         $this->updateBookings();
     }
 

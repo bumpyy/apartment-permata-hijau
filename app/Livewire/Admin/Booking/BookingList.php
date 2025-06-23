@@ -13,7 +13,8 @@ class BookingList extends Component
 
     public string $typeFilter = '';
 
-    public string $selectedDate = '';
+    #[Reactive]
+    public $selectedDate = '';
 
     #[Reactive]
     public $bookings = [];
