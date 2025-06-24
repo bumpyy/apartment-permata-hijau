@@ -74,7 +74,7 @@
         @empty
             <div class="py-12 text-center">
                 <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                    <Clock class="h-8 w-8 text-gray-400" />
+                    <flux:icon.clock class="h-8 w-8 text-gray-400" />
                 </div>
                 <p class="text-sm text-gray-500">No bookings scheduled for this date</p>
             </div>
