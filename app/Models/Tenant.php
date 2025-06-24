@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
-use Spatie\Permission\Traits\HasRoles;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Permission\Traits\HasRoles;
 
 class Tenant extends Authenticatable implements HasMedia
 {
-    use HasFactory, HasRoles, Notifiable, InteractsWithMedia;
+    use HasFactory, HasRoles, InteractsWithMedia, Notifiable;
 
     protected $guard = 'tenant';
 
@@ -263,6 +263,22 @@ class Tenant extends Authenticatable implements HasMedia
             ->explode(' ')
             ->map(fn (string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
+    }
+
+    /**
+     * Get the tenant's avatar URL or initials.
+     *
+     * This function retrieves the URL of the tenant's profile picture from the
+     * Spatie Media Library. If the tenant doesn't have a profile picture, it
+     * returns the tenant's initials.
+     *
+     * @return string The URL of the profile picture or the tenant's initials.
+     */
+    public function avatar(): string
+    {
+        $profilePictureUrl = $this->getFirstMediaUrl('profile_picture');
+
+        return $profilePictureUrl ?: $this->initials();
     }
 
     /**

@@ -29,18 +29,17 @@ class BookingList extends Component
      */
     public function generateTimeSlots()
     {
-        $this->timeSlots = [];
-        $start = Carbon::parse('08:00');
-        $end = Carbon::parse('22:00');
+        $this->timeSlots = collect(range(8, 22))
+            ->map(function ($hour) {
+                $start = Carbon::parse($hour.':00');
+                $end = $start->copy()->addHour();
 
-        while ($start < $end) {
-            $this->timeSlots[] = [
-                'start' => $start->format('H:i'),
-                'end' => $start->copy()->addHour()->format('H:i'),
-                'is_peak' => $start->hour >= 18, // After 6pm = peak hours (lights required)
-            ];
-            $start->addHour();
-        }
+                return (object) [
+                    'start_time' => $start,
+                    'end_time' => $end,
+                    'is_peak' => $start->hour >= 18, // After 6pm = peak hours (lights required)
+                ];
+            });
     }
 
     public function changeSlotDisplay($slot)

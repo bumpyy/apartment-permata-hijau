@@ -59,7 +59,7 @@ new #[Layout('components.backend.layouts.app')] class extends Component
                 return $query->where('court_id', $court);
             })
             ->where('date', $this->selectedDate)
-            ->with(['court', 'tenant'])
+            ->with(['court', 'tenant', 'tenant.media'])
             ->get();
     }
 
@@ -76,7 +76,7 @@ new #[Layout('components.backend.layouts.app')] class extends Component
     {
         $overrides = PremiumDateOverride::orderBy('date')->get();
         $this->overrides = $overrides
-            ->groupBy(fn($item) => \Carbon\Carbon::parse($item->date)->format('Y F'))
+            ->groupBy(fn ($item) => \Carbon\Carbon::parse($item->date)->format('Y F'))
             ->toArray();
         $this->overrideDates = $overrides->pluck('date')->values()->toArray();
     }
@@ -99,7 +99,7 @@ new #[Layout('components.backend.layouts.app')] class extends Component
         </div>
 
         <!-- {/* Stats Cards */} -->
-        <livewire:admin.booking.stats-cards :$searchTerm :$statusFilter :$typeFilter />
+        {{-- <livewire:admin.booking.stats-cards :$searchTerm :$statusFilter :$typeFilter /> --}}
 
         <!-- {/* Filter Bar */} -->
         <livewire:admin.booking.filter-bar :$searchTerm :$statusFilter :$typeFilter :$courtFilter />
