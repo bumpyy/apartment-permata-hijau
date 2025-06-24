@@ -5,8 +5,7 @@
 
     <div class="space-y-3">
         <button wire:click="changeSlotDisplay('selected')" @class([
-            'shadow-xs
-                                                                                            cursor-pointer rounded-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 ',
+            'shadow-xs cursor-pointer rounded-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 ',
             'bg-blue-600 text-white' => $slotDisplay === 'selected',
             'hover:bg-gray-50' => $slotDisplay !== 'selected',
         ]) type="button">
@@ -14,8 +13,7 @@
         </button>
 
         <button wire:click="changeSlotDisplay('all')" @class([
-            'shadow-xs
-                                                                                            cursor-pointer rounded-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 ',
+            'shadow-xs cursor-pointer rounded-md px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 ',
             'bg-blue-600 text-white' => $slotDisplay === 'all',
             'hover:bg-gray-50' => $slotDisplay !== 'all',
         ]) type="button">
@@ -23,7 +21,7 @@
         </button>
 
         @if ($slotDisplay === 'selected')
-            @forelse ($bookings->sortBy('start_time') as $booking)
+            @forelse ($sortedBookings as $booking)
                 {{-- @dd($booking->status === 'pending') --}}
                 <div class="group relative rounded-xl bg-gray-50 p-4 transition-all duration-200 hover:bg-gray-100 hover:shadow-md"
                     key="{{ $booking->id }}">

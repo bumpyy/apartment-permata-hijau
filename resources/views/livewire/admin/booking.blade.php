@@ -17,7 +17,9 @@ new #[Layout('components.backend.layouts.app')] class extends Component
 
     public $selectedDate = '';
 
-    public $bookings = [];
+    public $bookings;
+
+    public $overrideDates = [];
 
     public function mount()
     {
@@ -68,6 +70,15 @@ new #[Layout('components.backend.layouts.app')] class extends Component
         $this->updateBookings();
 
         session()->flash('message', 'Booking cancelled successfully!');
+    }
+
+    public function refreshOverrides(): void
+    {
+        $overrides = PremiumDateOverride::orderBy('date')->get();
+        $this->overrides = $overrides
+            ->groupBy(fn($item) => \Carbon\Carbon::parse($item->date)->format('Y F'))
+            ->toArray();
+        $this->overrideDates = $overrides->pluck('date')->values()->toArray();
     }
 };
 ?>

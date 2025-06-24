@@ -8,10 +8,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Tenant extends Authenticatable
+class Tenant extends Authenticatable implements HasMedia
 {
-    use HasFactory, HasRoles, Notifiable;
+    use HasFactory, HasRoles, Notifiable, InteractsWithMedia;
 
     protected $guard = 'tenant';
 
@@ -284,5 +286,15 @@ class Tenant extends Authenticatable
                 );
             }
         });
+    }
+
+    /**
+     * Register the media collections for the tenant.
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('profile_picture')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpg', 'image/jpeg', 'image/png', 'image/webp', 'image/gif']);
     }
 }

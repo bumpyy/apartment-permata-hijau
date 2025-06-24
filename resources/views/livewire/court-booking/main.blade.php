@@ -117,8 +117,8 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $this->currentWeekStart = now()->startOfWeek();
         $this->currentMonthStart = now()->startOfMonth();
 
-        // Calculate premium booking date (25th of current month, or next month if past 25th)
-        $this->premiumBookingDate = now()->day > $premiumSettings->open_date ? now()->addMonth()->day($premiumSettings->open_date) : now()->day($premiumSettings->open_date);
+        // Set premium booking date using override if available, fallback to 25th
+        $this->premiumBookingDate = \App\Models\PremiumDateOverride::getCurrentMonthPremiumDate();
 
         // Check if premium booking is currently open
         $this->isPremiumBookingOpen = now()->gte($this->premiumBookingDate);

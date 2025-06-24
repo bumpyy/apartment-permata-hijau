@@ -52,6 +52,8 @@ class BookingList extends Component
 
     public function render()
     {
-        return view('livewire.admin.booking.booking-list');
+        $sortedBookings = clone $this->bookings->map(fn ($b) => clone $b)->sortBy('start_time');
+
+        return view('livewire.admin.booking.booking-list', compact('sortedBookings'));
     }
 }

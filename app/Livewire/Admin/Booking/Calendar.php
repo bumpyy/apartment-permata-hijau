@@ -21,7 +21,6 @@ class Calendar extends Component
         $now = Carbon::now();
         $this->currentMonth = $now->format('m');
         $this->currentYear = $now->format('Y');
-
     }
 
     #[On('calendar-day-clicked')]
