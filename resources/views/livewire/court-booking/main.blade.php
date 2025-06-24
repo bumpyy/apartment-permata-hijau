@@ -1144,7 +1144,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $this->generateCalendarWeeks();
         $this->generateCalendarMonths();
     }
-}; ?>
+}?>
 
 <div>
     <!-- Header -->
@@ -1235,7 +1235,8 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                         <div class="h-3 w-3 rounded-full bg-purple-500"></div>
                         <span><strong>Premium Booking:</strong> Beyond next week @if ($isPremiumBookingOpen)
                                 (Open Now!)
-                            @else(Opens {{ $premiumBookingDate->format('M j') }})
+                            @else
+                            (Opens {{ $premiumBookingDate->format('M j') }})
                             @endif
                         </span>
                     </div>
