@@ -1,4 +1,5 @@
 <?php
+
 use App\Models\Booking;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -44,10 +45,7 @@ new #[Layout('components.backend.layouts.app')] class extends Component
     public function updateBookings()
     {
         $this->bookings = Booking::when($this->searchTerm, function ($query, $term) {
-            return $query
-                ->where('court_id', 'like', "%{$term}%")
-                ->orWhere('booking_type', 'like', "%{$term}%")
-                ->orWhere('status', 'like', "%{$term}%");
+            return $query->whereRelation('tenant', 'name', 'like', "%{$term}%");
         })
             ->when($this->statusFilter, function ($query, $status) {
                 return $query->where('status', $status);
@@ -93,7 +91,7 @@ new #[Layout('components.backend.layouts.app')] class extends Component
         <livewire:admin.booking.stats-cards :$searchTerm :$statusFilter :$typeFilter />
 
         <!-- {/* Filter Bar */} -->
-        <livewire:admin.booking.filter-bar :$searchTerm :$statusFilter :$typeFilter :$courtFilter/>
+        <livewire:admin.booking.filter-bar :$searchTerm :$statusFilter :$typeFilter :$courtFilter />
 
         <!-- {/* Main Content */} -->
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">

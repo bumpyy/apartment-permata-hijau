@@ -1,4 +1,4 @@
-<div class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm" x-data="{
+<div class="h-fit rounded-xl border border-gray-100 bg-white p-6 shadow-sm" x-data="{
     year: null,
     month: null,
     daysInMonth: [],
@@ -66,31 +66,34 @@
     hasBooking(day) {
         return this.bookings.includes(this.formatDate(day));
     }
-}" x-init="init('{{ $currentYear }}', '{{ $currentMonth }}')">
-    <div class="mb-4 flex items-center justify-between">
-        <button class="cursor-pointer text-gray-500 hover:text-black"
-            @click="prevMonth"><flux:icon.chevron-left /></button>
-        <div class="text-lg font-semibold" x-text="monthName + ' ' + year"></div>
-        <button class="cursor-pointer text-gray-500 hover:text-black"
-            @click="nextMonth"><flux:icon.chevron-right /></button>
+}"
+    x-init="init('{{ $currentYear }}', '{{ $currentMonth }}')">
+    <div class="mb-6 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-900" x-text="monthName + ' ' + year"></h2>
+        <div class="flex items-center space-x-2">
+            <button class="rounded-lg p-2 transition-colors duration-200 hover:bg-gray-100"
+                @click="prevMonth"><flux:icon.chevron-left class="h-5 w-5 text-gray-600" /></button>
+            <button class="rounded-lg p-2 transition-colors duration-200 hover:bg-gray-100"
+                @click="nextMonth"><flux:icon.chevron-right class="h-5 w-5 text-gray-600" /></button>
+        </div>
     </div>
 
-    <div class="grid grid-cols-7 gap-2 text-center text-sm font-medium text-gray-500">
+    <div class="mb-2 grid grid-cols-7 gap-1">
         <template x-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="day">
-            <div x-text="day"></div>
+            <div class="py-2 text-center text-sm font-medium text-gray-500" x-text="day"></div>
         </template>
     </div>
 
-    <div class="mt-2 grid grid-cols-7 gap-2 text-center">
+    <div class="grid grid-cols-7 gap-1">
         <template x-for="(blank, index) in blankDays" :key="'blank-' + index">
-            <div class="h-16"></div>
+            <div class=""></div>
         </template>
 
         <template x-for="day in daysInMonth" :key="'day-' + day">
-            <div class="relative flex h-16 cursor-pointer flex-col items-center justify-center rounded border"
+            <button class="relative rounded-lg p-2 text-sm transition-all duration-200 hover:scale-105"
                 :class="{
-                    'bg-blue-100 border-blue-400': isToday(day),
-                    'ring-2 ring-indigo-500 ring-offset-1': selectedDate === formatDate(day)
+                    'bg-blue-50 text-blue-600 font-semibold border-2 border-blue-200': isToday(day),
+                    'bg-blue-600 text-white font-semibold shadow-lg': selectedDate === formatDate(day)
                 }"
                 @click="selectDay(day)">
                 <span x-text="day"></span>
@@ -111,7 +114,7 @@
                     </div>
                 </template>
 
-            </div>
+            </button>
         </template>
     </div>
 </div>
