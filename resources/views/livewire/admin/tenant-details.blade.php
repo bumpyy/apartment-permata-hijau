@@ -87,6 +87,7 @@ class extends Component
         $this->editEmail = $this->tenant->email;
         $this->editPhone = $this->tenant->phone ?? '';
         $this->editDisplayName = $this->tenant->display_name ?? '';
+        $this->profilePicture = '';
     }
 
     public function cancelEditing()
@@ -102,7 +103,7 @@ class extends Component
             'editEmail' => 'required|email|max:255',
             'editPhone' => 'nullable|string|max:20',
             'editDisplayName' => 'nullable|string|max:255',
-            'profilePicture' => 'nullable|string|max:255',
+            'profilePicture' => 'nullable',
         ]);
 
         $this->tenant->update([
@@ -214,7 +215,7 @@ class extends Component
 
         @if ($isEditing)
         <!-- Edit Form -->
-        <form wire:submit.prevent="saveTenantDetails" class="space-y-4">
+        <form wire:submit.prevent="saveTenantDetails" class="space-y-4" x-data="{ uploading: false }">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Profile Picture</label>
@@ -228,17 +229,33 @@ class extends Component
                                 {{ $tenant ? $tenant->initials() : '?' }}
                             </div>
                         @endif
+
                         <div class="flex-1">
                             <x-filepond::upload
                                 wire:model="profilePicture"
                                 allow-image-preview
-
                                 max-files="1"
+                                :files="
+                                    $tenant && $tenant->getFirstMediaUrl('profile_picture')
+                                        ? [
+                                            [
+                                                'source' => $tenant->getFirstMediaUrl('profile_picture'),
+                                                'options' => [
+                                                    'type' => 'local',
+                                                ],
+                                            ]
+                                        ]
+                                        : []
+                                "
+                                x-on:filepond-processing="uploading = true"
+                                x-on:filepond-processfile="uploading = false"
+                                x-on:filepond-removefile="uploading = false"
                             />
                             @error('profilePicture') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
                             @if ($tenant && $tenant->getFirstMediaUrl('profile_picture'))
                                 <button type="button" wire:click="removeProfilePicture" class="mt-2 text-xs text-red-600 hover:underline">Remove</button>
                             @endif
+                            <div x-show="uploading" class="text-sm text-blue-600 mt-2">Uploading file, please wait...</div>
                         </div>
                     </div>
                 </div>
@@ -269,8 +286,14 @@ class extends Component
             </div>
             <div class="flex items-center gap-3 pt-4">
                 <button type="submit"
-                        class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
-                    Save Changes
+                        class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 flex items-center gap-2"
+                        :disabled="uploading"
+                        :class="{ 'opacity-50 cursor-not-allowed': uploading }">
+                    <svg x-show="uploading" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" x-cloak>
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <span>Save Changes</span>
                 </button>
                 <button type="button" wire:click="cancelEditing"
                         class="rounded-lg bg-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-400">
