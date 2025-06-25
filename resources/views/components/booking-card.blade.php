@@ -8,6 +8,7 @@
     $bookingType = $booking->booking_type ?? '';
     $startTime = $booking->start_time ?? null;
     $endTime = $booking->end_time ?? null;
+    $is_peak = $booking->is_peak ?? null;
     $notes = $booking->notes ?? '';
 @endphp
 
@@ -52,8 +53,11 @@
                     {{ $status }} {{ $bookingType }}
                 </span>
             </div>
-            <p class="mb-1 text-start text-sm text-gray-600">
-                {{ $startTime?->format('H:i') }} - {{ $endTime?->format('H:i') }}
+            <p class="mb-1 flex flex-col text-start text-sm text-gray-600">
+                <span>{{ $startTime?->format('H:i') }} - {{ $endTime?->format('H:i') }}</span>
+                @if ($is_peak)
+                    <span>💡 Lights required</span>
+                @endif
             </p>
             @if ($notes)
                 <p class="mt-1 text-sm text-gray-500">{{ $notes }}</p>
