@@ -16,9 +16,12 @@ class TenantFactory extends Factory
      */
     public function definition()
     {
+        $name = $this->faker->name();
+        $email = strtolower(str_replace(' ', '.', $name)).'@example.com';
+
         return [
-            'name' => $this->faker->name(),
-            'email' => $this->faker->unique()->safeEmail(),
+            'name' => $name,
+            'email' => $email,
             'phone' => $this->faker->optional()->phoneNumber(),
             'email_verified_at' => $this->faker->optional()->dateTimeBetween('-1 year', 'now'),
             'password' => bcrypt('password'),
