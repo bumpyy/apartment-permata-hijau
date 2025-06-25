@@ -8,7 +8,6 @@ use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Spatie\LivewireFilepond\WithFilePond;
-use Illuminate\Support\Str;
 
 new
 #[Layout('components.backend.layouts.app')]
@@ -17,16 +16,24 @@ class extends Component
     use WithFilePond;
 
     public $tenant = null;
+
     public $tenantId = '';
+
     public $freeBookings = [];
+
     public $premiumBookings = [];
+
     public $pastBookings = [];
 
     // Edit mode properties
     public $isEditing = false;
+
     public $editName = '';
+
     public $editEmail = '';
+
     public $editPhone = '';
+
     public $editDisplayName = '';
 
     public $profilePicture = '';
@@ -45,6 +52,7 @@ class extends Component
 
         if (! $this->tenant) {
             session()->flash('error', 'Tenant not found');
+
             return;
         }
 
@@ -113,7 +121,7 @@ class extends Component
             'display_name' => $this->editDisplayName,
         ]);
 
-        if (!empty($this->profilePicture)) {
+        if (! empty($this->profilePicture)) {
             $this->tenant->clearMediaCollection('profile_picture');
             $this->tenant->addMedia($this->profilePicture)->toMediaCollection('profile_picture');
             $this->profilePicture = '';
@@ -393,7 +401,7 @@ class extends Component
                                 </button>
                                 @else
                                 <span class="rounded bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                                    {{ ucfirst($booking->status) }}
+                                    {{ ucfirst($booking->status->value) }}
                                 </span>
                                 <button class="rounded bg-gray-500 px-3 py-1 text-xs text-white hover:bg-gray-600"
                                         wire:click="cancelBooking({{ $booking->id }})">
@@ -444,7 +452,7 @@ class extends Component
                                 </button>
                                 @else
                                 <span class="rounded bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                                    {{ ucfirst($booking->status) }}
+                                    {{ ucfirst($booking->status->value) }}
                                 </span>
                                 <button class="rounded bg-gray-500 px-3 py-1 text-xs text-white hover:bg-gray-600"
                                         wire:click="cancelBooking({{ $booking->id }})">
@@ -499,7 +507,7 @@ class extends Component
                                 <span class="rounded-full px-2 py-1 text-xs font-medium
                                     {{ $booking->status === 'confirmed' ? 'bg-green-100 text-green-800' :
                                        ($booking->status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
-                                    {{ ucfirst($booking->status) }}
+                                    {{ ucfirst($booking->status->value) }}
                                 </span>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
