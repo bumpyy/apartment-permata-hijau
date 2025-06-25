@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\BookingStatusEnum;
 use App\Models\Booking;
 use App\Settings\PremiumSettings;
 use Carbon\Carbon;
@@ -174,7 +175,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $bookings = Booking::where('court_id', $this->courtNumber)
             ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->with('tenant')
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', BookingStatusEnum::CANCELLED)
             ->get();
 
         // Reset arrays
@@ -194,7 +195,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             ];
 
             // Separate confirmed vs pending bookings
-            if ($booking->status === 'confirmed') {
+            if ($booking->status === BookingStatusEnum::CONFIRMED) {
                 $this->bookedSlots[] = $slotData;
             } else {
                 $this->preliminaryBookedSlots[] = $slotData;
@@ -236,7 +237,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         // Get existing bookings for this date
         $bookedSlotsForDate = Booking::where('court_id', $this->courtNumber)
             ->where('date', $targetDate->format('Y-m-d'))
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', BookingStatusEnum::CANCELLED)
             ->get()
             ->pluck('start_time')
             ->map(function ($time) {
@@ -307,7 +308,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                     if ($this->isLoggedIn) {
                         $existingBookingsForDate = Booking::where('court_id', $this->courtNumber)
                             ->where('date', $date)
-                            ->where('status', '!=', 'cancelled')
+                            ->where('status', '!=', BookingStatusEnum::CANCELLED)
                             ->where('tenant_id', auth('tenant')->id())
                             ->count();
                     }
@@ -493,7 +494,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                     'date' => $bookingDate,
                     'start_time' => $startTime,
                     'end_time' => (new DateTime($startTime))->modify('+1 hour')->format('H:i'),
-                    'status' => 'pending',
+                    'status' => BookingStatusEnum::PENDING,
                     'booking_type' => $slotType,
                     'booking_week_start' => $bookingDate->copy()->startOfWeek()->format('Y-m-d'),
                     'price' => $slotType === 'premium' ? 150000 : 0,

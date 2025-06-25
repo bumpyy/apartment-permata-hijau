@@ -3,7 +3,7 @@
         <thead>
             <tr>
                 <th @class([
-                    'border-r border-gray-300 bg-gray-100 text-left font-semibold text-gray-700',
+                    'border-r sticky z-10 left-0 border-gray-300 bg-gray-100 text-left font-semibold text-gray-700',
                     'p-2 text-xs' => $compactView,
                     'p-4' => !$compactView,
                 ])>Time</th>
@@ -76,7 +76,7 @@
             @foreach ($timeSlots as $slot)
                 <tr class="border-b border-gray-200 transition-colors duration-200 last:border-b-0 hover:bg-gray-50">
                     <td @class([
-                        'border-r border-gray-300 bg-gray-50 font-medium text-gray-700',
+                        'border-r z-10 sticky left-0 border-gray-300 bg-gray-50 font-medium text-gray-700',
                         'p-2' => $compactView,
                         'p-4' => !$compactView,
                     ])>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\BookingStatusEnum;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -37,6 +38,7 @@ class Booking extends Model
         'light_surcharge' => 'int',
         'is_light_required' => 'boolean',
         'approved_at' => 'datetime',
+        'status' => BookingStatusEnum::class,
     ];
 
     public function tenant()
@@ -91,7 +93,7 @@ class Booking extends Model
             'pending' => 'PENDING',
             'confirmed' => $this->total_price > 0 ? 'PAID' : 'FREE',
             'cancelled' => 'CANCELLED',
-            default => strtoupper($this->status)
+            default => strtoupper($this->status->value)
         };
     }
 

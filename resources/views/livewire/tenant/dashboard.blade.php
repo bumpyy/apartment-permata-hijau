@@ -3,6 +3,7 @@
 
 namespace App\Http\Livewire\Tenant;
 
+use App\Enum\BookingStatusEnum;
 use App\Models\Booking;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
@@ -34,7 +35,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     {
         $this->upcomingBookings = $this->tenant->bookings()
             ->where('date', '>=', Carbon::today()->format('Y-m-d'))
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', BookingStatusEnum::CANCELLED)
             ->with('court')
             ->orderBy('date')
             ->orderBy('start_time')
@@ -68,11 +69,11 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                 ->whereYear('date', Carbon::now()->year)
                 ->count(),
             'confirmed' => $this->tenant->bookings()
-                ->where('status', 'confirmed')
+                ->where('status', BookingStatusEnum::CONFIRMED)
                 ->where('date', '>=', Carbon::today())
                 ->count(),
             'pending' => $this->tenant->bookings()
-                ->where('status', 'pending')
+                ->where('status', BookingStatusEnum::PENDING)
                 ->where('date', '>=', Carbon::today())
                 ->count(),
         ];
@@ -87,7 +88,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     {
         $booking = Booking::find($bookingId);
         if ($booking && $booking->tenant_id === $this->tenant->id) {
-            $booking->update(['status' => 'cancelled']);
+            $booking->update(['status' => BookingStatusEnum::CANCELLED]);
             $this->loadBookings();
             $this->loadQuotaInfo();
             $this->loadStats();
@@ -233,22 +234,20 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                     <nav class="flex space-x-8 px-6">
                         <button
                             wire:click="setActiveTab('upcoming')"
-                            class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200
-                                @if($activeTab === 'upcoming')
-                                    border-blue-500 text-blue-600
-                                @else
-                                    border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300
-                                @endif">
+                            @class([
+                                'py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200',
+                                'border-blue-500 text-blue-600' => $activeTab === 'upcoming',
+                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' => $activeTab !== 'upcoming',
+                            ])>
                             📅 Upcoming Bookings ({{ count($upcomingBookings) }})
                         </button>
                         <button
                             wire:click="setActiveTab('past')"
-                            class="py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200
-                                @if($activeTab === 'past')
-                                    border-blue-500 text-blue-600
-                                @else
-                                    border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300
-                                @endif">
+                            @class([
+                                'py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200',
+                                'border-blue-500 text-blue-600' => $activeTab === 'past',
+                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' => $activeTab !== 'past',
+                            ])>
                             📚 Booking History ({{ count($pastBookings) }})
                         </button>
                     </nav>
@@ -271,8 +270,11 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                                     <div class="flex flex-col gap-2">
                                         <h3 class="text-lg font-semibold text-gray-900">
                                             Court {{ $booking->court->name }}
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium sm:ml-2
-                                                            @if($booking->booking_type === 'free') bg-blue-100 text-blue-800 @else bg-purple-100 text-purple-800 @endif">
+                                            <span @class([
+                                                "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium sm:ml-2",
+                                                "bg-blue-100 text-blue-800" => $booking->booking_type === 'free',
+                                                "bg-purple-100 text-purple-800" => $booking->booking_type !== 'free',
+                                            ])>
                                                 @if($booking->booking_type === 'free') 🆓 Free @else ⭐ Premium @endif
                                             </span>
                                         </h3>
@@ -291,16 +293,16 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                                 <div class="flex items-center flex-wrap gap-3">
                                     <span
                                         @class([ "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
-                                        , 'bg-green-100 text-green-800'=> $booking->status === 'confirmed',
-                                        'bg-orange-100 text-orange-800' => $booking->status === 'pending',
-                                        'bg-red-100 text-red-800' => $booking->status === 'cancelled',
+                                        , 'bg-green-100 text-green-800'=> $booking->status === BookingstatusEnum::CONFIRMED,
+                                        'bg-orange-100 text-orange-800' => $booking->status === BookingstatusEnum::PENDING,
+                                        'bg-red-100 text-red-800' => $booking->status === BookingstatusEnum::CANCELLED,
                                         ])
                                         >
-                                        @if($booking->status === 'confirmed') ✅ Confirmed
-                                        @elseif($booking->status === 'pending') ⏳ Pending
+                                        @if($booking->status === BookingstatusEnum::CONFIRMED) ✅ Confirmed
+                                        @elseif($booking->status === BookingstatusEnum::PENDING) ⏳ Pending
                                         @else ❌ Cancelled @endif
                                     </span>
-                                    @if($booking->status !== 'cancelled' && $booking->date->gt(Carbon::today()))
+                                    @if($booking->status !== BookingstatusEnum::CANCELLED && $booking->date->gt(Carbon::today()))
                                     <button
                                         wire:click="cancelBooking({{ $booking->id }})"
                                         onclick="return confirm('Are you sure you want to cancel this booking?')"
@@ -357,12 +359,14 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-3">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                                                    @if($booking->status === 'confirmed') bg-green-100 text-green-700
-                                                    @elseif($booking->status === 'pending') bg-orange-100 text-orange-700
-                                                    @else bg-red-100 text-red-700 @endif">
-                                        @if($booking->status === 'confirmed') ✅ Completed
-                                        @elseif($booking->status === 'pending') ⏳ Was Pending
+                                    <span @class([
+                                        "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium",
+                                        "bg-green-100 text-green-700" => $booking->status === BookingstatusEnum::CONFIRMED,
+                                        "bg-orange-100 text-orange-700" => $booking->status === BookingstatusEnum::PENDING,
+                                        "bg-red-100 text-red-700" => $booking->status === BookingstatusEnum::CANCELLED,
+                                    ])>
+                                        @if($booking->status === BookingstatusEnum::CONFIRMED) ✅ Completed
+                                        @elseif($booking->status === BookingstatusEnum::PENDING) ⏳ Was Pending
                                         @else ❌ Cancelled @endif
                                     </span>
                                 </div>

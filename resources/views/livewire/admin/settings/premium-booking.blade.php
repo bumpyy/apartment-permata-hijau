@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\PremiumDateOverride;
-use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Volt\Component;
@@ -12,8 +11,11 @@ new
     class extends Component
     {
         public string $date = '';
+
         public string $note = '';
+
         public $overrides = [];
+
         public $premiumBookingDate;
 
         public function mount(): void
@@ -26,7 +28,7 @@ new
         {
             $overrides = PremiumDateOverride::orderBy('date')->get();
             $this->overrides = $overrides
-                ->groupBy(fn($item) => \Carbon\Carbon::parse($item->date)->format('Y F'))
+                ->groupBy(fn ($item) => \Carbon\Carbon::parse($item->date)->format('Y'))
                 ->toArray();
         }
 
@@ -81,6 +83,7 @@ new
                     <flux:icon.calendar-days class="h-8 w-8 text-white" />
                     <h2 class="text-2xl font-bold">Premium Booking Date</h2>
                 </div>
+
                 @php
                     // Flatten and sort overrides
                     $allOverrides = collect($overrides)->flatten(1)->sortBy('date')->values();
@@ -94,6 +97,7 @@ new
                         ? $allOverrides->groupBy(fn($o) => \Carbon\Carbon::parse($o['date'])->year)
                         : collect(['' => $allOverrides]);
                 @endphp
+
                 @if ($allOverrides->count())
                     <div class="text-lg">
                         ⭐ Premium registration opens:

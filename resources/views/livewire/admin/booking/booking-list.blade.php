@@ -9,7 +9,7 @@
             'bg-blue-600 text-white' => $slotDisplay === 'selected',
             'hover:bg-gray-50' => $slotDisplay !== 'selected',
         ]) type="button">
-            Selected date
+            Booked slots
         </button>
 
         <button wire:click="changeSlotDisplay('all')" @class([
@@ -21,19 +21,19 @@
         </button>
 
         @if ($slotDisplay === 'selected')
-            @forelse ($sortedBookings as $booking)
-                {{-- @dd($booking->status === 'pending') --}}
-                <x-booking-card :booking="$booking" />
-            @empty
-                <div class="py-12 text-center">
+            <div class="flex flex-col gap-2 text-center">
+                @forelse ($sortedBookings as $booking)
+                    {{-- @dd($booking->status === 'pending') --}}
+                    <x-booking-card :booking="$booking" />
+                @empty
                     <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
                         <flux:icon.clock class="h-8 w-8 text-gray-400" />
                     </div>
                     <p class="text-sm text-gray-500">No bookings scheduled for this date</p>
-                </div>
-            @endforelse
+                @endforelse
+            </div>
         @else
-            <div>
+            <div class="flex flex-col gap-2 text-center">
                 @forelse ($timeSlots as $slot)
                     @if ($sortedBookings->contains('start_time', $slot->start_time))
                         <x-booking-card :booking="$sortedBookings->firstWhere('start_time', $slot->start_time)" />
@@ -41,15 +41,14 @@
                         <x-booking-card :booking="$slot" />
                     @endif
                 @empty
-                    <div class="py-12 text-center">
-                        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                            <flux:icon.clock class="h-8 w-8 text-gray-400" />
-                        </div>
-                        <p class="text-sm text-gray-500">No bookings scheduled for this date</p>
+                    <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                        <flux:icon.clock class="h-8 w-8 text-gray-400" />
                     </div>
+                    <p class="text-sm text-gray-500">No bookings scheduled for this date</p>
                 @endforelse
             </div>
         @endif
     </div>
+</div>
 
 </div>

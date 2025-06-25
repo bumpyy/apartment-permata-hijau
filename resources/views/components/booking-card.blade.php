@@ -4,15 +4,23 @@
     $id = $booking?->id ?? uniqid();
     $tenantName = $booking?->tenant?->name ?? 'AVAILABLE';
     $tenant = $booking?->tenant ?? null;
-    $status = $booking->status ?? 'none';
+    $status = $booking->status ?? '';
     $bookingType = $booking->booking_type ?? '';
     $startTime = $booking->start_time ?? null;
     $endTime = $booking->end_time ?? null;
     $notes = $booking->notes ?? '';
 @endphp
 
-<div class="group relative rounded-xl bg-gray-50 p-4 transition-all duration-200 hover:bg-gray-100 hover:shadow-md"
-    key="{{ $id }}">
+<div @class([
+    'group relative rounded-xl p-4 transition-all duration-200  hover:shadow-md',
+    'bg-gray-50 hover:bg-gray-100' => !$tenant,
+    'bg-blue-100 hover:bg-blue-200' =>
+        $tenant && $status === \App\Enum\BookingstatusEnum::PENDING,
+    'bg-blue-100 hover:bg-blue-200' =>
+        $tenant && $status === \App\Enum\BookingstatusEnum::CONFIRMED,
+    'bg-blue-100 hover:bg-blue-200' =>
+        $tenant && $status === \App\Enum\BookingStatusEnum::CANCELLED,
+]) key="{{ $id }}">
     <div class="flex items-center gap-4">
         @if ($tenant && $tenant->getFirstMediaUrl('profile_picture'))
             <img class="h-16 w-16 rounded-full border border-gray-300 object-cover"
@@ -20,7 +28,11 @@
         @else
             <div
                 class="flex h-16 w-16 items-center justify-center rounded-full border border-gray-300 bg-gray-200 text-2xl font-bold text-gray-500">
-                {{ $tenant ? $tenant->initials() : '?' }}
+                @if ($tenant)
+                    {{ $tenant->initials() }}
+                @else
+                    <flux:icon.check-circle class="h-6 w-6 text-green-600" />
+                @endif
             </div>
         @endif
 
@@ -48,7 +60,7 @@
             @endif
         </div>
 
-        @if (!isset($booking->date) || $booking->date?->gt(\Carbon\Carbon::today()))
+        @if (isset($booking->date))
             <div class="relative" x-data="{ open: false }" @click.outside="open = false">
                 <button
                     class="rounded-lg p-2 text-gray-400 opacity-0 transition-colors duration-200 hover:bg-white hover:text-gray-600 group-hover:opacity-100"
