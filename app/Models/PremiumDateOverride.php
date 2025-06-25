@@ -25,6 +25,7 @@ class PremiumDateOverride extends Model
         if ($override) {
             return \Carbon\Carbon::parse($override->date);
         }
+
         // Fallback to 25th of current month
         return now()->copy()->day(25);
     }
