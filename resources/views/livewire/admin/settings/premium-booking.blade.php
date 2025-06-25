@@ -205,10 +205,10 @@ new
                                         'bg-blue-50 text-blue-600 font-semibold border-2 border-blue-200': isToday(day),
                                         'bg-blue-600 text-white font-semibold shadow-lg scale-110': selectedDate === formatDate(day),
                                         'bg-purple-600 text-white font-bold ring-2 ring-purple-300': isOverride(day),
-                                        'cursor-not-allowed opacity-50': new Date(year, month - 1, day) < new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+                                        'cursor-not-allowed opacity-50': new Date(year, month - 1, day) < new Date() - 1 && !isToday(day),
                                     }"
                                     @click="selectDay(day)"
-                                    :disabled="new Date(year, month - 1, day) < new Date(new Date().getFullYear(), new Date().getMonth(), 1)">
+                                    :disabled="new Date(year, month - 1, day) < new Date() - 1 && !isToday(day)">
                                     <span x-text="day"></span>
                                     <template x-if="isOverride(day)">
                                         <span class="absolute top-0 right-0 h-2 w-2 bg-purple-500 rounded-full border-2 border-white"></span>
