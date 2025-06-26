@@ -16,7 +16,8 @@
                 'aspect-square p-1' => $compactView,
                 'aspect-square p-2' => !$compactView,
                 'bg-white hover:bg-gray-50' => $day['is_current_month'] && !$day['is_past'],
-                'bg-gray-50 text-gray-400' => !$day['is_current_month'] || $day['is_past'],
+                'bg-gray-50 text-gray-400' =>
+                    !$day['is_current_month'] || ($day['is_past'] && !$day['is_today']),
                 'bg-blue-100 border-blue-300' => $day['is_today'],
                 'cursor-pointer hover:shadow-md' =>
                     $day['is_bookable'] && $day['is_current_month'],
@@ -31,7 +32,8 @@
                             'text-blue-600 font-bold' => $day['is_today'],
                             'text-gray-900' =>
                                 $day['is_current_month'] && !$day['is_today'] && !$day['is_past'],
-                            'text-gray-400' => !$day['is_current_month'] || $day['is_past'],
+                            'text-gray-400' =>
+                                !$day['is_current_month'] || ($day['is_past'] && !$day['is_today']),
                         ])>
                             {{ $day['day_number'] }}
                         </div>
@@ -55,7 +57,7 @@
                         @endif
                     </div>
 
-                    @if ($day['is_past'])
+                    @if ($day['is_past'] && !$day['is_today'])
                         <div @class([
                             'mt-1 text-gray-400',
                             'text-xs' => $compactView || !$compactView,
@@ -121,6 +123,9 @@
                                 Locked
                             @endif
                         </div>
+                    @endif
+                    @if ($day['is_today'])
+                        <div>Today</div>
                     @endif
                 </div>
             </div>
