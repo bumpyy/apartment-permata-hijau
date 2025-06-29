@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Booking;
+namespace App\Livewire\Admin\Booking\create;
 
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -36,6 +36,6 @@ class FilterBar extends Component
 
     public function render()
     {
-        return view('livewire.admin.booking.filter-bar');
+        return view('livewire.admin.booking.create.partials.filter-bar');
     }
 }

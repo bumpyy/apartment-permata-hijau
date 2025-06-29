@@ -16,9 +16,9 @@
     'group relative rounded-xl p-4 transition-all duration-200  hover:shadow-md',
     'bg-gray-50 hover:bg-gray-100' => !$tenant,
     'bg-blue-100 hover:bg-blue-200' =>
-        $tenant && $status === \App\Enum\BookingstatusEnum::PENDING,
+        $tenant && $status === \App\Enum\BookingStatusEnum::PENDING,
     'bg-blue-100 hover:bg-blue-200' =>
-        $tenant && $status === \App\Enum\BookingstatusEnum::CONFIRMED,
+        $tenant && $status === \App\Enum\BookingStatusEnum::CONFIRMED,
     'bg-blue-100 hover:bg-blue-200' =>
         $tenant && $status === \App\Enum\BookingStatusEnum::CANCELLED,
 ]) key="{{ $id }}">
@@ -45,12 +45,12 @@
                 <span class="flex items-center gap-1" class="rounded-full px-2 py-1 text-xs font-medium"
                     @class([
                         'bg-emerald-50 text-emerald-700 border-emerald-200' =>
-                            $status === 'confirmed',
-                        'bg-amber-50 text-amber-700 border-amber-200' => $status === 'pending',
-                        'bg-red-50 text-red-700 border-red-200' => $status === 'cancelled',
-                        'bg-gray-50 text-gray-700 border-gray-200' => $status === 'none',
+                            $status === \App\Enum\BookingStatusEnum::CONFIRMED,
+                        'bg-amber-50 text-amber-700 border-amber-200' => $status === \App\Enum\BookingStatusEnum::PENDING,
+                        'bg-red-50 text-red-700 border-red-200' => $status === \App\Enum\BookingStatusEnum::CANCELLED,
+                        'bg-gray-50 text-gray-700 border-gray-200' => !$status,
                     ])>
-                    {{ $status }} {{ $bookingType }}
+                    {{ $status?->value ?? 'none' }} {{ $bookingType }}
                 </span>
             </div>
             <p class="mb-1 flex flex-col text-start text-sm text-gray-600">
@@ -80,7 +80,7 @@
                         <flux:icon.pencil />
                         Edit Booking
                     </button>
-                    @if ($status === 'pending')
+                    @if ($status === \App\Enum\BookingStatusEnum::PENDING)
                         <button
                             class="flex w-full items-center gap-3 px-4 py-2 text-sm text-emerald-700 transition-colors duration-150 hover:bg-emerald-50"
                             @click="open = false">

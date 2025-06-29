@@ -13,17 +13,18 @@ return new class extends Migration
     {
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->foreignId('court_id')->constrained()->onDelete('cascade');
             $table->date('date');
             $table->time('start_time');
             $table->time('end_time');
-            $table->enum('status', ['confirmed', 'preliminary', 'cancelled'])->default('confirmed');
+            $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
             $table->unsignedInteger('price')->default(0);
             $table->boolean('is_light_required')->default(false);
             $table->text('notes')->nullable();
             $table->timestamps();
 
+            // Prevent duplicate bookings for the same court, date, and time
             // $table->unique(['court_id', 'date', 'start_time']);
         });
     }

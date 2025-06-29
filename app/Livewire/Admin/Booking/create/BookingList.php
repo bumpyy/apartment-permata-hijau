@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Booking;
+namespace App\Livewire\Admin\Booking\create;
 
 use Carbon\Carbon;
 use Livewire\Attributes\Reactive;
@@ -53,6 +53,6 @@ class BookingList extends Component
     {
         $sortedBookings = clone $this->bookings->map(fn ($b) => clone $b)->sortBy('start_time');
 
-        return view('livewire.admin.booking.booking-list', compact('sortedBookings'));
+        return view('livewire.admin.booking.create.partials.booking-list', compact('sortedBookings'));
     }
 }

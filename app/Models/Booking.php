@@ -27,6 +27,10 @@ class Booking extends Model
         'notes',
         'approved_by',
         'approved_at',
+        'cancelled_by',
+        'cancelled_at',
+        'edited_by',
+        'edited_at',
     ];
 
     protected $casts = [
@@ -38,6 +42,8 @@ class Booking extends Model
         'light_surcharge' => 'int',
         'is_light_required' => 'boolean',
         'approved_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+        'edited_at' => 'datetime',
         'status' => BookingStatusEnum::class,
     ];
 
@@ -54,6 +60,16 @@ class Booking extends Model
     public function approver()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function canceller()
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function editor()
+    {
+        return $this->belongsTo(User::class, 'edited_by');
     }
 
     public function generateReference()

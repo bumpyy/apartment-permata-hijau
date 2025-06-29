@@ -390,7 +390,7 @@ class extends Component
                                 @endif
                             </div>
                             <div class="flex items-center gap-2">
-                                @if ($booking->status === 'pending')
+                                @if ($booking->status === \App\Enum\BookingStatusEnum::PENDING)
                                 <button class="rounded bg-red-500 px-3 py-1 text-xs text-white hover:bg-red-600"
                                         wire:click="denyBooking({{ $booking->id }})">
                                     Deny
@@ -441,7 +441,7 @@ class extends Component
                                 @endif
                             </div>
                             <div class="flex items-center gap-2">
-                                @if ($booking->status === 'pending')
+                                @if ($booking->status === \App\Enum\BookingStatusEnum::PENDING)
                                 <button class="rounded bg-red-500 px-3 py-1 text-xs text-white hover:bg-red-600"
                                         wire:click="denyBooking({{ $booking->id }})">
                                     Deny
@@ -505,8 +505,8 @@ class extends Component
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                                 <span class="rounded-full px-2 py-1 text-xs font-medium
-                                    {{ $booking->status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                                       ($booking->status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                    {{ $booking->status === \App\Enum\BookingStatusEnum::CONFIRMED ? 'bg-green-100 text-green-800' :
+                                       ($booking->status === \App\Enum\BookingStatusEnum::CANCELLED ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
                                     {{ ucfirst($booking->status->value) }}
                                 </span>
                             </td>

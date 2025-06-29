@@ -119,10 +119,19 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $this->currentMonthStart = now()->startOfMonth();
 
         // Set premium booking date using override if available, fallback to 25th
+        $currentDate = now();
         $this->premiumBookingDate = \App\Models\PremiumDateOverride::getCurrentMonthPremiumDate();
 
+        if ($currentDate->greaterThan($this->premiumBookingDate)) {
+            $nextMonthPremiumDate = \App\Models\PremiumDateOverride::whereMonth('date', $currentDate->copy()->addMonth()->month)
+                ->whereYear('date', $currentDate->copy()->addMonth()->year)
+                ->first();
+
+            $this->premiumBookingDate = $nextMonthPremiumDate ? \Carbon\Carbon::parse($nextMonthPremiumDate->date) : $currentDate->copy()->addMonth()->day(25);
+        }
+
         // Check if premium booking is currently open
-        $this->isPremiumBookingOpen = now()->gte($this->premiumBookingDate);
+        $this->isPremiumBookingOpen = now()->format('Y-m-d') === $this->premiumBookingDate->format('Y-m-d');
 
         // Check if user is logged in
         $this->isLoggedIn = auth('tenant')->check();

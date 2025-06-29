@@ -42,13 +42,6 @@
                 <flux:icon.printer class="h-5 w-5" />
                 Export
             </button> --}}
-
-            <button
-                class="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 hover:shadow-md">
-                <flux:icon.plus class="h-5 w-5" />
-                Add Booking
-            </button>
         </div>
-
     </div>
 </div>

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Booking;
+namespace App\Livewire\Admin\Booking\create;
 
 use Carbon\Carbon;
 use Livewire\Attributes\On;
@@ -33,6 +33,6 @@ class Calendar extends Component
     public function render()
     {
 
-        return view('livewire.admin.booking.calendar');
+        return view('livewire.admin.booking.create.partials.calendar');
     }
 }

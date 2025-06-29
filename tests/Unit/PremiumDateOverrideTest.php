@@ -23,3 +23,45 @@ test('can retrieve premium date overrides', function () {
     expect($overrides)->toHaveCount(2);
     expect($overrides[1]->note)->toBe('Holiday');
 });
+
+test('getCurrentMonthPremiumDate returns override when exists', function () {
+    $currentMonth = now()->month;
+    $currentYear = now()->year;
+
+    // Create an override for current month
+    $override = PremiumDateOverride::create([
+        'date' => "{$currentYear}-{$currentMonth}-15",
+        'note' => 'Test override',
+    ]);
+
+    $result = PremiumDateOverride::getCurrentMonthPremiumDate();
+
+    expect($result->format('Y-m-d'))->toBe("{$currentYear}-{$currentMonth}-15");
+});
+
+test('getCurrentMonthPremiumDate returns fallback when no override exists', function () {
+    $currentMonth = now()->month;
+    $currentYear = now()->year;
+
+    // Don't create any overrides
+
+    $result = PremiumDateOverride::getCurrentMonthPremiumDate();
+
+    expect($result->format('Y-m-d'))->toBe("{$currentYear}-{$currentMonth}-25");
+});
+
+test('getCurrentMonthPremiumDate handles different months correctly', function () {
+    // Create override for a different month
+    PremiumDateOverride::create([
+        'date' => '2025-08-15',
+        'note' => 'August override',
+    ]);
+
+    $currentMonth = now()->month;
+    $currentYear = now()->year;
+
+    $result = PremiumDateOverride::getCurrentMonthPremiumDate();
+
+    // Should return fallback for current month, not the August override
+    expect($result->format('Y-m-d'))->toBe("{$currentYear}-{$currentMonth}-25");
+});

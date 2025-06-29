@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            $table->foreignId('deny_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamp('deny_at')->nullable();
+            $table->foreignId('edited_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('edited_at')->nullable();
 
             $table->foreignId('cancelled_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('cancelled_at')->nullable();
@@ -23,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            $table->dropColumn(['deny_by', 'deny_at', 'cancelled_by', 'cancelled_at']);
+            $table->dropColumn(['edited_by', 'edited_at', 'cancelled_by', 'cancelled_at']);
         });
     }
 };

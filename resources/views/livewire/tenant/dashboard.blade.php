@@ -293,16 +293,16 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                                 <div class="flex items-center flex-wrap gap-3">
                                     <span
                                         @class([ "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
-                                        , 'bg-green-100 text-green-800'=> $booking->status === BookingstatusEnum::CONFIRMED,
-                                        'bg-orange-100 text-orange-800' => $booking->status === BookingstatusEnum::PENDING,
-                                        'bg-red-100 text-red-800' => $booking->status === BookingstatusEnum::CANCELLED,
+                                        , 'bg-green-100 text-green-800'=> $booking->status === BookingStatusEnum::CONFIRMED,
+                                        'bg-orange-100 text-orange-800' => $booking->status === BookingStatusEnum::PENDING,
+                                        'bg-red-100 text-red-800' => $booking->status === BookingStatusEnum::CANCELLED,
                                         ])
                                         >
-                                        @if($booking->status === BookingstatusEnum::CONFIRMED) ✅ Confirmed
-                                        @elseif($booking->status === BookingstatusEnum::PENDING) ⏳ Pending
+                                        @if($booking->status === BookingStatusEnum::CONFIRMED) ✅ Confirmed
+                                        @elseif($booking->status === BookingStatusEnum::PENDING) ⏳ Pending
                                         @else ❌ Cancelled @endif
                                     </span>
-                                    @if($booking->status !== BookingstatusEnum::CANCELLED && $booking->date->gt(Carbon::today()))
+                                    @if($booking->status !== BookingStatusEnum::CANCELLED && $booking->date->gt(Carbon::today()))
                                     <button
                                         wire:click="cancelBooking({{ $booking->id }})"
                                         onclick="return confirm('Are you sure you want to cancel this booking?')"
@@ -361,12 +361,12 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                                 <div class="flex items-center space-x-3">
                                     <span @class([
                                         "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium",
-                                        "bg-green-100 text-green-700" => $booking->status === BookingstatusEnum::CONFIRMED,
-                                        "bg-orange-100 text-orange-700" => $booking->status === BookingstatusEnum::PENDING,
-                                        "bg-red-100 text-red-700" => $booking->status === BookingstatusEnum::CANCELLED,
+                                        "bg-green-100 text-green-700" => $booking->status === BookingStatusEnum::CONFIRMED,
+                                        "bg-orange-100 text-orange-700" => $booking->status === BookingStatusEnum::PENDING,
+                                        "bg-red-100 text-red-700" => $booking->status === BookingStatusEnum::CANCELLED,
                                     ])>
-                                        @if($booking->status === BookingstatusEnum::CONFIRMED) ✅ Completed
-                                        @elseif($booking->status === BookingstatusEnum::PENDING) ⏳ Was Pending
+                                        @if($booking->status === BookingStatusEnum::CONFIRMED) ✅ Completed
+                                        @elseif($booking->status === BookingStatusEnum::PENDING) ⏳ Was Pending
                                         @else ❌ Cancelled @endif
                                     </span>
                                 </div>
