@@ -105,7 +105,7 @@ class Booking extends Model
 
     public function getStatusDisplayAttribute()
     {
-        return match ($this->status) {
+        return match ($this->status->value) {
             'pending' => 'PENDING',
             'confirmed' => $this->total_price > 0 ? 'PAID' : 'FREE',
             'cancelled' => 'CANCELLED',

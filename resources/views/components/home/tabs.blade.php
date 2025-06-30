@@ -30,6 +30,14 @@
 
         @php
             $tabs = ['Tennis', 'Basketball', 'Swimming Pool', 'Table Tennis', 'Mini Golf', 'BBQ'];
+            $routes = [
+                'Tennis' => 'facilities.index',
+                'Basketball' => '',
+                'Swimming Pool' => '',
+                'Table Tennis' => '',
+                'Mini Golf' => '',
+                'BBQ' => '',
+            ];
         @endphp
 
         @foreach ($tabs as $text)
@@ -71,8 +79,9 @@
                         Please note: an additional fee applies for light usage after dark. Perfect for
                         both casual and serious players seeking convenience and performance.
                     </p>
-                    <button class="bg-primary mt-5 rounded-md border border-gray-200 px-4 py-2 text-sm text-white">Book
-                        Now</button>
+                    <a class="bg-primary mt-5 rounded-md border border-gray-200 px-4 py-2 text-sm text-white"
+                        href="{{ !empty($routes[$text]) ? route($routes[$text]) : '#' }}">Book
+                        Now</a>
                 </div>
             </section>
         @endforeach

@@ -44,7 +44,7 @@
                 @foreach ([
         'home' => 'home',
         'about' => 'about',
-        'facilities' => 'facilities',
+        'facilities' => 'facilities.index',
         'news' => 'news.index',
         'event' => 'event.index',
         'committee' => 'committee.index',

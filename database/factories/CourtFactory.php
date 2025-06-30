@@ -12,7 +12,7 @@ class CourtFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => 'Court '.$this->faker->unique()->numberBetween(1, 5),
+            'name' => 'Court '.$this->faker->unique()->numberBetween(1, 1000),
             'description' => $this->faker->optional()->sentence(),
             'hourly_rate' => 0,
             'light_surcharge' => 50000,

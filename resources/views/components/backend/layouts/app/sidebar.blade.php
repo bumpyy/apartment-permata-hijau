@@ -6,7 +6,8 @@
 </head>
 
 <body class="min-h-screen bg-white dark:bg-zinc-800">
-    <flux:sidebar class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900" sticky stashable>
+    <flux:sidebar class="z-0! border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900" sticky
+        stashable>
 
         <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
@@ -24,11 +25,14 @@
             <flux:navlist.item wire:navigate icon="users" :href="route('admin.tenant.list')">Tenants
             </flux:navlist.item>
             <flux:navlist.group class="max-lg:hidden" expandable :expanded="true" heading="Settings">
-                <flux:navlist.item wire:navigate wire:navigate :href="route('admin.settings.premium')">Premium Booking
-                    Setting</flux:navlist.item>
-                <flux:navlist.item wire:navigate wire:navigate :href="route('admin.settings.tenants')">Tenants Settings
+                <flux:navlist.item wire:navigate wire:navigate :href="route('admin.settings.premium')">
+                    Premium Booking Setting
                 </flux:navlist.item>
-                <flux:navlist.item wire:navigate wire:navigate :href="route('admin.settings.site')">Site Settings
+                <flux:navlist.item wire:navigate wire:navigate :href="route('admin.settings.tenants')">
+                    Tenants Settings
+                </flux:navlist.item>
+                <flux:navlist.item wire:navigate wire:navigate :href="route('admin.settings.site')">
+                    Site Settings
                 </flux:navlist.item>
             </flux:navlist.group>
         </flux:navlist>

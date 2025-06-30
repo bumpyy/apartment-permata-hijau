@@ -303,7 +303,7 @@ class extends Component
             return $group->groupBy(function ($booking) {
                 return $booking->court->name ?? 'Unknown Court';
             })->sortKeys();
-        });
+        })->sortKeys();
     }
 
     // Private helper methods for optimization
@@ -520,9 +520,9 @@ class extends Component
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
+
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($this->groupedBookings as $date => $courts)
                                     <tr>
@@ -554,9 +554,6 @@ class extends Component
                                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $colorClass }}">
                                                         {{ ucfirst($booking->status->value) }}
                                                     </span>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    <button class="text-blue-500 hover:text-blue-700 focus:outline-none" type="button" wire:click.stop="edit({{ $booking->id }})">Edit</button>
                                                 </td>
                                             </tr>
                                         @endforeach

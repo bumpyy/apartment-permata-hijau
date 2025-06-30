@@ -7,7 +7,7 @@
 
             <div class="mt-10 space-y-12 lg:grid lg:grid-cols-3 lg:gap-x-8 lg:space-y-0">
                 @foreach ($courts as $court)
-                    <a class="group block" href="{{ route('tennis.court.booking', $court->id) }}">
+                    <a class="group block" href="{{ route('facilities.tennis.booking', $court->id) }}">
                         @if ($court->image)
                             <img class="aspect-3/2 lg:aspect-5/6 w-full rounded-lg object-cover group-hover:opacity-75"
                                 src="{{ $court->image }}" alt="{{ $court->name }}">

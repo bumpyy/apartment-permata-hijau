@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\FacilitiesController;
+use App\Models\Court;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -20,11 +21,24 @@ Volt::route('dashboard', 'tenant.dashboard')
     ])
     ->name('tenant.dashboard');
 
-Route::get('facilities', FacilitiesController::class)
-    ->name('facilities');
+Route::name('facilities.')
+    ->prefix('facilities')
+    ->name('facilities.')
+    ->group(function () {
+        Route::get('/', FacilitiesController::class)->name('index');
 
-Volt::route('facilities/tennis/court/{id}', 'court-booking.main')
-    ->name('tennis.court.booking');
+        Route::get('tennis', function () {
+
+            $courts = Court::all();
+
+            return view('facilities', compact('courts'));
+
+        })->name('tennis');
+
+        Route::redirect('tennis/court/', 'facilities/tennis')->name('tennis.courts');
+
+        Volt::route('tennis/court/{id}', 'court-booking.main')->name('tennis.booking');
+    });
 
 Route::middleware(['auth:admin'])
     ->prefix('admin')
@@ -37,8 +51,10 @@ Route::middleware(['auth:admin'])
         // Volt::route('calendar', 'admin.calendar')->name('calendar');
 
         Volt::route('dashboard', 'admin.dashboard')->name('dashboard');
+
         Volt::route('booking', 'admin.booking')->name('booking.list');
         Volt::route('booking/create', 'admin.booking.create.main')->name('booking.create');
+
         Volt::route('tenant', 'admin.tenant-list')->name('tenant.list');
 
         Volt::route('tenant/{id}', 'admin.tenant-details')->name('tenant.show');
