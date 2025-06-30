@@ -6,6 +6,7 @@ use App\Enum\BookingStatusEnum;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Booking extends Model
 {
@@ -74,7 +75,7 @@ class Booking extends Model
 
     public function generateReference()
     {
-        return 'A'.str_pad($this->id, 4, '0', STR_PAD_LEFT);
+        return sprintf('BK%s-%s-%s-%s', $this->tenant_id, $this->court->id, Carbon::today()->format('Y-m-d'), strtoupper(Str::random(4)));
     }
 
     public function calculatePrice()

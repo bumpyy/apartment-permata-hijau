@@ -5,7 +5,6 @@ use App\Models\Booking;
 use App\Settings\PremiumSettings;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
@@ -527,12 +526,14 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     public function processBooking()
     {
         $tenant = auth('tenant')->user();
-        $this->bookingReference = sprintf('BK%s-%s-%s-%s', $tenant->id, $this->courtNumber, Carbon::today()->format('Y-m-d'), strtoupper(Str::random(4)));
+
         // Create each booking in the database
         foreach ($this->pendingBookingData as $slot) {
             try {
                 // CREATE BOOKING RECORD
-                Booking::create([...$slot, 'tenant_id' => $tenant->id, 'booking_reference' => $this->bookingReference]);
+                $booking = Booking::create([...$slot, 'tenant_id' => $tenant->id, 'booking_reference' => $this->bookingReference]);
+                $this->bookingReference = $booking->generateReference();
+
             } catch (\Exception $e) {
                 // Log detailed error information for debugging
                 Log::error('Booking creation failed: '.$e->getMessage(), [

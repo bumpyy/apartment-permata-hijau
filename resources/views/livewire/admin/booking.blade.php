@@ -655,6 +655,14 @@ class extends Component
         $this->clearCache();
         session()->flash('message', 'Booking created successfully! Reference: #'.$booking->booking_reference);
     }
+
+    public function handleBookingCardClick($bookingId)
+    {
+        if ($this->isAddMode) {
+            $this->isAddMode = false;
+        }
+        $this->showDetail($bookingId);
+    }
 }
 
 ?>
@@ -753,7 +761,6 @@ class extends Component
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 </tr>
                             </thead>
-
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($this->groupedBookings as $date => $courts)
                                     <tr>
@@ -764,7 +771,9 @@ class extends Component
                                             <td colspan="7" class="bg-blue-50 font-semibold text-sm px-6 py-2 border-t border-b border-blue-200">Court: {{ $courtName }}</td>
                                         </tr>
                                         @foreach($bookings as $booking)
-                                            <tr wire:click="showDetail({{ $booking->id }})" class="hover:bg-blue-50 cursor-pointer">
+                                            <tr wire:click="handleBookingCardClick({{ $booking->id }})" @class([
+                                                'hover:bg-blue-50 cursor-pointer',
+                                            ])>
                                                 <td class="px-6 py-4 whitespace-nowrap">
                                                     <div class="font-semibold text-gray-900">{{ $booking->tenant->name }}</div>
                                                     <div class="text-xs text-gray-500">{{ $booking->tenant->email }}</div>
@@ -782,7 +791,7 @@ class extends Component
                                                         ];
                                                         $colorClass = $statusColors[$booking->status->value] ?? 'bg-gray-100 text-gray-800';
                                                     @endphp
-                                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $colorClass }}">
+                                                    <span @class(["inline-flex px-2 py-1 text-xs font-semibold rounded-full", $colorClass])>
                                                         {{ ucfirst($booking->status->value) }}
                                                     </span>
                                                 </td>
@@ -851,7 +860,13 @@ class extends Component
                                             <div class="mb-2">
                                                 <div class="text-[11px] text-gray-400 font-semibold mb-1">{{ $slotLabel['label'] }}</div>
                                                 @forelse($slots[$slotLabel['label']] as $booking)
-                                                    <div wire:click="showDetail({{ $booking->id }})" class="rounded-lg border p-2 bg-gray-50 shadow-sm mb-1 hover:bg-gray-100 cursor-pointer transition-colors">
+                                                    <div
+                                                        wire:click="handleBookingCardClick({{ $booking->id }})"
+                                                        @class([
+                                                            'rounded-lg border p-2 shadow-sm mb-1 transition-colors',
+                                                            'bg-gray-50 hover:bg-gray-100 cursor-pointer' => true,
+                                                        ])
+                                                    >
                                                         <div class="flex items-center gap-2 mb-1">
                                                             <span class="inline-block bg-blue-100 text-blue-800 text-[10px] font-bold rounded px-2 py-0.5">{{ $booking->court->name ?? '-' }}</span>
                                                             <div class="font-semibold text-gray-800 text-xs">{{ $booking->tenant->name }}</div>
@@ -866,7 +881,7 @@ class extends Component
                                                                 ];
                                                                 $colorClass = $statusColors[$booking->status->value] ?? 'bg-gray-100 text-gray-800';
                                                             @endphp
-                                                            <span class="inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold {{ $colorClass }}">
+                                                            <span @class(["inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold", $colorClass])>
                                                                 {{ ucfirst($booking->status->value) }}
                                                             </span>
                                                         </div>
@@ -969,7 +984,7 @@ class extends Component
                                         ];
                                         $colorClass = $statusColors[$selectedBooking->status->value] ?? 'bg-gray-100 text-gray-800';
                                     @endphp
-                                    <span class="inline-block rounded-full px-3 py-1 text-xs font-semibold {{ $colorClass }}">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold {{ $colorClass }}">
                                         {{ ucfirst($selectedBooking->status->value) }}
                                     </span>
                                 </div>
@@ -1044,6 +1059,46 @@ class extends Component
                                 </button>
                             @endif
                         </div>
+                        <!-- Restore Edit, Confirm, and Cancel Modals -->
+                        <x-modal :show="'showEditModal'" :title="'Edit Booking'">
+                            <form wire:submit.prevent="updateBooking" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Status</label>
+                                    <select wire:model.defer="editForm.status" class="mt-1 block w-full rounded border border-gray-300 p-2" required>
+                                        <option value="pending">Pending</option>
+                                        <option value="confirmed">Confirmed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
+                                    @error('editForm.status') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" wire:model.defer="editForm.is_light_required" id="is_light_required" class="rounded border-gray-300" />
+                                    <label for="is_light_required" class="text-sm font-medium text-gray-700">Light Required</label>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Notes</label>
+                                    <textarea wire:model.defer="editForm.notes" class="mt-1 block w-full rounded border border-gray-300 p-2"></textarea>
+                                </div>
+                                <div class="flex justify-end gap-2 mt-4">
+                                    <button type="button" wire:click="closeEditModal" class="px-4 py-2 rounded border">Cancel</button>
+                                    <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white">Save</button>
+                                </div>
+                            </form>
+                        </x-modal>
+                        <x-modal :alpineShow="'showConfirm'" :title="'Confirm Booking'">
+                            <p class="mb-4">Are you sure you want to confirm this booking for <strong>{{ $selectedBooking->tenant->name ?? '' }}</strong> on {{ $selectedBooking->date->format('d F Y') ?? '' }} at {{ $selectedBooking->start_time->format('H:i') ?? '' }}?</p>
+                            <div class="flex justify-end gap-2">
+                                <button type="button" @click="showConfirm = false" class="px-4 py-2 rounded border">Cancel</button>
+                                <button type="button" wire:click="confirmBooking({{ $selectedBooking->id }})" @click="showConfirm = false" class="px-4 py-2 rounded bg-green-600 text-white">Confirm</button>
+                            </div>
+                        </x-modal>
+                        <x-modal :alpineShow="'showCancel'" :title="'Cancel Booking'">
+                            <p class="mb-4">Are you sure you want to cancel this booking for <strong>{{ $selectedBooking->tenant->name ?? '' }}</strong> on {{ $selectedBooking->date->format('d F Y') ?? '' }} at {{ $selectedBooking->start_time->format('H:i') ?? '' }}?</p>
+                            <div class="flex justify-end gap-2">
+                                <button type="button" @click="showCancel = false" class="px-4 py-2 rounded border">Keep Booking</button>
+                                <button type="button" wire:click="cancelBooking({{ $selectedBooking->id}})" @click="showCancel = false" class="px-4 py-2 rounded bg-red-600 text-white">Cancel Booking</button>
+                            </div>
+                        </x-modal>
                         @endif
                     </div>
                 </div>
