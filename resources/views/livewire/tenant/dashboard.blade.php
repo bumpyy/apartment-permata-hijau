@@ -214,7 +214,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                     </div>
                     <p class="text-4xl font-bold text-green-600 mb-3">{{ $quotaInfo['combined']['remaining'] }}</p>
                     <p class="text-sm text-green-600 mb-4">This week's balance</p>
-                    <a href="{{ route('facilities') }}"
+                    <a href="{{ route('facilities.index') }}"
                         class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                         🎾 Book Now
                     </a>
