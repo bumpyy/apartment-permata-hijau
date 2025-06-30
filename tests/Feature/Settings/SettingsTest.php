@@ -130,7 +130,7 @@ test('settings can handle unicode characters', function () {
 
 test('settings can handle long values', function () {
     $longName = str_repeat('A', 255);
-    $longEmail = str_repeat('a', 240) . '@example.com';
+    $longEmail = str_repeat('a', 240).'@example.com';
 
     Volt::actingAs($this->admin, 'admin')
         ->test('admin.settings.profile')
