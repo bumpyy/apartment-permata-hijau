@@ -60,6 +60,32 @@ class extends Component
 
     protected $cachedCourts = null;
 
+    // New Booking Modal properties
+    public $showAddModal = false;
+    public $addForm = [
+        'court_id' => '',
+        'tenant_id' => '',
+        'date' => '',
+        'time_slot' => '',
+        'notes' => '',
+    ];
+    public $addError = '';
+    public $availableTimeSlots = [];
+    public $tenants = [];
+
+    public $isAddMode = false;
+    public $panelAddForm = [
+        'court_id' => '',
+        'date' => '',
+        'start_time' => '',
+        'end_time' => '',
+        'tenant_id' => '',
+        'notes' => '',
+    ];
+    public $panelAvailableCourts = [];
+    public $panelTenants = [];
+    public $panelAddError = '';
+
     public function mount()
     {
         $this->weekStart = now()->startOfWeek()->format('Y-m-d');
@@ -278,7 +304,11 @@ class extends Component
 
         return [
             'days' => $grouped,
-            'timeSlots' => array_map(fn ($slot) => $slot[0].' - '.$slot[1], $timeSlots),
+            'timeSlots' => array_map(fn ($slot) => [
+                'start_time' => $slot[0],
+                'end_time' => $slot[1],
+                'label' => $slot[0].' - '.$slot[1],
+            ], $timeSlots),
             'startOfWeek' => $startOfWeek,
             'endOfWeek' => $endOfWeek,
         ];
@@ -430,6 +460,201 @@ class extends Component
             }
         }
     }
+
+    public function openAddModal()
+    {
+        $this->showAddModal = true;
+        $this->addForm = [
+            'court_id' => '',
+            'tenant_id' => '',
+            'date' => '',
+            'time_slot' => '',
+            'notes' => '',
+        ];
+        $this->addError = '';
+        $this->tenants = \App\Models\Tenant::where('is_active', true)->orderBy('name')->get();
+        $this->updateAvailableTimeSlots();
+    }
+
+    public function closeAddModal()
+    {
+        $this->showAddModal = false;
+    }
+
+    public function updatedAddForm($field)
+    {
+        if (in_array($field, ['court_id', 'date'])) {
+            $this->updateAvailableTimeSlots();
+        }
+    }
+
+    public function updateAvailableTimeSlots()
+    {
+        $this->availableTimeSlots = [];
+        if (!$this->addForm['court_id'] || !$this->addForm['date']) {
+            return;
+        }
+        $court = \App\Models\Court::find($this->addForm['court_id']);
+        if (!$court) return;
+        $start = \Carbon\Carbon::createFromTime(8, 0, 0);
+        $end = \Carbon\Carbon::createFromTime(22, 0, 0);
+        $slots = [];
+        $today = now()->format('Y-m-d');
+        $isToday = $this->addForm['date'] === $today;
+        $nowTime = now()->format('H:i');
+        while ($start < $end) {
+            $slotStart = $start->format('H:i');
+            $slotEnd = $start->copy()->addHour()->format('H:i');
+            $label = $slotStart.' - '.$slotEnd;
+            $disabled = false;
+            // Disable if in the past
+            if ($isToday && $slotStart <= $nowTime) {
+                $disabled = true;
+            }
+            // Disable if already booked
+            $exists = \App\Models\Booking::where('court_id', $court->id)
+                ->where('date', $this->addForm['date'])
+                ->where('start_time', $slotStart)
+                ->where('status', '!=', 'cancelled')
+                ->exists();
+            if ($exists) {
+                $disabled = true;
+            }
+            $slots[] = [
+                'value' => $slotStart.'-'.$slotEnd,
+                'label' => $label,
+                'disabled' => $disabled,
+            ];
+            $start->addHour();
+        }
+        $this->availableTimeSlots = $slots;
+    }
+
+    public function createBooking()
+    {
+        $this->addError = '';
+        $this->validate([
+            'addForm.court_id' => 'required|exists:courts,id',
+            'addForm.tenant_id' => 'required|exists:tenants,id',
+            'addForm.date' => 'required|date|after_or_equal:today',
+            'addForm.time_slot' => 'required',
+        ]);
+        [$start, $end] = explode('-', $this->addForm['time_slot']);
+        // Check again for slot conflict
+        $exists = \App\Models\Booking::where('court_id', $this->addForm['court_id'])
+            ->where('date', $this->addForm['date'])
+            ->where('start_time', $start)
+            ->where('status', '!=', 'cancelled')
+            ->exists();
+        if ($exists) {
+            $this->addError = 'Selected time slot is already booked.';
+            $this->updateAvailableTimeSlots();
+            return;
+        }
+        // Prevent booking in the past
+        if ($this->addForm['date'] === now()->format('Y-m-d') && $start <= now()->format('H:i')) {
+            $this->addError = 'Cannot book a past time slot.';
+            $this->updateAvailableTimeSlots();
+            return;
+        }
+        $booking = \App\Models\Booking::create([
+            'tenant_id' => $this->addForm['tenant_id'],
+            'court_id' => $this->addForm['court_id'],
+            'date' => $this->addForm['date'],
+            'start_time' => $start,
+            'end_time' => $end,
+            'status' => 'confirmed',
+            'notes' => $this->addForm['notes'],
+            'approved_by' => auth('admin')->id(),
+            'approved_at' => now(),
+        ]);
+        $booking->calculatePrice();
+        $booking->booking_reference = $booking->generateReference();
+        $booking->save();
+        $this->showAddModal = false;
+        $this->clearCache();
+        session()->flash('message', 'Booking created successfully! Reference: #'.$booking->booking_reference);
+    }
+
+    public function startAddBooking($date, $startTime, $endTime)
+    {
+        $this->isAddMode = true;
+        $this->showDetailPanel = true;
+        $this->panelAddForm = [
+            'court_id' => '',
+            'date' => $date,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'tenant_id' => '',
+            'notes' => '',
+        ];
+        $this->panelAvailableCourts = \App\Models\Court::orderBy('name')->get()->map(function($court) use ($date, $startTime) {
+            $isBooked = \App\Models\Booking::where('court_id', $court->id)
+                ->where('date', $date)
+                ->where('start_time', $startTime)
+                ->where('status', '!=', 'cancelled')
+                ->exists();
+            return [
+                'id' => $court->id,
+                'name' => $court->name,
+                'is_booked' => $isBooked,
+            ];
+        });
+        $this->panelTenants = \App\Models\Tenant::where('is_active', true)->orderBy('name')->get();
+        $this->panelAddError = '';
+    }
+
+    public function cancelAddBooking()
+    {
+        $this->isAddMode = false;
+        $this->showDetailPanel = false;
+        $this->panelAddError = '';
+    }
+
+    public function createBookingFromPanel()
+    {
+        $this->panelAddError = '';
+        $this->validate([
+            'panelAddForm.court_id' => 'required|exists:courts,id',
+            'panelAddForm.tenant_id' => 'required|exists:tenants,id',
+            'panelAddForm.date' => 'required|date|after_or_equal:today',
+            'panelAddForm.start_time' => 'required',
+            'panelAddForm.end_time' => 'required',
+        ]);
+        // Check again for slot conflict
+        $exists = \App\Models\Booking::where('court_id', $this->panelAddForm['court_id'])
+            ->where('date', $this->panelAddForm['date'])
+            ->where('start_time', $this->panelAddForm['start_time'])
+            ->where('status', '!=', 'cancelled')
+            ->exists();
+        if ($exists) {
+            $this->panelAddError = 'Selected court and time slot is already booked.';
+            return;
+        }
+        // Prevent booking in the past
+        if ($this->panelAddForm['date'] === now()->format('Y-m-d') && $this->panelAddForm['start_time'] <= now()->format('H:i')) {
+            $this->panelAddError = 'Cannot book a past time slot.';
+            return;
+        }
+        $booking = \App\Models\Booking::create([
+            'tenant_id' => $this->panelAddForm['tenant_id'],
+            'court_id' => $this->panelAddForm['court_id'],
+            'date' => $this->panelAddForm['date'],
+            'start_time' => $this->panelAddForm['start_time'],
+            'end_time' => $this->panelAddForm['end_time'],
+            'status' => 'confirmed',
+            'notes' => $this->panelAddForm['notes'],
+            'approved_by' => auth('admin')->id(),
+            'approved_at' => now(),
+        ]);
+        $booking->calculatePrice();
+        $booking->booking_reference = $booking->generateReference();
+        $booking->save();
+        $this->isAddMode = false;
+        $this->showDetailPanel = false;
+        $this->clearCache();
+        session()->flash('message', 'Booking created successfully! Reference: #'.$booking->booking_reference);
+    }
 }
 
 ?>
@@ -461,6 +686,12 @@ class extends Component
                 </svg>
                 New Booking
             </a>
+            <button wire:click="openAddModal" class="ml-4 inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Add Booking
+            </button>
         </div>
 
         <!-- Court Filter Tabs -->
@@ -618,8 +849,8 @@ class extends Component
                                     <div class="flex flex-col gap-2 min-h-[120px]">
                                         @foreach($this->weeklyBookings['timeSlots'] as $slotLabel)
                                             <div class="mb-2">
-                                                <div class="text-[11px] text-gray-400 font-semibold mb-1">{{ $slotLabel }}</div>
-                                                @forelse($slots[$slotLabel] as $booking)
+                                                <div class="text-[11px] text-gray-400 font-semibold mb-1">{{ $slotLabel['label'] }}</div>
+                                                @forelse($slots[$slotLabel['label']] as $booking)
                                                     <div wire:click="showDetail({{ $booking->id }})" class="rounded-lg border p-2 bg-gray-50 shadow-sm mb-1 hover:bg-gray-100 cursor-pointer transition-colors">
                                                         <div class="flex items-center gap-2 mb-1">
                                                             <span class="inline-block bg-blue-100 text-blue-800 text-[10px] font-bold rounded px-2 py-0.5">{{ $booking->court->name ?? '-' }}</span>
@@ -641,7 +872,13 @@ class extends Component
                                                         </div>
                                                     </div>
                                                 @empty
-                                                    <div class="rounded-lg border border-dashed p-2 bg-gray-50 text-gray-400 text-xs text-center mb-1">No bookings</div>
+                                                    <div
+                                                        wire:click="startAddBooking('{{ $date }}', '{{ $slotLabel['start_time'] }}', '{{ $slotLabel['end_time'] }}')"
+                                                        class="rounded-lg border border-dashed p-2 bg-gray-50 text-blue-500 text-xs text-center mb-1 cursor-pointer hover:bg-blue-50 transition"
+                                                        title="Add booking for this slot"
+                                                    >
+                                                        + Add Booking
+                                                    </div>
                                                 @endforelse
                                             </div>
                                         @endforeach
@@ -660,79 +897,124 @@ class extends Component
                          @close-edit-modal.window="showEdit = false">
                         <button wire:click="closeDetailPanel" class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl" title="Close">&times;</button>
                         <div>
-                            <div class="flex items-center justify-between mb-6">
-                                <div>
-                                    <div class="text-xs text-gray-400">Prepared for</div>
-                                    <div class="font-bold text-lg text-gray-800">{{ $selectedBooking->tenant->name }}</div>
-                                    <div class="text-xs text-gray-500">{{ $selectedBooking->tenant->email }}</div>
+                            @if($isAddMode)
+                                <form wire:submit.prevent="createBookingFromPanel" class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium">Court</label>
+                                        <select wire:model="panelAddForm.court_id" class="w-full rounded border p-2" required>
+                                            <option value="">Select Court</option>
+                                            @foreach($panelAvailableCourts as $court)
+                                                <option value="{{ $court['id'] }}" @if($court['is_booked']) disabled @endif>
+                                                    {{ $court['name'] }} @if($court['is_booked']) (Booked) @endif
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium">Tenant</label>
+                                        <select wire:model="panelAddForm.tenant_id" class="w-full rounded border p-2" required>
+                                            <option value="">Select Tenant</option>
+                                            @foreach($panelTenants as $tenant)
+                                                <option value="{{ $tenant->id }}">{{ $tenant->display_name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium">Date</label>
+                                        <input type="text" class="w-full rounded border p-2 bg-gray-100" value="{{ $panelAddForm['date'] }}" readonly>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium">Time</label>
+                                        <input type="text" class="w-full rounded border p-2 bg-gray-100" value="{{ $panelAddForm['start_time'] }} - {{ $panelAddForm['end_time'] }}" readonly>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium">Notes</label>
+                                        <textarea wire:model="panelAddForm.notes" class="w-full rounded border p-2"></textarea>
+                                    </div>
+                                    @if($panelAddError)
+                                        <div class="text-red-600 text-sm mt-2">{{ $panelAddError }}</div>
+                                    @endif
+                                    <div class="flex justify-end gap-2">
+                                        <button type="button" wire:click="cancelAddBooking" class="px-4 py-2 rounded border">Cancel</button>
+                                        <button type="submit" class="px-4 py-2 rounded bg-green-600 text-white">Create Booking</button>
+                                    </div>
+                                </form>
+                            @elseif($selectedBooking)
+                                <div class="flex items-center justify-between mb-6">
+                                    <div>
+                                        <div class="text-xs text-gray-400">Prepared for</div>
+                                        <div class="font-bold text-lg text-gray-800">{{ $selectedBooking->tenant->name }}</div>
+                                        <div class="text-xs text-gray-500">{{ $selectedBooking->tenant->email }}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs text-gray-400">Date</div>
+                                        <div class="font-semibold text-gray-700">{{ $selectedBooking->date->format('d F, Y') }}</div>
+                                    </div>
                                 </div>
-                                <div class="text-right">
-                                    <div class="text-xs text-gray-400">Date</div>
-                                    <div class="font-semibold text-gray-700">{{ $selectedBooking->date->format('d F, Y') }}</div>
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <div class="text-xs text-gray-400 mb-1">Court</div>
-                                <div class="font-semibold text-gray-700">{{ $selectedBooking->court->name ?? '-' }}</div>
-                            </div>
-                            <div class="mb-4">
-                                <div class="text-xs text-gray-400 mb-1">Time</div>
-                                <div class="font-semibold text-gray-700">{{ $selectedBooking->start_time->format('H:i') }} - {{ $selectedBooking->end_time->format('H:i') }}</div>
-                            </div>
-                            <div class="mb-4">
-                                <div class="text-xs text-gray-400 mb-1">Status</div>
-                                @php
-                                    $statusColors = [
-                                        'pending' => 'bg-yellow-100 text-yellow-800',
-                                        'confirmed' => 'bg-green-100 text-green-800',
-                                        'cancelled' => 'bg-red-100 text-red-800'
-                                    ];
-                                    $colorClass = $statusColors[$selectedBooking->status->value] ?? 'bg-gray-100 text-gray-800';
-                                @endphp
-                                <span class="inline-block rounded-full px-3 py-1 text-xs font-semibold {{ $colorClass }}">
-                                    {{ ucfirst($selectedBooking->status->value) }}
-                                </span>
-                            </div>
-                            <div class="mb-4">
-                                <div class="text-xs text-gray-400 mb-1">Type</div>
-                                <div class="font-semibold text-gray-700">{{ ucfirst($selectedBooking->booking_type) }}</div>
-                            </div>
-                            <div class="mb-4">
-                                <div class="text-xs text-gray-400 mb-1">Light Required</div>
-                                <div class="font-semibold text-gray-700">{{ $selectedBooking->is_light_required ? 'Yes' : 'No' }}</div>
-                            </div>
-                            @if($selectedBooking->notes)
                                 <div class="mb-4">
-                                    <div class="text-xs text-gray-400 mb-1">Notes</div>
-                                    <div class="text-gray-600">{{ $selectedBooking->notes }}</div>
+                                    <div class="text-xs text-gray-400 mb-1">Court</div>
+                                    <div class="font-semibold text-gray-700">{{ $selectedBooking->court->name ?? '-' }}</div>
                                 </div>
-                            @endif
+                                <div class="mb-4">
+                                    <div class="text-xs text-gray-400 mb-1">Time</div>
+                                    <div class="font-semibold text-gray-700">{{ $selectedBooking->start_time->format('H:i') }} - {{ $selectedBooking->end_time->format('H:i') }}</div>
+                                </div>
+                                <div class="mb-4">
+                                    <div class="text-xs text-gray-400 mb-1">Status</div>
+                                    @php
+                                        $statusColors = [
+                                            'pending' => 'bg-yellow-100 text-yellow-800',
+                                            'confirmed' => 'bg-green-100 text-green-800',
+                                            'cancelled' => 'bg-red-100 text-red-800'
+                                        ];
+                                        $colorClass = $statusColors[$selectedBooking->status->value] ?? 'bg-gray-100 text-gray-800';
+                                    @endphp
+                                    <span class="inline-block rounded-full px-3 py-1 text-xs font-semibold {{ $colorClass }}">
+                                        {{ ucfirst($selectedBooking->status->value) }}
+                                    </span>
+                                </div>
+                                <div class="mb-4">
+                                    <div class="text-xs text-gray-400 mb-1">Type</div>
+                                    <div class="font-semibold text-gray-700">{{ ucfirst($selectedBooking->booking_type) }}</div>
+                                </div>
+                                <div class="mb-4">
+                                    <div class="text-xs text-gray-400 mb-1">Light Required</div>
+                                    <div class="font-semibold text-gray-700">{{ $selectedBooking->is_light_required ? 'Yes' : 'No' }}</div>
+                                </div>
+                                @if($selectedBooking->notes)
+                                    <div class="mb-4">
+                                        <div class="text-xs text-gray-400 mb-1">Notes</div>
+                                        <div class="text-gray-600">{{ $selectedBooking->notes }}</div>
+                                    </div>
+                                @endif
 
-                            <!-- User Action Information -->
-                            @if($selectedBooking->approved_by)
-                                <div class="mb-4">
-                                    <div class="text-xs text-gray-400 mb-1">Confirmed By</div>
-                                    <div class="font-semibold text-gray-700">{{ $selectedBooking->approver->name ?? 'Unknown User' }}</div>
-                                    <div class="text-xs text-gray-500">{{ $selectedBooking->approved_at ? $selectedBooking->approved_at->format('d M Y, H:i') : '' }}</div>
-                                </div>
-                            @endif
+                                <!-- User Action Information -->
+                                @if($selectedBooking->approved_by)
+                                    <div class="mb-4">
+                                        <div class="text-xs text-gray-400 mb-1">Confirmed By</div>
+                                        <div class="font-semibold text-gray-700">{{ $selectedBooking->approver->name ?? 'Unknown User' }}</div>
+                                        <div class="text-xs text-gray-500">{{ $selectedBooking->approved_at ? $selectedBooking->approved_at->format('d M Y, H:i') : '' }}</div>
+                                    </div>
+                                @endif
 
-                            @if($selectedBooking->cancelled_by)
-                                <div class="mb-4">
-                                    <div class="text-xs text-gray-400 mb-1">Cancelled By</div>
-                                    <div class="font-semibold text-gray-700">{{ $selectedBooking->canceller->name ?? 'Unknown User' }}</div>
-                                    <div class="text-xs text-gray-500">{{ $selectedBooking->cancelled_at ? $selectedBooking->cancelled_at->format('d M Y, H:i') : '' }}</div>
-                                </div>
-                            @endif
+                                @if($selectedBooking->cancelled_by)
+                                    <div class="mb-4">
+                                        <div class="text-xs text-gray-400 mb-1">Cancelled By</div>
+                                        <div class="font-semibold text-gray-700">{{ $selectedBooking->canceller->name ?? 'Unknown User' }}</div>
+                                        <div class="text-xs text-gray-500">{{ $selectedBooking->cancelled_at ? $selectedBooking->cancelled_at->format('d M Y, H:i') : '' }}</div>
+                                    </div>
+                                @endif
 
-                            @if($selectedBooking->edited_by)
-                                <div class="mb-4">
-                                    <div class="text-xs text-gray-400 mb-1">Last Edited By</div>
-                                    <div class="font-semibold text-gray-700">{{ $selectedBooking->editor->name ?? 'Unknown User' }}</div>
-                                    <div class="text-xs text-gray-500">{{ $selectedBooking->edited_at ? $selectedBooking->edited_at->format('d M Y, H:i') : '' }}</div>
-                                </div>
+                                @if($selectedBooking->edited_by)
+                                    <div class="mb-4">
+                                        <div class="text-xs text-gray-400 mb-1">Last Edited By</div>
+                                        <div class="font-semibold text-gray-700">{{ $selectedBooking->editor->name ?? 'Unknown User' }}</div>
+                                        <div class="text-xs text-gray-500">{{ $selectedBooking->edited_at ? $selectedBooking->edited_at->format('d M Y, H:i') : '' }}</div>
+                                    </div>
+                                @endif
                             @endif
                         </div>
+                        @if(!$isAddMode && $selectedBooking)
                         <div class="flex flex-col gap-2 mt-6">
                             <!-- Edit Button -->
                             <button class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors" wire:click="edit({{ $selectedBooking->id }})">
@@ -741,7 +1023,6 @@ class extends Component
                                 </svg>
                                 Edit Booking
                             </button>
-
                             <!-- Confirm Button (only show if not already confirmed) -->
                             @if($selectedBooking->status->value !== 'confirmed')
                                 <button class="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors"
@@ -752,7 +1033,6 @@ class extends Component
                                     Confirm Booking
                                 </button>
                             @endif
-
                             <!-- Cancel Button (only show if not already cancelled) -->
                             @if($selectedBooking->status->value !== 'cancelled')
                                 <button class="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
@@ -764,54 +1044,66 @@ class extends Component
                                 </button>
                             @endif
                         </div>
-
-                        <!-- Edit Modal -->
-                        <x-modal :show="'showEditModal'" :title="'Edit Booking'">
-                            <form wire:submit.prevent="updateBooking" class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Status</label>
-                                    <select wire:model.defer="editForm.status" class="mt-1 block w-full rounded border border-gray-300 p-2" required>
-                                        <option value="pending">Pending</option>
-                                        <option value="confirmed">Confirmed</option>
-                                        <option value="cancelled">Cancelled</option>
-                                    </select>
-                                    @error('editForm.status') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" wire:model.defer="editForm.is_light_required" id="is_light_required" class="rounded border-gray-300" />
-                                    <label for="is_light_required" class="text-sm font-medium text-gray-700">Light Required</label>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Notes</label>
-                                    <textarea wire:model.defer="editForm.notes" class="mt-1 block w-full rounded border border-gray-300 p-2"></textarea>
-                                </div>
-                                <div class="flex justify-end gap-2 mt-4">
-                                    <button type="button" wire:click="closeEditModal" class="px-4 py-2 rounded border">Cancel</button>
-                                    <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white">Save</button>
-                                </div>
-                            </form>
-                        </x-modal>
-
-                        <!-- Confirm Modal -->
-                        <x-modal :alpineShow="'showConfirm'" :title="'Confirm Booking'">
-                            <p class="mb-4">Are you sure you want to confirm this booking for <strong>{{ $selectedBooking->tenant->name ?? '' }}</strong> on {{ $selectedBooking->date->format('d F Y') ?? '' }} at {{ $selectedBooking->start_time->format('H:i') ?? '' }}?</p>
-                            <div class="flex justify-end gap-2">
-                                <button type="button" @click="showConfirm = false" class="px-4 py-2 rounded border">Cancel</button>
-                                <button type="button" wire:click="confirmBooking({{ $selectedBooking->id }})" @click="showConfirm = false" class="px-4 py-2 rounded bg-green-600 text-white">Confirm</button>
-                            </div>
-                        </x-modal>
-
-                        <!-- Cancel Modal -->
-                        <x-modal :alpineShow="'showCancel'" :title="'Cancel Booking'">
-                            <p class="mb-4">Are you sure you want to cancel this booking for <strong>{{ $selectedBooking->tenant->name ?? '' }}</strong> on {{ $selectedBooking->date->format('d F Y') ?? '' }} at {{ $selectedBooking->start_time->format('H:i') ?? '' }}?</p>
-                            <div class="flex justify-end gap-2">
-                                <button type="button" @click="showCancel = false" class="px-4 py-2 rounded border">Keep Booking</button>
-                                <button type="button" wire:click="cancelBooking({{ $selectedBooking->id}})" @click="showCancel = false" class="px-4 py-2 rounded bg-red-600 text-white">Cancel Booking</button>
-                            </div>
-                        </x-modal>
+                        @endif
                     </div>
                 </div>
             @endif
         </div>
     </div>
+
+    <!-- Add Booking Modal (Full Screen Overlay) -->
+    <x-modal :show="'showAddModal'" :title="'Add Booking'">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-white p-0 m-0 w-screen h-screen overflow-auto">
+            <form wire:submit.prevent="createBooking" class="w-full max-w-2xl mx-auto p-8 flex flex-col gap-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">Add Booking</h2>
+                    <button type="button" wire:click="closeAddModal" class="text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Court</label>
+                        <select wire:model="addForm.court_id" class="w-full p-3 border border-gray-300 rounded bg-white" required>
+                            <option value="">Select Court</option>
+                            @foreach($this->courts as $court)
+                                <option value="{{ $court->id }}">{{ $court->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Tenant</label>
+                        <select wire:model="addForm.tenant_id" class="w-full p-3 border border-gray-300 rounded bg-white" required>
+                            <option value="">Select Tenant</option>
+                            @foreach($this->tenants as $tenant)
+                                <option value="{{ $tenant->id }}">{{ $tenant->display_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Date</label>
+                        <input type="date" wire:model="addForm.date" class="w-full p-3 border border-gray-300 rounded bg-white" min="{{ now()->format('Y-m-d') }}" required />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Time Slot</label>
+                        <select wire:model="addForm.time_slot" class="w-full p-3 border border-gray-300 rounded bg-white" required>
+                            <option value="">Select Time Slot</option>
+                            @foreach($availableTimeSlots as $slot)
+                                <option value="{{ $slot['value'] }}" @if($slot['disabled']) disabled @endif>{{ $slot['label'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium mb-2">Notes</label>
+                        <textarea wire:model="addForm.notes" class="w-full p-3 border border-gray-300 rounded bg-white"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" wire:click="closeAddModal" class="px-4 py-2 rounded border">Cancel</button>
+                    <button type="submit" class="px-4 py-2 rounded bg-green-600 text-white">Create Booking</button>
+                </div>
+                @if($addError)
+                    <div class="text-red-600 text-sm mt-2">{{ $addError }}</div>
+                @endif
+            </form>
+        </div>
+    </x-modal>
 </div>

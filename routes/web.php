@@ -25,7 +25,8 @@ Route::name('facilities.')
     ->prefix('facilities')
     ->name('facilities.')
     ->group(function () {
-        Route::get('/', FacilitiesController::class)->name('index');
+        // Route::get('/', FacilitiesController::class)->name('index');
+        Route::redirect('/', 'tennis')->name('index');
 
         Route::get('tennis', function () {
 
@@ -35,7 +36,7 @@ Route::name('facilities.')
 
         })->name('tennis');
 
-        Route::redirect('tennis/court/', 'facilities/tennis')->name('tennis.courts');
+        Route::redirect('tennis/court/', 'tennis')->name('tennis.courts');
 
         Volt::route('tennis/court/{id}', 'court-booking.main')->name('tennis.booking');
     });
