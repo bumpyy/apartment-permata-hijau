@@ -121,7 +121,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $currentDate = now();
         $this->premiumBookingDate = \App\Models\PremiumDateOverride::getCurrentMonthPremiumDate();
 
-        if ($currentDate->greaterThan($this->premiumBookingDate)) {
+        if ($currentDate->toDateString() > $this->premiumBookingDate->toDateString()) {
             $nextMonthPremiumDate = \App\Models\PremiumDateOverride::whereMonth('date', $currentDate->copy()->addMonth()->month)
                 ->whereYear('date', $currentDate->copy()->addMonth()->year)
                 ->first();
