@@ -320,7 +320,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                         <div class="text-6xl mb-4">🎾</div>
                         <h3 class="text-lg font-medium text-gray-900 mb-2">No upcoming bookings</h3>
                         <p class="text-gray-600 mb-6">Ready to book your next tennis session?</p>
-                        <a href="{{ route('facilities') }}"
+                        <a href="{{ route('facilities.index') }}"
                             class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
                             🎾 Book a Court
                         </a>
