@@ -44,9 +44,6 @@ class extends Component
         'notes' => '',
     ];
 
-    // Pagination
-    protected $paginationTheme = 'bootstrap';
-
     public $viewMode = 'table'; // 'table' or 'weekly'
 
     public $weekStart;
@@ -62,6 +59,7 @@ class extends Component
 
     // New Booking Modal properties
     public $showAddModal = false;
+
     public $addForm = [
         'court_id' => '',
         'tenant_id' => '',
@@ -69,11 +67,15 @@ class extends Component
         'time_slot' => '',
         'notes' => '',
     ];
+
     public $addError = '';
+
     public $availableTimeSlots = [];
+
     public $tenants = [];
 
     public $isAddMode = false;
+
     public $panelAddForm = [
         'court_id' => '',
         'date' => '',
@@ -82,8 +84,11 @@ class extends Component
         'tenant_id' => '',
         'notes' => '',
     ];
+
     public $panelAvailableCourts = [];
+
     public $panelTenants = [];
+
     public $panelAddError = '';
 
     public function mount()
@@ -491,11 +496,13 @@ class extends Component
     public function updateAvailableTimeSlots()
     {
         $this->availableTimeSlots = [];
-        if (!$this->addForm['court_id'] || !$this->addForm['date']) {
+        if (! $this->addForm['court_id'] || ! $this->addForm['date']) {
             return;
         }
         $court = \App\Models\Court::find($this->addForm['court_id']);
-        if (!$court) return;
+        if (! $court) {
+            return;
+        }
         $start = \Carbon\Carbon::createFromTime(8, 0, 0);
         $end = \Carbon\Carbon::createFromTime(22, 0, 0);
         $slots = [];
@@ -549,12 +556,14 @@ class extends Component
         if ($exists) {
             $this->addError = 'Selected time slot is already booked.';
             $this->updateAvailableTimeSlots();
+
             return;
         }
         // Prevent booking in the past
         if ($this->addForm['date'] === now()->format('Y-m-d') && $start <= now()->format('H:i')) {
             $this->addError = 'Cannot book a past time slot.';
             $this->updateAvailableTimeSlots();
+
             return;
         }
         $booking = \App\Models\Booking::create([
@@ -588,12 +597,13 @@ class extends Component
             'tenant_id' => '',
             'notes' => '',
         ];
-        $this->panelAvailableCourts = \App\Models\Court::orderBy('name')->get()->map(function($court) use ($date, $startTime) {
+        $this->panelAvailableCourts = \App\Models\Court::orderBy('name')->get()->map(function ($court) use ($date, $startTime) {
             $isBooked = \App\Models\Booking::where('court_id', $court->id)
                 ->where('date', $date)
                 ->where('start_time', $startTime)
                 ->where('status', '!=', 'cancelled')
                 ->exists();
+
             return [
                 'id' => $court->id,
                 'name' => $court->name,
@@ -629,11 +639,13 @@ class extends Component
             ->exists();
         if ($exists) {
             $this->panelAddError = 'Selected court and time slot is already booked.';
+
             return;
         }
         // Prevent booking in the past
         if ($this->panelAddForm['date'] === now()->format('Y-m-d') && $this->panelAddForm['start_time'] <= now()->format('H:i')) {
             $this->panelAddError = 'Cannot book a past time slot.';
+
             return;
         }
         $booking = \App\Models\Booking::create([
@@ -687,7 +699,7 @@ class extends Component
         </div>
 
         <!-- New Booking Button -->
-        <div class="mb-6 flex justify-end">
+        {{-- <div class="mb-6 flex justify-end">
             <a href="{{ route('admin.booking.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -700,7 +712,7 @@ class extends Component
                 </svg>
                 Add Booking
             </button>
-        </div>
+        </div> --}}
 
         <!-- Court Filter Tabs -->
         <div class="mb-4 flex gap-2 overflow-x-auto pb-2">
@@ -801,9 +813,11 @@ class extends Component
                                 @endforeach
                             </tbody>
                         </table>
-                        <div class="p-4">
-                            {{ $this->bookings->links() }}
-                        </div>
+
+                    </div>
+
+                    <div class="p-4">
+                         {{ $this->bookings->links() }}
                     </div>
                 @else
                     <!-- Weekly Kanban View -->
