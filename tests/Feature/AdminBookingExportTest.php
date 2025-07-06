@@ -212,19 +212,21 @@ class AdminBookingExportTest extends TestCase
         Excel::assertDownloaded('bookings_report_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
     }
 
-    public function test_export_with_no_results_shows_error()
+    public function test_export_with_no_results_works_with_empty_data()
     {
+        Excel::fake();
+
         $this->actingAs($this->admin, 'admin')
             ->livewire('admin.booking')
             ->set('showExportModal', true)
             ->set('exportDateFrom', now()->addMonths(6)->format('Y-m-d'))
             ->set('exportDateTo', now()->addMonths(7)->format('Y-m-d'))
             ->set('exportFormat', 'excel')
-            ->call('exportBookings')
-            ->assertSet('isExporting', false);
+            ->call('exportBookings');
 
-        // Should have flashed an error message
-        $this->assertTrue(session()->has('error'));
+        // Should not have flashed an error message and should complete export
+        $this->assertFalse(session()->has('error'));
+        Excel::assertDownloaded('bookings_report_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
     }
 
     public function test_export_handles_exceptions_gracefully()

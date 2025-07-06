@@ -107,12 +107,6 @@ class extends Component
         try {
             $bookings = $this->filteredBookings;
 
-            if ($bookings->isEmpty()) {
-                $this->exportMessage = 'No bookings found for the selected criteria.';
-                $this->isExporting = false;
-                return;
-            }
-
             $this->exportProgress = 25;
             $this->exportMessage = 'Processing data...';
 
@@ -299,7 +293,11 @@ class extends Component
                     <div>
                         <h2 class="text-lg font-semibold text-gray-800">🚀 Export Report</h2>
                         <p class="text-sm text-gray-600 mt-1">
-                            Export {{ $this->bookingStats['total'] }} bookings as {{ strtoupper($exportFormat) }} file
+                            @if($this->bookingStats['total'] > 0)
+                                Export {{ $this->bookingStats['total'] }} bookings as {{ strtoupper($exportFormat) }} file
+                            @else
+                                Export empty report as {{ strtoupper($exportFormat) }} file (no bookings found)
+                            @endif
                         </p>
                     </div>
 
@@ -408,7 +406,7 @@ class extends Component
                     <div class="text-center py-8">
                         <div class="text-4xl mb-4">📭</div>
                         <h3 class="text-lg font-medium text-gray-900 mb-2">No bookings found</h3>
-                        <p class="text-gray-600">Try adjusting your filters to see more results.</p>
+                        <p class="text-gray-600">No bookings match your current filters. You can still export an empty report or try adjusting your filters.</p>
                     </div>
                 </div>
             @endif
