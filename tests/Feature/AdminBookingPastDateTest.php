@@ -125,7 +125,7 @@ class AdminBookingPastDateTest extends TestCase
                 'date' => $pastDate,
                 'start_time' => $pastTime,
                 'end_time' => '09:00',
-                'notes' => 'Test booking'
+                'notes' => 'Test booking',
             ])
             ->call('createBookingFromPanel');
 
@@ -146,14 +146,14 @@ class AdminBookingPastDateTest extends TestCase
                 'date' => $today,
                 'start_time' => $pastTime,
                 'end_time' => '09:00',
-                'notes' => 'Test booking'
+                'notes' => 'Test booking',
             ])
             ->call('createBookingFromPanel');
 
         $this->assertEquals('Cannot book a past time slot for today.', $response->get('panelAddError'));
     }
 
-        public function test_visual_indicators_are_present_in_weekly_view()
+    public function test_visual_indicators_are_present_in_weekly_view()
     {
         $this->actingAs($this->admin, 'admin');
 

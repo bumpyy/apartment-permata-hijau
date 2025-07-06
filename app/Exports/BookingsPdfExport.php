@@ -2,13 +2,12 @@
 
 namespace App\Exports;
 
-use App\Models\Booking;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 class BookingsPdfExport
 {
     protected $bookings;
+
     protected $filters;
 
     public function __construct($bookings, $filters = [])
@@ -139,25 +138,25 @@ class BookingsPdfExport
         <body>
             <div class="header">
                 <h1>🎾 Tennis Court Bookings Report</h1>
-                <p>Generated on: ' . now()->format('F j, Y \a\t g:i A') . '</p>';
+                <p>Generated on: '.now()->format('F j, Y \a\t g:i A').'</p>';
 
-        if (!empty($this->filters)) {
+        if (! empty($this->filters)) {
             $filters = [];
             if (isset($this->filters['date_from'])) {
-                $filters[] = 'From: ' . $this->filters['date_from'];
+                $filters[] = 'From: '.$this->filters['date_from'];
             }
             if (isset($this->filters['date_to'])) {
-                $filters[] = 'To: ' . $this->filters['date_to'];
+                $filters[] = 'To: '.$this->filters['date_to'];
             }
             if (isset($this->filters['status'])) {
-                $filters[] = 'Status: ' . ucfirst($this->filters['status']);
+                $filters[] = 'Status: '.ucfirst($this->filters['status']);
             }
             if (isset($this->filters['court'])) {
-                $filters[] = 'Court: ' . $this->filters['court'];
+                $filters[] = 'Court: '.$this->filters['court'];
             }
 
-            if (!empty($filters)) {
-                $html .= '<p>Filters: ' . implode(', ', $filters) . '</p>';
+            if (! empty($filters)) {
+                $html .= '<p>Filters: '.implode(', ', $filters).'</p>';
             }
         }
 
@@ -167,19 +166,19 @@ class BookingsPdfExport
             <div class="summary">
                 <div class="summary-grid">
                     <div class="summary-item">
-                        <div class="number">' . $totalBookings . '</div>
+                        <div class="number">'.$totalBookings.'</div>
                         <div class="label">Total Bookings</div>
                     </div>
                     <div class="summary-item">
-                        <div class="number">' . number_format($totalRevenue, 0, ',', '.') . '</div>
+                        <div class="number">'.number_format($totalRevenue, 0, ',', '.').'</div>
                         <div class="label">Total Revenue (IDR)</div>
                     </div>
                     <div class="summary-item">
-                        <div class="number">' . $confirmedBookings . '</div>
+                        <div class="number">'.$confirmedBookings.'</div>
                         <div class="label">Confirmed</div>
                     </div>
                     <div class="summary-item">
-                        <div class="number">' . $pendingBookings . '</div>
+                        <div class="number">'.$pendingBookings.'</div>
                         <div class="label">Pending</div>
                     </div>
                 </div>
@@ -206,20 +205,20 @@ class BookingsPdfExport
             $endTime = $booking->end_time instanceof Carbon ? $booking->end_time : Carbon::parse($booking->end_time);
             $totalPrice = $booking->price + $booking->light_surcharge;
 
-            $statusClass = 'status-' . $booking->status->value;
-            $typeClass = 'booking-type-' . $booking->booking_type;
+            $statusClass = 'status-'.$booking->status->value;
+            $typeClass = 'booking-type-'.$booking->booking_type;
 
             $html .= '
                 <tr>
-                    <td>' . $booking->booking_reference . '</td>
-                    <td>' . ($booking->tenant->name ?? 'N/A') . '</td>
-                    <td>' . ($booking->court->name ?? 'N/A') . '</td>
-                    <td>' . $booking->date->format('M j, Y') . '</td>
-                    <td>' . $startTime->format('H:i') . ' - ' . $endTime->format('H:i') . '</td>
-                    <td class="' . $statusClass . '">' . strtoupper($booking->status->value) . '</td>
-                    <td class="' . $typeClass . '">' . strtoupper($booking->booking_type) . '</td>
-                    <td>' . number_format($booking->price, 0, ',', '.') . '</td>
-                    <td>' . number_format($totalPrice, 0, ',', '.') . '</td>
+                    <td>'.$booking->booking_reference.'</td>
+                    <td>'.($booking->tenant->name ?? 'N/A').'</td>
+                    <td>'.($booking->court->name ?? 'N/A').'</td>
+                    <td>'.$booking->date->format('M j, Y').'</td>
+                    <td>'.$startTime->format('H:i').' - '.$endTime->format('H:i').'</td>
+                    <td class="'.$statusClass.'">'.strtoupper($booking->status->value).'</td>
+                    <td class="'.$typeClass.'">'.strtoupper($booking->booking_type).'</td>
+                    <td>'.number_format($booking->price, 0, ',', '.').'</td>
+                    <td>'.number_format($totalPrice, 0, ',', '.').'</td>
                 </tr>';
         }
 

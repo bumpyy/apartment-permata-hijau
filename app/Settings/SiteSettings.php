@@ -8,64 +8,96 @@ class SiteSettings extends Settings
 {
     // === SITE INFORMATION ===
     public string $site_name;
+
     public string $site_description;
+
     public string $contact_email;
+
     public string $contact_phone;
+
     public string $site_url;
 
     // === REAL-TIME POLLING SETTINGS ===
     public bool $enable_realtime_polling;
+
     public int $polling_interval_active; // in seconds
+
     public int $polling_interval_inactive; // in seconds
+
     public int $polling_interval_mobile; // in seconds
+
     public int $inactivity_timeout; // in seconds
 
     // === BOOKING SYSTEM SETTINGS ===
     public bool $enable_booking_system;
+
     public int $max_bookings_per_tenant;
+
     public int $booking_advance_days;
+
     public bool $allow_booking_cancellations;
+
     public int $cancellation_hours_limit;
+
     public bool $enable_cross_court_conflict_detection;
 
     // === NOTIFICATION SETTINGS ===
     public bool $enable_email_notifications;
+
     public bool $enable_sms_notifications;
+
     public bool $enable_push_notifications;
+
     public string $notification_timezone;
 
     // === MAINTENANCE SETTINGS ===
     public bool $maintenance_mode;
+
     public string $maintenance_message;
+
     public array $maintenance_allowed_ips;
 
     // === PERFORMANCE SETTINGS ===
     public bool $enable_caching;
+
     public int $cache_duration; // in seconds
+
     public bool $enable_compression;
+
     public bool $enable_minification;
 
     // === SECURITY SETTINGS ===
     public bool $enable_rate_limiting;
+
     public int $rate_limit_requests;
+
     public int $rate_limit_minutes;
+
     public bool $enable_csrf_protection;
+
     public bool $enable_xss_protection;
 
     // === ANALYTICS SETTINGS ===
     public bool $enable_analytics;
+
     public string $google_analytics_id;
+
     public string $facebook_pixel_id;
 
     // === SOCIAL MEDIA SETTINGS ===
     public string $facebook_url;
+
     public string $twitter_url;
+
     public string $instagram_url;
+
     public string $linkedin_url;
 
     // === LEGAL SETTINGS ===
     public string $privacy_policy_url;
+
     public string $terms_of_service_url;
+
     public string $cookie_policy_url;
 
     public static function group(): string
@@ -145,7 +177,7 @@ class SiteSettings extends Settings
      */
     public function getPollingInterval(bool $isActive = true, bool $isMobile = false): int
     {
-        if (!$this->enable_realtime_polling) {
+        if (! $this->enable_realtime_polling) {
             return 0; // Disabled
         }
 

@@ -7,9 +7,8 @@ use App\Models\Tenant;
 use App\Settings\SiteSettings;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\Volt\Volt;
 use Livewire\Livewire;
-use Tests\TestCase;
+use Livewire\Volt\Volt;
 
 uses(RefreshDatabase::class);
 
@@ -372,9 +371,9 @@ test('dashboard shows booking policy information', function () {
         ->test('tenant.dashboard')
         ->assertSee('Booking Cancellation Policy')
         ->assertSee('Booking System Limits')
-        ->assertSee((string) $settings->cancellation_hours_limit . ' hours')
-        ->assertSee((string) $settings->max_bookings_per_tenant . ' bookings')
-        ->assertSee((string) $settings->booking_advance_days . ' days');
+        ->assertSee((string) $settings->cancellation_hours_limit.' hours')
+        ->assertSee((string) $settings->max_bookings_per_tenant.' bookings')
+        ->assertSee((string) $settings->booking_advance_days.' days');
 });
 
 test('dashboard respects cancellation hours limit', function () {
@@ -555,7 +554,7 @@ test('dashboard shows cancellation modal when cancel button is clicked', functio
         ->assertSet('showCancelModal', true)
         ->assertSet('bookingToCancel.id', $booking->id)
         ->assertSee('Cancel Booking')
-        ->assertSee('Court ' . $booking->court->name)
+        ->assertSee('Court '.$booking->court->name)
         ->assertSee('Confirm Cancellation');
 });
 
@@ -690,7 +689,7 @@ test('dashboard modal shows booking details correctly', function () {
     Volt::actingAs($this->tenant, 'tenant')
         ->test('tenant.dashboard')
         ->call('openCancelModal', $booking->id)
-        ->assertSee('Court ' . $booking->court->name)
+        ->assertSee('Court '.$booking->court->name)
         ->assertSee('10:00 AM - 11:00 AM')
         ->assertSee('⭐ Premium')
         ->assertSee('✅ Confirmed')

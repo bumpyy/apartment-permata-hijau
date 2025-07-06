@@ -135,7 +135,7 @@ class BookingReferenceTest extends TestCase
         $this->assertEquals('BK', $parts[0]);
         $this->assertEquals($tenant->id, (int) $parts[1]);
         $this->assertEquals($court->id, (int) $parts[2]);
-        $this->assertEquals(Carbon::today()->format('Y-m-d'), $parts[3] . '-' . $parts[4] . '-' . $parts[5]);
+        $this->assertEquals(Carbon::today()->format('Y-m-d'), $parts[3].'-'.$parts[4].'-'.$parts[5]);
         $this->assertEquals(4, strlen($parts[6])); // Random part should be 4 characters
     }
 }
