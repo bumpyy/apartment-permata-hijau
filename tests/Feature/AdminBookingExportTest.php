@@ -227,7 +227,7 @@ class AdminBookingExportTest extends TestCase
 
         // Should not have flashed an error message and should complete export
         $this->assertFalse(session()->has('error'));
-        Excel::assertDownloaded('bookings_report_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
+        Excel::assertDownloaded('bookings_report_'.now()->format('Y-m-d_H-i-s').'.xlsx');
     }
 
     public function test_export_handles_exceptions_gracefully()
