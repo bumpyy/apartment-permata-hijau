@@ -6,9 +6,12 @@ use App\Settings\PremiumSettings;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Polling;
+use Livewire\Attributes\Reactive;
 use Livewire\Volt\Component;
 
-new #[Layout('components.frontend.layouts.app')] class extends Component
+new #[Layout('components.frontend.layouts.app')]
+class extends Component
 {
     // === CORE PROPERTIES ===
     public $courtNumber; // Which court we're booking (e.g., Court 2)
@@ -39,7 +42,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     // === UI STATE ===
     public bool $compactView = false; // Toggle between compact and full view
 
-    public $viewMode = 'monthly'; // Current view: 'weekly', 'monthly', or 'daily'
+    public $viewMode = 'weekly'; // Current view: 'weekly', 'monthly', or 'daily'
 
     // === DATE NAVIGATION ===
     public $currentDate; // Current date being viewed
@@ -81,6 +84,33 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 
     public $showLoginReminder = false; // Show login reminder modal
 
+    // === SYSTEM STATE ===
+    public $isRefreshing = false; // Whether system is refreshing booking data
+
+    public $lastRefreshTime; // Timestamp of last refresh
+
+    // === CONFLICT NOTIFICATIONS ===
+    public $conflictNotifications = []; // Array of conflict notifications to show
+
+    public $showConflictModal = false; // Show conflict resolution modal
+
+    public $conflictDetails = []; // Details about conflicts for modal
+
+    // === CROSS-COURT CONFLICT DETECTION ===
+    public $crossCourtConflicts = []; // Array of cross-court conflicts
+
+    public $showCrossCourtConflictModal = false; // Show cross-court conflict modal
+
+    public $crossCourtConflictDetails = []; // Details about cross-court conflicts for modal
+
+    // === PERFORMANCE OPTIMIZATION ===
+    public $pollingInterval = 30000; // Polling interval in milliseconds
+
+    public $isLazyLoaded = false; // Whether component has been lazy loaded
+
+    // === SETTINGS INTEGRATION ===
+    protected $siteSettings;
+
     // === DATE PICKER STATE ===
     public $selectedDateForTime; // Date selected for time picker modal
 
@@ -114,7 +144,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         // Initialize dates to today
         $this->selectedDate = now()->format('Y-m-d');
         $this->currentDate = now();
-        $this->currentWeekStart = now()->startOfWeek();
+        $this->currentWeekStart = now()->startOfWeek()->addWeek(1);
         $this->currentMonthStart = now()->startOfMonth();
 
         // Set premium booking date using override if available, fallback to 25th
@@ -143,6 +173,12 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $this->generateWeekDays();
         $this->generateMonthDays();
         $this->initializeDatePicker();
+
+        // Mark as loaded
+        $this->isLazyLoaded = true;
+
+        // Initialize polling based on site settings
+        $this->initializePolling();
     }
 
     /**
@@ -170,21 +206,82 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     }
 
     /**
+     * Computed property for quota info - cached and reactive
+     */
+    public function getQuotaInfoProperty()
+    {
+        return $this->getQuotaInfo();
+    }
+
+    /**
+     * Computed property for current view title
+     */
+    public function getCurrentViewTitleProperty()
+    {
+        return match($this->viewMode) {
+            'weekly' => $this->currentWeekStart->format('M j') . ' - ' . $this->currentWeekStart->copy()->addDays(6)->format('M j, Y'),
+            'monthly' => $this->currentMonthStart->format('F Y'),
+            'daily' => $this->currentDate->format('l, F j, Y'),
+            default => $this->currentDate->format('l, F j, Y')
+        };
+    }
+
+    /**
+     * Computed property for selected slots count
+     */
+    public function getSelectedSlotsCountProperty()
+    {
+        return count($this->selectedSlots);
+    }
+
+    /**
+     * Computed property for booking type
+     */
+    public function getBookingTypeProperty()
+    {
+        if (empty($this->selectedSlots)) {
+            return 'none';
+        }
+
+        $types = collect($this->selectedSlots)->map(function ($slot) {
+            return $this->getSlotType($slot);
+        })->unique()->values();
+
+        if ($types->count() > 1) {
+            return 'mixed';
+        }
+
+        return $types->first() ?? 'none';
+    }
+
+    /**
      * Load booked and pending slots for the current view period
      * This populates the bookedSlots and preliminaryBookedSlots arrays
      */
     public function loadBookedSlots()
     {
+        // Use cache key based on court, view mode, and date range
+        $cacheKey = "booked_slots_{$this->courtNumber}_{$this->viewMode}_" .
+                   ($this->viewMode === 'weekly' ? $this->currentWeekStart->format('Y-m-d') : $this->currentMonthStart->format('Y-m'));
+
+        // Try to get from cache first
+        $cachedData = cache()->get($cacheKey);
+        if ($cachedData && !$this->isRefreshing) {
+            $this->bookedSlots = $cachedData['booked'] ?? [];
+            $this->preliminaryBookedSlots = $cachedData['pending'] ?? [];
+            return;
+        }
+
         // Determine date range based on current view mode
         $startDate = $this->viewMode === 'weekly' ? $this->currentWeekStart : $this->currentMonthStart->copy()->startOfWeek();
         $endDate = $this->viewMode === 'weekly' ? $this->currentWeekStart->copy()->addWeek() : $this->currentMonthStart->copy()->endOfMonth()->endOfWeek();
 
-        // Get all bookings for this court in the date range
+        // Get all bookings for this court in the date range with eager loading
         $bookings = Booking::where('court_id', $this->courtNumber)
             ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-            ->with('tenant')
+            ->with(['tenant:id,name'])
             ->where('status', '!=', BookingStatusEnum::CANCELLED)
-            ->get();
+            ->get(['id', 'tenant_id', 'date', 'start_time', 'status']);
 
         // Reset arrays
         $this->bookedSlots = [];
@@ -209,6 +306,12 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                 $this->preliminaryBookedSlots[] = $slotData;
             }
         }
+
+        // Cache the results for 30 seconds
+        cache()->put($cacheKey, [
+            'booked' => $this->bookedSlots,
+            'pending' => $this->preliminaryBookedSlots
+        ], 30);
     }
 
     /**
@@ -216,6 +319,15 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
      * Resets selections and regenerates available times
      */
     public function updatedSelectedDate()
+    {
+        // Use Livewire 3's built-in debouncing
+        $this->dispatch('date-changed', $this->selectedDate);
+    }
+
+    /**
+     * Handle date change with debouncing
+     */
+    public function handleDateChange()
     {
         $this->selectedSlots = [];
         $this->generateAvailableTimesForDate();
@@ -329,6 +441,32 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                         // Don't add the slot, just show warning
                         $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
                     } else {
+                        // Check if slot is already booked by someone else
+                        $parts = explode('-', $slotKey);
+                        if (count($parts) >= 4) {
+                            $date = $parts[0].'-'.$parts[1].'-'.$parts[2];
+                            $startTime = count($parts) == 4 ? $parts[3] : $parts[3].':'.$parts[4];
+                            $endTime = Carbon::createFromFormat('H:i', $startTime)->addHour()->format('H:i');
+
+                            if ($this->isSlotAlreadyBooked($date, $startTime)) {
+                                $this->quotaWarning = '⏰ This time slot was just booked by another tenant. Please select a different time.';
+                                $this->js("toast('{$this->quotaWarning}',{type:'warning',duration:5000})");
+
+                                // Refresh available times to show updated status
+                                $this->generateAvailableTimesForDate();
+                                $this->loadBookedSlots();
+                                return;
+                            }
+
+                            // Check for cross-court conflicts
+                            $crossCourtConflicts = $this->checkCrossCourtConflicts($date, $startTime, $endTime);
+                            if (!empty($crossCourtConflicts)) {
+                                $this->crossCourtConflictDetails = $crossCourtConflicts;
+                                $this->showCrossCourtConflictModal = true;
+                                return;
+                            }
+                        }
+
                         // Add the slot and clear any warnings
                         $this->selectedSlots[] = $slotKey;
                         $this->quotaWarning = '';
@@ -487,6 +625,12 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             return;
         }
 
+        // Check for booking conflicts before showing confirmation
+        if (!$this->validateSlotsStillAvailable()) {
+            // Conflicts were found and slots were removed, don't show confirmation
+            return;
+        }
+
         // Prepare booking data for confirmation modal
         $this->pendingBookingData = [];
         foreach ($this->selectedSlots as $slot) {
@@ -521,18 +665,38 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 
     /**
      * Actually process the booking after confirmation
-     * Creates database records
+     * Creates database records with duplicate prevention
      */
     public function processBooking()
     {
         $tenant = auth('tenant')->user();
 
-        // Create each booking in the database
+        // Final validation: Check if slots are still available before processing
+        if (!$this->validateSlotsStillAvailable()) {
+            // If there are conflicts, close the confirmation modal and show the warning
+            $this->showConfirmModal = false;
+            return;
+        }
+
+        // Generate a single booking reference for all bookings in this batch
+        $this->bookingReference = Booking::generateBookingReference($tenant->id, $this->courtNumber);
+
+        // Create each booking in the database with additional conflict checking
         foreach ($this->pendingBookingData as $slot) {
             try {
-                // CREATE BOOKING RECORD
+                // Double-check that this specific slot is still available
+                if ($this->isSlotAlreadyBooked($slot['date']->format('Y-m-d'), $slot['start_time'])) {
+                    // This slot was taken by someone else while we were processing
+                    $this->quotaWarning = "⏰ Slot {$slot['date']->format('M j')} at {$slot['start_time']} was just booked by another tenant. Please refresh and try again.";
+                    $this->js("toast('{$this->quotaWarning}',{type:'error',duration:6000})");
+
+                    // Close confirmation modal and return
+                    $this->showConfirmModal = false;
+                    return;
+                }
+
+                // CREATE BOOKING RECORD with the same reference for all bookings
                 $booking = Booking::create([...$slot, 'tenant_id' => $tenant->id, 'booking_reference' => $this->bookingReference]);
-                $this->bookingReference = $booking->generateReference();
 
             } catch (\Exception $e) {
                 // Log detailed error information for debugging
@@ -544,6 +708,8 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 
                 $this->quotaWarning = 'Failed to create booking. Please try again.';
 
+                // Close confirmation modal and return
+                $this->showConfirmModal = false;
                 return;
             }
         }
@@ -554,6 +720,14 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $this->quotaInfo = $this->getQuotaInfo();
         $this->loadBookedSlots();
         $this->quotaWarning = '';
+
+        // Clear cache for affected date ranges
+        $this->clearBookingCache();
+
+        // Show success notification
+        $bookingCount = count($this->pendingBookingData);
+        $successMessage = "🎾 Successfully created {$bookingCount} booking(s)! Reference: #{$this->bookingReference}";
+        $this->js("toast('{$successMessage}',{type:'success',duration:8000})");
 
         // Flash success message
         session()->flash('message', 'Booking request sent successfully!');
@@ -910,6 +1084,26 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $this->showLoginReminder = false;
         $this->showTimeSelector = false;
         $this->showDatePicker = false;
+        $this->showConflictModal = false;
+        $this->showCrossCourtConflictModal = false;
+    }
+
+    /**
+     * Close conflict modal and clear conflict details
+     */
+    public function closeConflictModal()
+    {
+        $this->showConflictModal = false;
+        $this->conflictDetails = [];
+    }
+
+    /**
+     * Close cross-court conflict modal and clear conflict details
+     */
+    public function closeCrossCourtConflictModal()
+    {
+        $this->showCrossCourtConflictModal = false;
+        $this->crossCourtConflictDetails = [];
     }
 
     /**
@@ -1155,6 +1349,291 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $this->generateCalendarWeeks();
         $this->generateCalendarMonths();
     }
+
+                /**
+     * Refresh booking data to get latest availability
+     * This can be called periodically or when needed
+     */
+    public function refreshBookingData()
+    {
+        // Prevent multiple simultaneous refreshes
+        if ($this->isRefreshing) {
+            return;
+        }
+
+        $this->isRefreshing = true;
+
+        try {
+            // Store previous booking state to detect changes
+            $previousBookedSlots = $this->bookedSlots;
+            $previousPreliminarySlots = $this->preliminaryBookedSlots;
+
+            // Force cache refresh by setting isRefreshing flag
+            $this->loadBookedSlots();
+
+            // Only regenerate view data if needed
+            $this->regenerateViewData();
+
+            // Check for conflicts in currently selected slots
+            $this->validateSlotsStillAvailable();
+
+            // Show notification if new bookings were detected
+            $this->notifyNewBookings($previousBookedSlots, $previousPreliminarySlots);
+
+            $this->lastRefreshTime = now()->format('H:i:s');
+
+            // Show refresh success notification only for manual refreshes
+            if (request()->has('manual_refresh')) {
+                $this->js("toast('✅ Booking data refreshed successfully',{type:'success',duration:3000})");
+            }
+        } finally {
+            $this->isRefreshing = false;
+        }
+    }
+
+    /**
+     * Regenerate view data based on current view mode
+     */
+    public function regenerateViewData()
+    {
+        if ($this->viewMode === 'daily') {
+            $this->generateAvailableTimesForDate();
+        } elseif ($this->viewMode === 'weekly') {
+            $this->generateWeekDays();
+        } elseif ($this->viewMode === 'monthly') {
+            $this->generateMonthDays();
+        }
+    }
+
+    /**
+     * Manual refresh with notification
+     */
+    public function manualRefresh()
+    {
+        $this->refreshBookingData();
+        $this->js("toast('✅ Booking data refreshed successfully',{type:'success',duration:3000})");
+    }
+
+    /**
+     * Update polling interval based on user activity
+     */
+    public function updatePollingInterval($interval)
+    {
+        $this->pollingInterval = $interval;
+    }
+
+    /**
+     * Initialize polling based on site settings
+     */
+    public function initializePolling()
+    {
+        try {
+            $this->siteSettings = app(\App\Settings\SiteSettings::class);
+
+            if ($this->siteSettings->isPollingEnabled()) {
+                // Set initial polling interval based on device type
+                $isMobile = request()->header('User-Agent') &&
+                           (str_contains(request()->header('User-Agent'), 'Mobile') ||
+                            str_contains(request()->header('User-Agent'), 'Android') ||
+                            str_contains(request()->header('User-Agent'), 'iPhone'));
+
+                $this->pollingInterval = $this->siteSettings->getPollingInterval(true, $isMobile);
+
+                // Dispatch event to start polling
+                $this->dispatch('start-polling', [
+                    'interval' => $this->pollingInterval,
+                    'inactivity_timeout' => $this->siteSettings->getInactivityTimeout()
+                ]);
+            } else {
+                // Polling is disabled
+                $this->pollingInterval = 0;
+                $this->dispatch('stop-polling');
+            }
+        } catch (\Exception $e) {
+            // Fallback to default polling if settings are not available
+            $this->pollingInterval = 30000;
+            $this->dispatch('start-polling', [
+                'interval' => $this->pollingInterval,
+                'inactivity_timeout' => 300000
+            ]);
+        }
+    }
+
+    /**
+     * Check if polling is enabled
+     */
+    public function isPollingEnabled()
+    {
+        try {
+            return app(\App\Settings\SiteSettings::class)->isPollingEnabled();
+        } catch (\Exception $e) {
+            return true; // Default to enabled if settings not available
+        }
+    }
+
+    /**
+     * Notify user about new bookings that appeared during refresh
+     */
+    public function notifyNewBookings($previousBookedSlots, $previousPreliminarySlots)
+    {
+        $newBookings = collect($this->bookedSlots)
+            ->filter(function ($slot) use ($previousBookedSlots) {
+                return !collect($previousBookedSlots)->contains('key', $slot['key']);
+            });
+
+        $newPreliminaryBookings = collect($this->preliminaryBookedSlots)
+            ->filter(function ($slot) use ($previousPreliminarySlots) {
+                return !collect($previousPreliminarySlots)->contains('key', $slot['key']);
+            });
+
+        $totalNewBookings = $newBookings->count() + $newPreliminaryBookings->count();
+
+        if ($totalNewBookings > 0) {
+            $message = "🆕 {$totalNewBookings} new booking(s) detected. Availability has been updated.";
+            $this->js("toast('{$message}',{type:'info',duration:4000})");
+        }
+    }
+
+    /**
+     * Clear booking cache for affected date ranges
+     */
+    public function clearBookingCache()
+    {
+        // Clear cache for current month and adjacent months
+        $months = [
+            $this->currentMonthStart->copy()->subMonth(),
+            $this->currentMonthStart,
+            $this->currentMonthStart->copy()->addMonth(),
+        ];
+
+        foreach ($months as $month) {
+            $cacheKey = "booked_slots_{$this->courtNumber}_monthly_" . $month->format('Y-m');
+            cache()->forget($cacheKey);
+        }
+
+        // Clear cache for current week and adjacent weeks
+        $weeks = [
+            $this->currentWeekStart->copy()->subWeek(),
+            $this->currentWeekStart,
+            $this->currentWeekStart->copy()->addWeek(),
+        ];
+
+        foreach ($weeks as $week) {
+            $cacheKey = "booked_slots_{$this->courtNumber}_weekly_" . $week->format('Y-m-d');
+            cache()->forget($cacheKey);
+        }
+    }
+
+    /**
+     * Check if a specific time slot is already booked by anyone
+     * This prevents duplicate bookings across all tenants
+     *
+     * @param string $date - Date in Y-m-d format
+     * @param string $startTime - Start time in H:i format
+     * @return bool - True if slot is already booked
+     */
+    public function isSlotAlreadyBooked($date, $startTime)
+    {
+        return Booking::isSlotBooked($this->courtNumber, $date, $startTime);
+    }
+
+    /**
+     * Check for cross-court booking conflicts for the current tenant
+     * This prevents tenants from booking multiple courts at the same time
+     *
+     * @param string $date - Date in Y-m-d format
+     * @param string $startTime - Start time in H:i format
+     * @param string $endTime - End time in H:i format
+     * @return array - Array of conflicting bookings
+     */
+    public function checkCrossCourtConflicts($date, $startTime, $endTime)
+    {
+        if (!$this->isLoggedIn) {
+            return [];
+        }
+
+        // Check if cross-court conflict detection is enabled
+        try {
+            $siteSettings = app(\App\Settings\SiteSettings::class);
+            if (!$siteSettings->isCrossCourtConflictDetectionEnabled()) {
+                return [];
+            }
+        } catch (\Exception $e) {
+            // If settings are not available, default to enabled
+        }
+
+        $tenantId = auth('tenant')->id();
+        return Booking::getCrossCourtConflicts($tenantId, $date, $startTime, $endTime, $this->courtNumber);
+    }
+
+    /**
+     * Check for booking conflicts in the selected slots
+     * Returns array of conflicting slots if any
+     *
+     * @return array - Array of conflicting slot keys
+     */
+    public function checkForBookingConflicts()
+    {
+        $conflicts = [];
+
+        foreach ($this->selectedSlots as $slotKey) {
+            $parts = explode('-', $slotKey);
+            if (count($parts) >= 4) {
+                $date = $parts[0].'-'.$parts[1].'-'.$parts[2];
+                $startTime = count($parts) == 4 ? $parts[3] : $parts[3].':'.$parts[4];
+
+                if ($this->isSlotAlreadyBooked($date, $startTime)) {
+                    $conflicts[] = $slotKey;
+                }
+            }
+        }
+
+        return $conflicts;
+    }
+
+        /**
+     * Validate that selected slots are still available before processing
+     * This prevents race conditions where multiple users try to book the same slot
+     *
+     * @return bool - True if all slots are still available
+     */
+    public function validateSlotsStillAvailable()
+    {
+        $conflicts = $this->checkForBookingConflicts();
+
+        if (!empty($conflicts)) {
+            // Prepare conflict details for better UX
+            $this->conflictDetails = collect($conflicts)->map(function ($slot) {
+                $parts = explode('-', $slot);
+                $date = Carbon::createFromFormat('Y-m-d', $parts[0].'-'.$parts[1].'-'.$parts[2]);
+                $time = count($parts) == 4 ? $parts[3] : $parts[3].':'.$parts[4];
+                $endTime = Carbon::createFromFormat('H:i', $time)->addHour()->format('H:i');
+
+                return [
+                    'slot_key' => $slot,
+                    'date' => $date->format('l, F j, Y'),
+                    'time' => $time,
+                    'end_time' => $endTime,
+                    'formatted_time' => $date->format('M j') . ' at ' . $time,
+                    'is_peak' => Carbon::createFromFormat('H:i', $time)->hour >= 18,
+                ];
+            })->toArray();
+
+            // Remove conflicting slots from selection
+            $this->selectedSlots = array_diff($this->selectedSlots, $conflicts);
+
+            // Show conflict modal for better UX
+            $this->showConflictModal = true;
+
+            // Refresh available times
+            $this->generateAvailableTimesForDate();
+            $this->loadBookedSlots();
+
+            return false;
+        }
+
+        return true;
+    }
 }?>
 
 <div>
@@ -1364,6 +1843,65 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             </div>
         @endif
 
+        <!-- Real-time Protection Status -->
+        <div @class([
+            'mb-4 rounded-lg border border-green-200 bg-gradient-to-r from-green-50 to-blue-50',
+            'p-2' => $compactView,
+            'p-3' => !$compactView,
+        ])>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="flex h-6 w-6 items-center justify-center rounded-full bg-green-100">
+                        <svg class="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div @class([
+                            'font-medium text-green-800',
+                            'text-xs' => $compactView,
+                            'text-sm' => !$compactView,
+                        ])>🛡️ Real-time Duplicate Prevention Active</div>
+                        <div @class([
+                            'text-green-600',
+                            'text-xs' => $compactView,
+                            'text-xs' => !$compactView,
+                        ])>Preventing multiple bookings for the same slot</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    @if ($isRefreshing)
+                        <div class="flex items-center gap-1">
+                            <div class="h-2 w-2 animate-spin rounded-full border-2 border-green-600 border-t-transparent"></div>
+                            <span @class([
+                                'text-green-600',
+                                'text-xs' => $compactView,
+                                'text-xs' => !$compactView,
+                            ])>Updating...</span>
+                        </div>
+                    @else
+                        <div class="flex items-center gap-1">
+                            @if ($this->isPollingEnabled())
+                                <div class="h-2 w-2 rounded-full bg-green-600"></div>
+                                <span @class([
+                                    'text-green-600',
+                                    'text-xs' => $compactView,
+                                    'text-xs' => !$compactView,
+                                ])>Live</span>
+                            @else
+                                <div class="h-2 w-2 rounded-full bg-gray-400"></div>
+                                <span @class([
+                                    'text-gray-500',
+                                    'text-xs' => $compactView,
+                                    'text-xs' => !$compactView,
+                                ])>Manual</span>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
         <!-- Navigation Controls -->
         <div @class([
             'mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 shadow-sm',
@@ -1423,6 +1961,30 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             </div>
 
             <div class="flex items-center gap-2">
+                <button wire:click="manualRefresh" @disabled($isRefreshing) @class([
+                    'rounded-lg transition-all duration-300',
+                    'px-2 py-1 text-xs' => $compactView,
+                    'px-3 py-2' => !$compactView,
+                    'bg-green-100 text-green-700 hover:bg-green-200 cursor-pointer' => !$isRefreshing,
+                    'bg-gray-100 text-gray-400 cursor-not-allowed' => $isRefreshing,
+                ]) title="Refresh booking data">
+                    @if ($isRefreshing)
+                        ⏳
+                    @else
+                        🔄
+                    @endif
+                    @if (!$compactView)
+                        @if ($isRefreshing)
+                            Refreshing...
+                        @else
+                            Refresh
+                        @endif
+                    @endif
+                </button>
+                @if ($lastRefreshTime && !$compactView)
+                    <span class="text-xs text-gray-500">Last: {{ $lastRefreshTime }}</span>
+                @endif
+
                 <button wire:click="goToToday" @class([
                     'rounded-lg bg-blue-100 text-blue-700 transition-all duration-300 hover:bg-blue-200',
                     'px-2 py-1 text-xs' => $compactView,
@@ -1728,7 +2290,8 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                                 'bg-purple-200 text-purple-900 border-purple-400 shadow-inner' =>
                                     $timeSlot['is_selected'] && $timeSlot['slot_type'] === 'premium',
                             ])
-                                @if ($timeSlot['is_available']) wire:click="toggleTimeSlot('{{ $timeSlot['slot_key'] }}')" @endif>
+                                @if ($timeSlot['is_available']) wire:click="toggleTimeSlot('{{ $timeSlot['slot_key'] }}')" @endif
+                                title="{{ $timeSlot['is_booked'] ? 'Booked by another tenant' : ($timeSlot['is_past'] ? 'Past time slot' : 'Click to select') }}">
                                 <div @class([
                                     'font-semibold',
                                     'text-xs' => $compactView,
@@ -2192,6 +2755,269 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         </div>
     @endif
 
+    <!-- Conflict Resolution Modal -->
+    @if ($showConflictModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+            <div @class([
+                'w-full transform rounded-xl bg-white shadow-2xl',
+                'max-w-lg' => $compactView,
+                'max-w-2xl' => !$compactView,
+            ])>
+                <!-- Header -->
+                <div class="rounded-t-xl border-b border-orange-200 bg-gradient-to-r from-orange-50 to-red-50 p-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100">
+                                <svg class="h-6 w-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 @class([
+                                    'font-bold text-orange-800',
+                                    'text-sm' => $compactView,
+                                    'text-lg' => !$compactView,
+                                ])>⏰ Time Slots No Longer Available</h3>
+                                <p @class([
+                                    'text-orange-600',
+                                    'text-xs' => $compactView,
+                                    'text-sm' => !$compactView,
+                                ])>These slots were booked by other tenants while you were selecting</p>
+                            </div>
+                        </div>
+                        <button class="text-orange-400 transition-colors hover:text-orange-600" wire:click="closeConflictModal">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Conflict Details -->
+                <div @class([
+                    'max-h-96 overflow-y-auto',
+                    'p-3' => $compactView,
+                    'p-6' => !$compactView,
+                ])>
+                    <div class="space-y-3">
+                        @foreach ($conflictDetails as $conflict)
+                            <div @class([
+                                'rounded-lg border border-orange-200 bg-orange-50 p-3',
+                                'p-2' => $compactView,
+                                'p-4' => !$compactView,
+                            ])>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div @class([
+                                            'flex items-center justify-center rounded-full',
+                                            'h-8 w-8' => $compactView,
+                                            'h-10 w-10' => !$compactView,
+                                            'bg-red-100' => $conflict['is_peak'],
+                                            'bg-orange-100' => !$conflict['is_peak'],
+                                        ])>
+                                            @if ($conflict['is_peak'])
+                                                <span @class([
+                                                    'text-red-600',
+                                                    'text-sm' => $compactView,
+                                                    'text-lg' => !$compactView,
+                                                ])>⭐</span>
+                                            @else
+                                                <span @class([
+                                                    'text-orange-600',
+                                                    'text-sm' => $compactView,
+                                                    'text-lg' => !$compactView,
+                                                ])>🆓</span>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <div @class([
+                                                'font-semibold text-gray-800',
+                                                'text-sm' => $compactView,
+                                                '' => !$compactView,
+                                            ])>{{ $conflict['date'] }}</div>
+                                            <div @class([
+                                                'text-gray-600',
+                                                'text-xs' => $compactView,
+                                                'text-sm' => !$compactView,
+                                            ])>{{ $conflict['time'] }} - {{ $conflict['end_time'] }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div @class([
+                                            'rounded-full px-2 py-1 text-xs font-medium',
+                                            'bg-red-200 text-red-800' => $conflict['is_peak'],
+                                            'bg-orange-200 text-orange-800' => !$conflict['is_peak'],
+                                        ])>
+                                            @if ($conflict['is_peak'])
+                                                Premium
+                                            @else
+                                                Free
+                                            @endif
+                                        </div>
+                                        @if ($conflict['is_peak'] && !$compactView)
+                                            <div class="mt-1 text-xs text-red-600">💡 Lights required</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="rounded-b-xl border-t border-orange-200 bg-orange-50 p-4">
+                    <div class="flex items-center justify-between">
+                        <div @class([
+                            'text-orange-700',
+                            'text-xs' => $compactView,
+                            'text-sm' => !$compactView,
+                        ])>
+                            <p>✅ Your remaining selections are still valid</p>
+                            <p>🔄 Try refreshing to see updated availability</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button @class([
+                                'rounded-lg bg-orange-100 text-orange-700 transition-colors hover:bg-orange-200',
+                                'px-3 py-1 text-sm' => $compactView,
+                                'px-4 py-2' => !$compactView,
+                            ]) wire:click="refreshBookingData">
+                                🔄 Refresh
+                            </button>
+                            <button @class([
+                                'rounded-lg bg-orange-600 text-white transition-colors hover:bg-orange-700',
+                                'px-3 py-1 text-sm' => $compactView,
+                                'px-4 py-2' => !$compactView,
+                            ]) wire:click="closeConflictModal">
+                                Got it
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Cross-Court Conflict Modal -->
+    @if ($showCrossCourtConflictModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+            <div @class([
+                'w-full transform rounded-xl bg-white shadow-2xl',
+                'max-w-lg' => $compactView,
+                'max-w-2xl' => !$compactView,
+            ])>
+                <!-- Header -->
+                <div class="rounded-t-xl border-b border-orange-200 bg-gradient-to-r from-orange-50 to-red-50 p-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100">
+                                <svg class="h-6 w-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 @class([
+                                    'font-bold text-orange-800',
+                                    'text-sm' => $compactView,
+                                    'text-lg' => !$compactView,
+                                ])>🎾 Cross-Court Booking Conflict</h3>
+                                <p @class([
+                                    'text-orange-600',
+                                    'text-xs' => $compactView,
+                                    'text-sm' => !$compactView,
+                                ])>You already have bookings on other courts at the same time</p>
+                            </div>
+                        </div>
+                        <button class="text-orange-400 transition-colors hover:text-orange-600" wire:click="closeCrossCourtConflictModal">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Conflict Details -->
+                <div @class([
+                    'max-h-96 overflow-y-auto',
+                    'p-3' => $compactView,
+                    'p-6' => !$compactView,
+                ])>
+                    <div class="space-y-3">
+                        @foreach ($crossCourtConflictDetails as $conflict)
+                            <div @class([
+                                'rounded-lg border border-orange-200 bg-orange-50 p-3',
+                                'p-2' => $compactView,
+                                'p-4' => !$compactView,
+                            ])>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div @class([
+                                            'flex items-center justify-center rounded-full',
+                                            'h-8 w-8' => $compactView,
+                                            'h-10 w-10' => !$compactView,
+                                            'bg-blue-100',
+                                        ])>
+                                            <span @class([
+                                                'text-blue-600',
+                                                'text-sm' => $compactView,
+                                                'text-lg' => !$compactView,
+                                            ])>🎾</span>
+                                        </div>
+                                        <div>
+                                            <div @class([
+                                                'font-semibold text-gray-800',
+                                                'text-sm' => $compactView,
+                                                '' => !$compactView,
+                                            ])>{{ $conflict['court_name'] }}</div>
+                                            <div @class([
+                                                'text-gray-600',
+                                                'text-xs' => $compactView,
+                                                'text-sm' => !$compactView,
+                                            ])>{{ $conflict['start_time'] }} - {{ $conflict['end_time'] }}</div>
+                                            <div @class([
+                                                'text-gray-500',
+                                                'text-xs' => $compactView,
+                                                'text-sm' => !$compactView,
+                                            ])>Ref: #{{ $conflict['booking_reference'] }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div @class([
+                                            'rounded-full px-2 py-1 text-xs font-medium',
+                                            'bg-blue-200 text-blue-800',
+                                        ])>
+                                            {{ ucfirst($conflict['status']) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="rounded-b-xl border-t border-orange-200 bg-orange-50 p-4">
+                    <div class="flex items-center justify-between">
+                        <div @class([
+                            'text-orange-700',
+                            'text-xs' => $compactView,
+                            'text-sm' => !$compactView,
+                        ])>
+                            <p>⚠️ You cannot book multiple courts at the same time</p>
+                            <p>💡 Please cancel your other booking first or choose a different time</p>
+                        </div>
+                        <button @class([
+                            'rounded-lg bg-orange-600 text-white transition-colors hover:bg-orange-700',
+                            'px-3 py-1 text-sm' => $compactView,
+                            'px-4 py-2' => !$compactView,
+                        ]) wire:click="closeCrossCourtConflictModal">
+                            Got it
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Login Reminder Modal -->
     @if ($showLoginReminder)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -2238,5 +3064,97 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $js('showToast', (value) => {
             toast(value);
         })
+
+        // Dynamic polling system based on site settings
+        let pollingInterval;
+        let userActivityTimeout;
+        let isPollingEnabled = true;
+        let currentInterval = 30000; // Default 30 seconds
+        let inactivityTimeout = 300000; // Default 5 minutes
+
+        // Start polling
+        function startPolling() {
+            if (!isPollingEnabled) return;
+
+            pollingInterval = setInterval(() => {
+                $wire.refreshBookingData();
+            }, currentInterval);
+        }
+
+        // Stop polling
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        // Update polling interval
+        function updatePollingInterval(interval) {
+            currentInterval = interval;
+            if (isPollingEnabled) {
+                stopPolling();
+                startPolling();
+            }
+        }
+
+        // Handle user activity
+        function resetUserActivity() {
+            clearTimeout(userActivityTimeout);
+            userActivityTimeout = setTimeout(() => {
+                // Reduce polling frequency when user is inactive
+                if (isPollingEnabled) {
+                    updatePollingInterval(60000); // 1 minute when inactive
+                }
+            }, inactivityTimeout);
+        }
+
+        function setActivePolling() {
+            clearTimeout(userActivityTimeout);
+            if (isPollingEnabled) {
+                updatePollingInterval(30000); // 30 seconds when active
+            }
+            resetUserActivity();
+        }
+
+        // Listen for Livewire events
+        $wire.$on('start-polling', (data) => {
+            isPollingEnabled = true;
+            currentInterval = data.interval || 30000;
+            inactivityTimeout = data.inactivity_timeout || 300000;
+            startPolling();
+            resetUserActivity();
+        });
+
+        $wire.$on('stop-polling', () => {
+            isPollingEnabled = false;
+            stopPolling();
+            clearTimeout(userActivityTimeout);
+        });
+
+        // Track user activity
+        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, setActivePolling, true);
+        });
+
+        // Initialize when component loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if polling should be enabled
+            if ($wire.isPollingEnabled()) {
+                $wire.dispatch('start-polling', {
+                    interval: currentInterval,
+                    inactivity_timeout: inactivityTimeout
+                });
+            }
+        });
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopPolling();
+            } else if (isPollingEnabled) {
+                startPolling();
+            }
+        });
     </script>
 @endscript

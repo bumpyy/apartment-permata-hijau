@@ -314,6 +314,64 @@ test('booking can be edited by admin', function () {
     expect($booking->edited_at)->not->toBeNull();
 });
 
+test('booking model can check if slot is booked', function () {
+    // Create a booking
+    $booking = Booking::factory()->create([
+        'court_id' => $this->court->id,
+        'date' => '2025-06-01',
+        'start_time' => '10:00',
+        'status' => 'confirmed',
+    ]);
+
+    // Check that the slot is marked as booked
+    expect(Booking::isSlotBooked($this->court->id, '2025-06-01', '10:00'))->toBeTrue();
+
+    // Check that a different slot is not booked
+    expect(Booking::isSlotBooked($this->court->id, '2025-06-01', '11:00'))->toBeFalse();
+
+    // Check that a cancelled booking doesn't block the slot
+    $cancelledBooking = Booking::factory()->create([
+        'court_id' => $this->court->id,
+        'date' => '2025-06-01',
+        'start_time' => '12:00',
+        'status' => 'cancelled',
+    ]);
+
+    expect(Booking::isSlotBooked($this->court->id, '2025-06-01', '12:00'))->toBeFalse();
+});
+
+test('booking model can get booked slots for court in date range', function () {
+    // Create bookings for different dates
+    $booking1 = Booking::factory()->create([
+        'court_id' => $this->court->id,
+        'date' => '2025-06-01',
+        'start_time' => '10:00',
+        'status' => 'confirmed',
+    ]);
+
+    $booking2 = Booking::factory()->create([
+        'court_id' => $this->court->id,
+        'date' => '2025-06-02',
+        'start_time' => '11:00',
+        'status' => 'pending',
+    ]);
+
+    $booking3 = Booking::factory()->create([
+        'court_id' => $this->court->id,
+        'date' => '2025-06-03',
+        'start_time' => '12:00',
+        'status' => 'cancelled', // Should not be included
+    ]);
+
+    // Get booked slots for date range
+    $bookedSlots = Booking::getBookedSlotsForCourt($this->court->id, '2025-06-01', '2025-06-02');
+
+    expect($bookedSlots)->toHaveCount(2);
+    expect($bookedSlots->pluck('id')->toArray())->toContain($booking1->id);
+    expect($bookedSlots->pluck('id')->toArray())->toContain($booking2->id);
+    expect($bookedSlots->pluck('id')->toArray())->not->toContain($booking3->id);
+});
+
 test('booking casts work correctly', function () {
     $booking = Booking::factory()->create([
         'date' => '2025-06-01',

@@ -8,4 +8,9 @@ return new class extends SettingsMigration
     {
         $this->migrator->add('premium.open_date', 25);
     }
+
+    public function down(): void
+    {
+        $this->delete('premium');
+    }
 };

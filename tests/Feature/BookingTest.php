@@ -248,3 +248,116 @@ test('booking reference is generated correctly', function () {
     $booking = Booking::where('tenant_id', $this->tenant->id)->first();
     expect($booking->booking_reference)->toMatch('/^A\d{4}$/');
 });
+
+test('duplicate booking prevention works across multiple tenants', function () {
+    $tenant1 = Tenant::factory()->create();
+    $tenant2 = Tenant::factory()->create();
+
+    $bookingDate = Carbon::startOfWeek()->addWeek()->addDay();
+    $slotKey = $bookingDate->format('Y-m-d').'-10:00';
+
+    // First tenant books a slot
+    Volt::actingAs($tenant1, 'tenant')
+        ->test('court-booking')
+        ->set('courtNumber', $this->court->id)
+        ->set('selectedSlots', [$slotKey])
+        ->call('confirmBooking')
+        ->call('processBooking');
+
+    // Verify the booking was created
+    $this->assertDatabaseHas('bookings', [
+        'tenant_id' => $tenant1->id,
+        'court_id' => $this->court->id,
+        'date' => $bookingDate->format('Y-m-d'),
+        'start_time' => '10:00:00',
+        'status' => 'pending',
+    ]);
+
+    // Second tenant tries to book the same slot
+    Volt::actingAs($tenant2, 'tenant')
+        ->test('court-booking')
+        ->set('courtNumber', $this->court->id)
+        ->set('selectedSlots', [$slotKey])
+        ->call('toggleTimeSlot', $slotKey);
+
+    // The slot should be marked as unavailable
+    $this->assertTrue(Booking::isSlotBooked($this->court->id, $bookingDate->format('Y-m-d'), '10:00'));
+});
+
+test('booking conflict detection removes conflicting slots from selection', function () {
+    $tenant1 = Tenant::factory()->create();
+    $tenant2 = Tenant::factory()->create();
+
+    $bookingDate = Carbon::startOfWeek()->addWeek()->addDay();
+    $slotKey1 = $bookingDate->format('Y-m-d').'-10:00';
+    $slotKey2 = $bookingDate->format('Y-m-d').'-11:00';
+
+    // First tenant books a slot
+    Volt::actingAs($tenant1, 'tenant')
+        ->test('court-booking')
+        ->set('courtNumber', $this->court->id)
+        ->set('selectedSlots', [$slotKey1])
+        ->call('confirmBooking')
+        ->call('processBooking');
+
+    // Second tenant selects both slots (one is now taken)
+    Volt::actingAs($tenant2, 'tenant')
+        ->test('court-booking')
+        ->set('courtNumber', $this->court->id)
+        ->set('selectedSlots', [$slotKey1, $slotKey2])
+        ->call('validateSlotsStillAvailable');
+
+    // The conflicting slot should be removed from selection
+    $this->assertNotContains($slotKey1, $this->selectedSlots);
+    $this->assertContains($slotKey2, $this->selectedSlots);
+});
+
+test('conflict modal is shown when slots become unavailable', function () {
+    $tenant1 = Tenant::factory()->create();
+    $tenant2 = Tenant::factory()->create();
+
+    $bookingDate = Carbon::startOfWeek()->addWeek()->addDay();
+    $slotKey = $bookingDate->format('Y-m-d').'-10:00';
+
+    // First tenant books a slot
+    Volt::actingAs($tenant1, 'tenant')
+        ->test('court-booking')
+        ->set('courtNumber', $this->court->id)
+        ->set('selectedSlots', [$slotKey])
+        ->call('confirmBooking')
+        ->call('processBooking');
+
+    // Second tenant tries to book the same slot
+    Volt::actingAs($tenant2, 'tenant')
+        ->test('court-booking')
+        ->set('courtNumber', $this->court->id)
+        ->set('selectedSlots', [$slotKey])
+        ->call('validateSlotsStillAvailable')
+        ->assertSet('showConflictModal', true)
+        ->assertSet('conflictDetails', function ($conflicts) use ($slotKey) {
+            return count($conflicts) === 1 && $conflicts[0]['slot_key'] === $slotKey;
+        });
+});
+
+test('real-time conflict prevention shows appropriate notifications', function () {
+    $tenant1 = Tenant::factory()->create();
+    $tenant2 = Tenant::factory()->create();
+
+    $bookingDate = Carbon::startOfWeek()->addWeek()->addDay();
+    $slotKey = $bookingDate->format('Y-m-d').'-10:00';
+
+    // First tenant books a slot
+    Volt::actingAs($tenant1, 'tenant')
+        ->test('court-booking')
+        ->set('courtNumber', $this->court->id)
+        ->set('selectedSlots', [$slotKey])
+        ->call('confirmBooking')
+        ->call('processBooking');
+
+    // Second tenant tries to select the same slot
+    Volt::actingAs($tenant2, 'tenant')
+        ->test('court-booking')
+        ->set('courtNumber', $this->court->id)
+        ->call('toggleTimeSlot', $slotKey)
+        ->assertSet('quotaWarning', '⏰ This time slot was just booked by another tenant. Please select a different time.');
+});

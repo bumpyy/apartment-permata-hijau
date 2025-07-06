@@ -18,20 +18,27 @@
         </flux:brand>
 
         <flux:navlist variant="outline">
-            <flux:navlist.item wire:navigate icon="home" :href="route('admin.dashboard')">Home</flux:navlist.item>
-            {{-- <flux:navlist.item wire:navigate icon="calendar" :href="route('admin.calendar')">Calendar</flux:navlist.item> --}}
-            <flux:navlist.item wire:navigate icon="inbox" :href="route('admin.booking.list')">Bookings
-            </flux:navlist.item>
-            <flux:navlist.item wire:navigate icon="users" :href="route('admin.tenant.list')">Tenants
-            </flux:navlist.item>
-            <flux:navlist.group class="max-lg:hidden" expandable :expanded="true" heading="Settings">
-                <flux:navlist.item wire:navigate wire:navigate :href="route('admin.settings.premium')">
-                    Premium Booking Setting
+            <flux:navlist.item wire:navigate icon="home" :href="route('admin.dashboard')">Dashboard</flux:navlist.item>
+            <flux:navlist.item wire:navigate icon="inbox" :href="route('admin.booking.list')">Bookings</flux:navlist.item>
+            <flux:navlist.item wire:navigate icon="users" :href="route('admin.tenant.list')">Tenants</flux:navlist.item>
+
+            <flux:navlist.group class="max-lg:hidden" expandable :expanded="true" heading="Reports">
+                <flux:navlist.item wire:navigate icon="chart-bar" :href="route('admin.booking.list')">
+                    Booking Reports
                 </flux:navlist.item>
-                <flux:navlist.item wire:navigate wire:navigate :href="route('admin.settings.tenants')">
+                <flux:navlist.item wire:navigate icon="document-text" :href="route('admin.booking.list')">
+                    Export Data
+                </flux:navlist.item>
+            </flux:navlist.group>
+
+            <flux:navlist.group class="max-lg:hidden" expandable :expanded="true" heading="Settings">
+                <flux:navlist.item wire:navigate icon="cog" :href="route('admin.settings.premium')">
+                    Premium Booking
+                </flux:navlist.item>
+                <flux:navlist.item wire:navigate icon="user-group" :href="route('admin.settings.tenants')">
                     Tenants Settings
                 </flux:navlist.item>
-                <flux:navlist.item wire:navigate wire:navigate :href="route('admin.settings.site')">
+                <flux:navlist.item wire:navigate icon="cog-6-tooth" :href="route('admin.settings.site')">
                     Site Settings
                 </flux:navlist.item>
             </flux:navlist.group>

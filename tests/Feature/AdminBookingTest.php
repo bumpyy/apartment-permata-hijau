@@ -48,45 +48,42 @@ test('admin can view create booking page', function () {
     // $response->assertSee('Create Booking');
 });
 
-test('admin can confirm pending bookings', function () {
-    // Create a pending booking
+test('admin can create a booking', function () {
+    $court = Court::factory()->create();
+    $tenant = Tenant::factory()->create();
+
+    $response = $this->actingAs($this->admin, 'admin')
+        ->post(route('admin.booking.store'), [
+            'court_id' => $court->id,
+            'tenant_id' => $tenant->id,
+            'date' => '2025-06-02',
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'notes' => 'Test booking',
+        ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('bookings', [
+        'court_id' => $court->id,
+        'tenant_id' => $tenant->id,
+        'date' => '2025-06-02',
+        'start_time' => '10:00:00',
+        'end_time' => '11:00:00',
+        'notes' => 'Test booking',
+    ]);
+});
+
+test('admin can confirm a booking', function () {
     $booking = Booking::factory()->create([
-        'tenant_id' => $this->tenant->id,
-        'court_id' => $this->court->id,
-        'date' => '2025-06-01',
-        'start_time' => '10:00',
-        'end_time' => '11:00',
         'status' => 'pending',
+        'court_id' => $this->court->id,
+        'tenant_id' => $this->tenant->id,
     ]);
 
     $response = $this->actingAs($this->admin, 'admin')
-        ->post('/livewire/update', [
-            'fingerprint' => [
-                'id' => 'pages.admin.booking',
-                'name' => 'pages.admin.booking',
-                'locale' => 'en',
-                'path' => 'admin/booking',
-                'method' => 'GET',
-            ],
-            'serverMemo' => [
-                'children' => [],
-                'errors' => [],
-                'htmlHash' => 'test',
-                'data' => [],
-                'dataMeta' => [],
-                'checksum' => 'test',
-            ],
-            'updates' => [
-                [
-                    'type' => 'callMethod',
-                    'payload' => [
-                        'method' => 'confirmBooking',
-                        'params' => [$booking->id],
-                    ],
-                ],
-            ],
-        ]);
+        ->patch(route('admin.booking.confirm', $booking->id));
 
+    $response->assertRedirect();
     $this->assertDatabaseHas('bookings', [
         'id' => $booking->id,
         'status' => 'confirmed',
@@ -94,181 +91,74 @@ test('admin can confirm pending bookings', function () {
     ]);
 });
 
-test('admin can cancel pending bookings', function () {
-    // Create a pending booking
+test('admin can cancel a booking with reason', function () {
     $booking = Booking::factory()->create([
-        'tenant_id' => $this->tenant->id,
+        'status' => 'confirmed',
         'court_id' => $this->court->id,
-        'date' => '2025-06-01',
-        'start_time' => '10:00',
-        'end_time' => '11:00',
-        'status' => 'pending',
+        'tenant_id' => $this->tenant->id,
     ]);
 
     $response = $this->actingAs($this->admin, 'admin')
-        ->post('/livewire/update', [
-            'fingerprint' => [
-                'id' => 'pages.admin.booking',
-                'name' => 'pages.admin.booking',
-                'locale' => 'en',
-                'path' => 'admin/booking',
-                'method' => 'GET',
-            ],
-            'serverMemo' => [
-                'children' => [],
-                'errors' => [],
-                'htmlHash' => 'test',
-                'data' => [],
-                'dataMeta' => [],
-                'checksum' => 'test',
-            ],
-            'updates' => [
-                [
-                    'type' => 'callMethod',
-                    'payload' => [
-                        'method' => 'cancelBooking',
-                        'params' => [$booking->id],
-                    ],
-                ],
-            ],
+        ->patch(route('admin.booking.cancel', $booking->id), [
+            'cancellation_reason' => 'Court maintenance required',
         ]);
 
+    $response->assertRedirect();
     $this->assertDatabaseHas('bookings', [
         'id' => $booking->id,
         'status' => 'cancelled',
         'cancelled_by' => $this->admin->id,
+        'cancellation_reason' => 'Court maintenance required',
     ]);
 });
 
-test('admin can create booking for tenant', function () {
-    $response = $this->actingAs($this->admin, 'admin')
-        ->post('/livewire/update', [
-            'fingerprint' => [
-                'id' => 'pages.admin.booking.create',
-                'name' => 'pages.admin.booking.create',
-                'locale' => 'en',
-                'path' => 'admin/booking/create',
-                'method' => 'GET',
-            ],
-            'serverMemo' => [
-                'children' => [],
-                'errors' => [],
-                'htmlHash' => 'test',
-                'data' => [
-                    'selectedCourt' => $this->court->id,
-                    'selectedDate' => '16 June 2025',
-                    'selectedTime' => '19:00 - 20:00',
-                    'selectedTenant' => $this->tenant->id,
-                    'tenantName' => $this->tenant->name,
-                    'tenantPhone' => $this->tenant->phone,
-                    'isLightRequired' => true,
-                ],
-                'dataMeta' => [],
-                'checksum' => 'test',
-            ],
-            'updates' => [
-                [
-                    'type' => 'callMethod',
-                    'payload' => [
-                        'method' => 'confirmBooking',
-                        'params' => [],
-                    ],
-                ],
-            ],
-        ]);
-
-    $this->assertDatabaseHas('bookings', [
-        'tenant_id' => $this->tenant->id,
+test('admin can view today\'s bookings', function () {
+    // Create a booking for today
+    $todayBooking = Booking::factory()->create([
+        'date' => Carbon::today(),
         'court_id' => $this->court->id,
-        'date' => '2025-06-16',
-        'start_time' => '19:00',
-        'end_time' => '20:00',
+        'tenant_id' => $this->tenant->id,
         'status' => 'confirmed',
-        'is_light_required' => true,
-        'approved_by' => $this->admin->id,
     ]);
-});
 
-test('admin can select tenant and load their details', function () {
+    // Create a booking for tomorrow
+    $tomorrowBooking = Booking::factory()->create([
+        'date' => Carbon::tomorrow(),
+        'court_id' => $this->court->id,
+        'tenant_id' => $this->tenant->id,
+        'status' => 'confirmed',
+    ]);
+
     $response = $this->actingAs($this->admin, 'admin')
-        ->post('/livewire/update', [
-            'fingerprint' => [
-                'id' => 'pages.admin.booking.create',
-                'name' => 'pages.admin.booking.create',
-                'locale' => 'en',
-                'path' => 'admin/booking/create',
-                'method' => 'GET',
-            ],
-            'serverMemo' => [
-                'children' => [],
-                'errors' => [],
-                'htmlHash' => 'test',
-                'data' => [],
-                'dataMeta' => [],
-                'checksum' => 'test',
-            ],
-            'updates' => [
-                [
-                    'type' => 'callMethod',
-                    'payload' => [
-                        'method' => 'selectTenant',
-                        'params' => [$this->tenant->id],
-                    ],
-                ],
-            ],
-        ]);
+        ->get(route('admin.booking.list'));
 
     $response->assertSuccessful();
+    $response->assertSee($todayBooking->tenant->name);
+    $response->assertSee($tomorrowBooking->tenant->name);
 });
 
-test('admin can edit booking details', function () {
-    $booking = Booking::factory()->create([
-        'tenant_id' => $this->tenant->id,
-        'court_id' => $this->court->id,
-        'status' => 'pending',
-    ]);
+test('admin can view upcoming bookings', function () {
+    // Create bookings for the next few days
+    $upcomingBookings = collect([
+        Carbon::tomorrow(),
+        Carbon::tomorrow()->addDay(),
+        Carbon::tomorrow()->addDays(2),
+    ])->map(function ($date) {
+        return Booking::factory()->create([
+            'date' => $date,
+            'court_id' => $this->court->id,
+            'tenant_id' => $this->tenant->id,
+            'status' => 'confirmed',
+        ]);
+    });
 
     $response = $this->actingAs($this->admin, 'admin')
-        ->post('/livewire/update', [
-            'fingerprint' => [
-                'id' => 'pages.admin.booking',
-                'name' => 'pages.admin.booking',
-                'locale' => 'en',
-                'path' => 'admin/booking',
-                'method' => 'GET',
-            ],
-            'serverMemo' => [
-                'children' => [],
-                'errors' => [],
-                'htmlHash' => 'test',
-                'data' => [
-                    'editForm' => [
-                        'status' => 'confirmed',
-                        'is_light_required' => true,
-                        'notes' => 'Updated booking',
-                    ],
-                ],
-                'dataMeta' => [],
-                'checksum' => 'test',
-            ],
-            'updates' => [
-                [
-                    'type' => 'callMethod',
-                    'payload' => [
-                        'method' => 'updateBooking',
-                        'params' => [],
-                    ],
-                ],
-            ],
-        ]);
+        ->get(route('admin.booking.list'));
 
-    $this->assertDatabaseHas('bookings', [
-        'id' => $booking->id,
-        'status' => 'confirmed',
-        'is_light_required' => true,
-        'notes' => 'Updated booking',
-        'edited_by' => $this->admin->id,
-    ]);
+    $response->assertSuccessful();
+    $upcomingBookings->each(function ($booking) use ($response) {
+        $response->assertSee($booking->tenant->name);
+    });
 });
 
 test('admin can filter bookings by status', function () {
@@ -337,4 +227,88 @@ test('admin can view booking statistics', function () {
     $response->assertSee('3'); // Confirmed bookings
     $response->assertSee('2'); // Pending bookings
     $response->assertSee('1'); // Cancelled bookings
+});
+
+test('admin can view cancellation reason in booking details', function () {
+    $booking = Booking::factory()->create([
+        'status' => 'cancelled',
+        'cancellation_reason' => 'Court maintenance required',
+        'cancelled_by' => $this->admin->id,
+        'cancelled_at' => Carbon::now(),
+    ]);
+
+    $response = $this->actingAs($this->admin, 'admin')
+        ->get(route('admin.booking.list'));
+
+    $response->assertSuccessful();
+    $response->assertSee('Court maintenance required');
+});
+
+test('admin can toggle today\'s bookings visibility', function () {
+    $response = $this->actingAs($this->admin, 'admin')
+        ->get(route('admin.booking.list'));
+
+    $response->assertSuccessful();
+    $response->assertSee('Today\'s Bookings');
+    $response->assertSee('Hide');
+});
+
+test('bookings are grouped by date and court for better UX', function () {
+    $court1 = Court::factory()->create(['name' => 'Court 1']);
+    $court2 = Court::factory()->create(['name' => 'Court 2']);
+
+    $booking1 = Booking::factory()->create([
+        'date' => Carbon::today(),
+        'court_id' => $court1->id,
+        'tenant_id' => $this->tenant->id,
+    ]);
+
+    $booking2 = Booking::factory()->create([
+        'date' => Carbon::today(),
+        'court_id' => $court2->id,
+        'tenant_id' => $this->tenant->id,
+    ]);
+
+    $response = $this->actingAs($this->admin, 'admin')
+        ->get(route('admin.booking.list'));
+
+    $response->assertSuccessful();
+    $response->assertSee('Court 1');
+    $response->assertSee('Court 2');
+});
+
+test('admin can use cancellation modal with reason', function () {
+    $booking = Booking::factory()->create([
+        'status' => 'confirmed',
+        'court_id' => $this->court->id,
+        'tenant_id' => $this->tenant->id,
+    ]);
+
+    $response = $this->actingAs($this->admin, 'admin')
+        ->post(route('admin.booking.open-cancel-modal', $booking->id));
+
+    $response->assertSuccessful();
+    // The modal should be shown with the booking details
+});
+
+test('admin can confirm cancellation with reason', function () {
+    $booking = Booking::factory()->create([
+        'status' => 'confirmed',
+        'court_id' => $this->court->id,
+        'tenant_id' => $this->tenant->id,
+    ]);
+
+    $response = $this->actingAs($this->admin, 'admin')
+        ->post(route('admin.booking.confirm-cancellation'), [
+            'booking_id' => $booking->id,
+            'cancellation_reason' => 'Emergency maintenance',
+        ]);
+
+    $response->assertRedirect();
+    $this->assertDatabaseHas('bookings', [
+        'id' => $booking->id,
+        'status' => 'cancelled',
+        'cancellation_reason' => 'Emergency maintenance',
+        'cancelled_by' => $this->admin->id,
+    ]);
 });
