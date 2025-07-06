@@ -52,7 +52,8 @@
             <span class="font-medium">🔒 Locked/Past</span>
         </div>
         <div class="ml-auto max-w-md text-xs italic text-gray-600">
-            *💡 After 6pm additional charges apply for court lights
+            *💡 After 6pm additional charges apply for court lights<br>
+            *⚠️ Cross-court conflict detected
         </div>
     </div>
 @endif

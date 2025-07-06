@@ -103,6 +103,10 @@ class extends Component
 
     public $crossCourtConflictDetails = []; // Details about cross-court conflicts for modal
 
+    public $crossCourtBookings = []; // Cached cross-court bookings for current view period
+
+    public $crossCourtBookingsLoaded = false; // Whether cross-court bookings have been loaded
+
     // === PERFORMANCE OPTIMIZATION ===
     public $pollingInterval = 30000; // Polling interval in milliseconds
 
@@ -169,6 +173,7 @@ class extends Component
         $this->generateAvailableTimesForDate();
         $this->quotaInfo = $this->getQuotaInfo();
         $this->loadBookedSlots();
+        $this->loadCrossCourtBookings();
         $this->generateTimeSlots();
         $this->generateWeekDays();
         $this->generateMonthDays();
@@ -255,6 +260,67 @@ class extends Component
     }
 
     /**
+     * Load cross-court bookings for the current view period
+     * This prevents repeated database queries for conflict detection
+     */
+    public function loadCrossCourtBookings()
+    {
+        if (!$this->isLoggedIn || $this->crossCourtBookingsLoaded) {
+            return;
+        }
+
+        // Check if cross-court conflict detection is enabled
+        try {
+            $siteSettings = app(\App\Settings\SiteSettings::class);
+            if (!$siteSettings->isCrossCourtConflictDetectionEnabled()) {
+                $this->crossCourtBookings = [];
+                $this->crossCourtBookingsLoaded = true;
+                return;
+            }
+        } catch (\Exception $e) {
+            // If settings are not available, default to enabled
+        }
+
+        // Determine date range based on current view mode
+        $startDate = $this->viewMode === 'weekly' ? $this->currentWeekStart : $this->currentMonthStart->copy()->startOfWeek();
+        $endDate = $this->viewMode === 'weekly' ? $this->currentWeekStart->copy()->addWeek() : $this->currentMonthStart->copy()->endOfMonth()->endOfWeek();
+
+        $tenantId = auth('tenant')->id();
+
+        // Get all bookings for this tenant across all courts in the date range
+        $bookings = Booking::where('tenant_id', $tenantId)
+            ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->where('status', '!=', BookingStatusEnum::CANCELLED)
+            ->where('court_id', '!=', $this->courtNumber) // Exclude current court
+            ->with('court:id,name')
+            ->get(['id', 'court_id', 'date', 'start_time', 'end_time', 'booking_reference', 'status']);
+
+        // Organize bookings by date and time for quick lookup
+        $this->crossCourtBookings = [];
+        foreach ($bookings as $booking) {
+            $date = $booking->date->format('Y-m-d');
+            $startTime = $booking->start_time->format('H:i');
+            $endTime = $booking->end_time->format('H:i');
+
+            if (!isset($this->crossCourtBookings[$date])) {
+                $this->crossCourtBookings[$date] = [];
+            }
+
+            $this->crossCourtBookings[$date][] = [
+                'id' => $booking->id,
+                'court_name' => $booking->court->name ?? 'Unknown Court',
+                'court_id' => $booking->court_id,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'booking_reference' => $booking->booking_reference,
+                'status' => $booking->status->value,
+            ];
+        }
+
+        $this->crossCourtBookingsLoaded = true;
+    }
+
+    /**
      * Load booked and pending slots for the current view period
      * This populates the bookedSlots and preliminaryBookedSlots arrays
      */
@@ -269,6 +335,8 @@ class extends Component
         if ($cachedData && !$this->isRefreshing) {
             $this->bookedSlots = $cachedData['booked'] ?? [];
             $this->preliminaryBookedSlots = $cachedData['pending'] ?? [];
+            // Also load cross-court bookings when loading from cache
+            $this->loadCrossCourtBookings();
             return;
         }
 
@@ -989,6 +1057,8 @@ class extends Component
     public function switchView($mode)
     {
         $this->viewMode = $mode;
+        // Reset cross-court bookings loaded flag for new view
+        $this->crossCourtBookingsLoaded = false;
         // Reload booking data for new view
         $this->loadBookedSlots();
         // Generate appropriate data for the new view
@@ -1012,19 +1082,21 @@ class extends Component
     {
         if ($this->viewMode === 'weekly') {
             $this->currentWeekStart = $this->currentWeekStart->subWeek();
+            $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
             $this->generateWeekDays();
         } elseif ($this->viewMode === 'monthly') {
             $this->currentMonthStart = $this->currentMonthStart->subMonth();
+            $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
             $this->generateMonthDays();
         } elseif ($this->viewMode === 'daily') {
             $this->currentDate = $this->currentDate->subDay();
             $this->selectedDate = $this->currentDate->format('Y-m-d');
+            $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
             $this->generateAvailableTimesForDate();
         }
-        $this->loadBookedSlots();
     }
 
     /**
@@ -1034,15 +1106,18 @@ class extends Component
     {
         if ($this->viewMode === 'weekly') {
             $this->currentWeekStart = $this->currentWeekStart->addWeek();
+            $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
             $this->generateWeekDays();
         } elseif ($this->viewMode === 'monthly') {
             $this->currentMonthStart = $this->currentMonthStart->addMonth();
+            $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
             $this->generateMonthDays();
         } elseif ($this->viewMode === 'daily') {
             $this->currentDate = $this->currentDate->addDay();
             $this->selectedDate = $this->currentDate->format('Y-m-d');
+            $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
             $this->generateAvailableTimesForDate();
         }
@@ -1060,16 +1135,18 @@ class extends Component
 
         // Regenerate data for current view
         if ($this->viewMode === 'weekly') {
+            $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
             $this->generateWeekDays();
         } elseif ($this->viewMode === 'monthly') {
+            $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
             $this->generateMonthDays();
         } else {
+            $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
             $this->generateAvailableTimesForDate();
         }
-        $this->loadBookedSlots();
     }
 
     // === MODAL FUNCTIONS ===
@@ -1300,6 +1377,7 @@ class extends Component
             $this->generateWeekDays();
         }
 
+        $this->crossCourtBookingsLoaded = false;
         $this->loadBookedSlots();
         $this->closeDatePicker();
     }
@@ -1318,6 +1396,7 @@ class extends Component
             $this->generateMonthDays();
         }
 
+        $this->crossCourtBookingsLoaded = false;
         $this->loadBookedSlots();
         $this->closeDatePicker();
     }
@@ -1367,6 +1446,9 @@ class extends Component
             // Store previous booking state to detect changes
             $previousBookedSlots = $this->bookedSlots;
             $previousPreliminarySlots = $this->preliminaryBookedSlots;
+
+            // Reset cross-court bookings loaded flag to force refresh
+            $this->crossCourtBookingsLoaded = false;
 
             // Force cache refresh by setting isRefreshing flag
             $this->loadBookedSlots();
@@ -1540,6 +1622,7 @@ class extends Component
     /**
      * Check for cross-court booking conflicts for the current tenant
      * This prevents tenants from booking multiple courts at the same time
+     * Uses cached cross-court bookings for better performance
      *
      * @param string $date - Date in Y-m-d format
      * @param string $startTime - Start time in H:i format
@@ -1552,6 +1635,11 @@ class extends Component
             return [];
         }
 
+        // Load cross-court bookings if not already loaded
+        if (!$this->crossCourtBookingsLoaded) {
+            $this->loadCrossCourtBookings();
+        }
+
         // Check if cross-court conflict detection is enabled
         try {
             $siteSettings = app(\App\Settings\SiteSettings::class);
@@ -1562,8 +1650,34 @@ class extends Component
             // If settings are not available, default to enabled
         }
 
-        $tenantId = auth('tenant')->id();
-        return Booking::getCrossCourtConflicts($tenantId, $date, $startTime, $endTime, $this->courtNumber);
+        // If no cross-court bookings loaded, return empty array
+        if (empty($this->crossCourtBookings)) {
+            return [];
+        }
+
+        // Check for conflicts using cached data
+        $conflicts = [];
+        if (isset($this->crossCourtBookings[$date])) {
+            foreach ($this->crossCourtBookings[$date] as $booking) {
+                // Check for overlapping time slots
+                $bookingStart = $booking['start_time'];
+                $bookingEnd = $booking['end_time'];
+
+                // Check if the new booking overlaps with existing booking
+                if (
+                    // New booking starts during existing booking
+                    ($startTime >= $bookingStart && $startTime < $bookingEnd) ||
+                    // New booking ends during existing booking
+                    ($endTime > $bookingStart && $endTime <= $bookingEnd) ||
+                    // New booking completely contains existing booking
+                    ($startTime <= $bookingStart && $endTime >= $bookingEnd)
+                ) {
+                    $conflicts[] = $booking;
+                }
+            }
+        }
+
+        return $conflicts;
     }
 
     /**
@@ -1701,6 +1815,9 @@ class extends Component
 
     <!-- Login Reminder Modal -->
     @include('livewire.court-booking.modals.login-reminder')
+
+    <!-- Cross Court Conflict Modal -->
+    @include('livewire.court-booking.modals.cross-court-conflict')
 
     @include('components.toast')
 </div>

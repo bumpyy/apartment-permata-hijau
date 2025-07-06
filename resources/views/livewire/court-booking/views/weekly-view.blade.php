@@ -215,6 +215,20 @@
                             @if ($slot['is_peak'] && $canBook && !$compactView)
                                 <div class="mt-1 text-xs text-orange-600">💡</div>
                             @endif
+
+                            @if ($canBook && !$compactView)
+                                @php
+                                    $slotDateTime = \Carbon\Carbon::createFromFormat(
+                                        'Y-m-d H:i',
+                                        $day['date'] . ' ' . $slot['start'],
+                                    );
+                                    $endTime = $slotDateTime->copy()->addHour()->format('H:i');
+                                    $crossCourtConflicts = $this->checkCrossCourtConflicts($day['date'], $slot['start'], $endTime);
+                                @endphp
+                                @if (!empty($crossCourtConflicts))
+                                    <div class="mt-1 text-xs text-red-600" title="Cross-court conflict: You have bookings on other courts at this time">⚠️</div>
+                                @endif
+                            @endif
                         </td>
                     @endforeach
                 </tr>
