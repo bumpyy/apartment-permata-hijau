@@ -7,7 +7,6 @@ use App\Models\Booking;
 use App\Models\Court;
 use App\Models\Tenant;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Maatwebsite\Excel\Facades\Excel;
 use Tests\TestCase;
@@ -17,7 +16,9 @@ class AdminBookingExportTest extends TestCase
     use RefreshDatabase;
 
     protected $admin;
+
     protected $tenant;
+
     protected $court;
 
     protected function setUp(): void
@@ -26,7 +27,7 @@ class AdminBookingExportTest extends TestCase
 
         // Create admin user
         $this->admin = User::factory()->create([
-            'role' => 'admin'
+            'role' => 'admin',
         ]);
 
         // Create tenant
@@ -69,7 +70,7 @@ class AdminBookingExportTest extends TestCase
                 'price' => $type === 'premium' ? 150000 : 0,
                 'light_surcharge' => 0,
                 'is_light_required' => false,
-                'booking_reference' => 'BK' . $this->tenant->id . '-' . $this->court->id . '-' . $date->format('Y-m-d') . '-TEST' . $index,
+                'booking_reference' => 'BK'.$this->tenant->id.'-'.$this->court->id.'-'.$date->format('Y-m-d').'-TEST'.$index,
             ]);
         }
     }
@@ -145,7 +146,7 @@ class AdminBookingExportTest extends TestCase
             ->set('exportFormat', 'excel')
             ->call('exportBookings');
 
-        Excel::assertDownloaded('bookings_report_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
+        Excel::assertDownloaded('bookings_report_'.now()->format('Y-m-d_H-i-s').'.xlsx');
     }
 
     public function test_pdf_export_returns_download_response()
@@ -177,7 +178,7 @@ class AdminBookingExportTest extends TestCase
             ->set('exportFormat', 'excel')
             ->call('exportBookings');
 
-        Excel::assertDownloaded('bookings_report_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
+        Excel::assertDownloaded('bookings_report_'.now()->format('Y-m-d_H-i-s').'.xlsx');
     }
 
     public function test_export_with_court_filter()
@@ -193,7 +194,7 @@ class AdminBookingExportTest extends TestCase
             ->set('exportFormat', 'excel')
             ->call('exportBookings');
 
-        Excel::assertDownloaded('bookings_report_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
+        Excel::assertDownloaded('bookings_report_'.now()->format('Y-m-d_H-i-s').'.xlsx');
     }
 
     public function test_export_with_booking_type_filter()
@@ -209,7 +210,7 @@ class AdminBookingExportTest extends TestCase
             ->set('exportFormat', 'excel')
             ->call('exportBookings');
 
-        Excel::assertDownloaded('bookings_report_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
+        Excel::assertDownloaded('bookings_report_'.now()->format('Y-m-d_H-i-s').'.xlsx');
     }
 
     public function test_export_with_no_results_shows_error()

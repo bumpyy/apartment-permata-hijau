@@ -142,9 +142,9 @@ class Booking extends Model
      * Check if a specific time slot is already booked
      * This prevents duplicate bookings across all tenants
      *
-     * @param int $courtId
-     * @param string $date - Date in Y-m-d format
-     * @param string $startTime - Start time in H:i format
+     * @param  int  $courtId
+     * @param  string  $date  - Date in Y-m-d format
+     * @param  string  $startTime  - Start time in H:i format
      * @return bool - True if slot is already booked
      */
     public static function isSlotBooked($courtId, $date, $startTime)
@@ -160,9 +160,9 @@ class Booking extends Model
      * Get all booked slots for a specific court and date range
      * Useful for checking multiple slots at once
      *
-     * @param int $courtId
-     * @param string $startDate - Start date in Y-m-d format
-     * @param string $endDate - End date in Y-m-d format
+     * @param  int  $courtId
+     * @param  string  $startDate  - Start date in Y-m-d format
+     * @param  string  $endDate  - End date in Y-m-d format
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public static function getBookedSlotsForCourt($courtId, $startDate, $endDate)
@@ -177,11 +177,11 @@ class Booking extends Model
      * Check for cross-court booking conflicts for a tenant
      * This prevents tenants from booking multiple courts at the same time
      *
-     * @param int $tenantId
-     * @param string $date - Date in Y-m-d format
-     * @param string $startTime - Start time in H:i format
-     * @param string $endTime - End time in H:i format
-     * @param int|null $excludeCourtId - Court ID to exclude from conflict check (for updates)
+     * @param  int  $tenantId
+     * @param  string  $date  - Date in Y-m-d format
+     * @param  string  $startTime  - Start time in H:i format
+     * @param  string  $endTime  - End time in H:i format
+     * @param  int|null  $excludeCourtId  - Court ID to exclude from conflict check (for updates)
      * @return array - Array of conflicting bookings with court information
      */
     public static function getCrossCourtConflicts($tenantId, $date, $startTime, $endTime, $excludeCourtId = null)
@@ -191,18 +191,18 @@ class Booking extends Model
             ->where('status', '!=', BookingStatusEnum::CANCELLED)
             ->where(function ($q) use ($startTime, $endTime) {
                 // Check for overlapping time slots
-                $q->where(function ($subQ) use ($startTime, $endTime) {
+                $q->where(function ($subQ) use ($startTime) {
                     // New booking starts during existing booking
                     $subQ->where('start_time', '<=', $startTime)
-                         ->where('end_time', '>', $startTime);
-                })->orWhere(function ($subQ) use ($startTime, $endTime) {
+                        ->where('end_time', '>', $startTime);
+                })->orWhere(function ($subQ) use ($endTime) {
                     // New booking ends during existing booking
                     $subQ->where('start_time', '<', $endTime)
-                         ->where('end_time', '>=', $endTime);
+                        ->where('end_time', '>=', $endTime);
                 })->orWhere(function ($subQ) use ($startTime, $endTime) {
                     // New booking completely contains existing booking
                     $subQ->where('start_time', '>=', $startTime)
-                         ->where('end_time', '<=', $endTime);
+                        ->where('end_time', '<=', $endTime);
                 });
             });
 

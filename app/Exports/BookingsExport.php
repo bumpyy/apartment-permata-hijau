@@ -3,21 +3,22 @@
 namespace App\Exports;
 
 use App\Models\Booking;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class BookingsExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnWidths, WithTitle, ShouldAutoSize
+class BookingsExport implements FromCollection, ShouldAutoSize, WithColumnWidths, WithHeadings, WithMapping, WithStyles, WithTitle
 {
     protected $bookings;
+
     protected $filters;
 
     public function __construct($bookings, $filters = [])
@@ -166,23 +167,23 @@ class BookingsExport implements FromCollection, WithHeadings, WithMapping, WithS
     {
         $title = 'Bookings Report';
 
-        if (!empty($this->filters)) {
+        if (! empty($this->filters)) {
             $filters = [];
             if (isset($this->filters['date_from'])) {
-                $filters[] = 'From: ' . $this->filters['date_from'];
+                $filters[] = 'From: '.$this->filters['date_from'];
             }
             if (isset($this->filters['date_to'])) {
-                $filters[] = 'To: ' . $this->filters['date_to'];
+                $filters[] = 'To: '.$this->filters['date_to'];
             }
             if (isset($this->filters['status'])) {
-                $filters[] = 'Status: ' . ucfirst($this->filters['status']);
+                $filters[] = 'Status: '.ucfirst($this->filters['status']);
             }
             if (isset($this->filters['court'])) {
-                $filters[] = 'Court: ' . $this->filters['court'];
+                $filters[] = 'Court: '.$this->filters['court'];
             }
 
-            if (!empty($filters)) {
-                $title .= ' (' . implode(', ', $filters) . ')';
+            if (! empty($filters)) {
+                $title .= ' ('.implode(', ', $filters).')';
             }
         }
 
