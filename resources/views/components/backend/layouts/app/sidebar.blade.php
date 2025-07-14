@@ -16,7 +16,6 @@
                 <x-site-logo class="flex size-10 shrink-0 items-center justify-center rounded" />
             </x-slot>
         </flux:brand>
-
         <flux:navlist variant="outline">
             <flux:navlist.item wire:navigate icon="home" :href="route('admin.dashboard')">Home</flux:navlist.item>
             {{-- <flux:navlist.item wire:navigate icon="calendar" :href="route('admin.calendar')">Calendar</flux:navlist.item> --}}
@@ -41,7 +40,7 @@
         <flux:spacer />
 
         {{-- <flux:navlist variant="outline">
-            <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit"
+            <flux:navlist.item icon="folder-gitl-2" href="https://github.com/laravel/livewire-starter-kit"
                 target="_blank">
                 {{ __('Repository') }}
             </flux:navlist.item>

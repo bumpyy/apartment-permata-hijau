@@ -4,27 +4,32 @@ use App\Exports\BookingsExport;
 use App\Exports\BookingsPdfExport;
 use App\Models\Booking;
 use App\Models\Court;
-use App\Enum\BookingStatusEnum;
-use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Maatwebsite\Excel\Facades\Excel;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 new #[Layout('components.backend.layouts.app')]
 class extends Component
 {
     // Export filters
     public $dateFrom = '';
+
     public $dateTo = '';
+
     public $statusFilter = '';
+
     public $courtFilter = '';
+
     public $bookingTypeFilter = '';
+
     public $exportFormat = 'excel'; // 'excel' or 'pdf'
 
     // Export state
     public $isExporting = false;
+
     public $exportProgress = 0;
+
     public $exportMessage = '';
 
     public function mount()
@@ -55,7 +60,7 @@ class extends Component
 
         // Apply status filter
         if ($this->statusFilter) {
-            $query->where('status', BookingStatusEnum::from($this->statusFilter));
+            $query->where('status', \App\Enum\BookingStatusEnum::from($this->statusFilter));
         }
 
         // Apply court filter
@@ -135,8 +140,8 @@ class extends Component
             $this->dispatch('export-completed');
 
         } catch (\Exception $e) {
-            $this->exportMessage = 'Export failed: ' . $e->getMessage();
-            \Log::error('Export failed: ' . $e->getMessage());
+            $this->exportMessage = 'Export failed: '.$e->getMessage();
+            \Illuminate\Support\Facades\Log::error('Export failed: '.$e->getMessage());
         } finally {
             $this->isExporting = false;
         }
@@ -144,7 +149,7 @@ class extends Component
 
     private function exportExcel($bookings, $filters)
     {
-        $filename = 'bookings_report_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+        $filename = 'bookings_report_'.now()->format('Y-m-d_H-i-s').'.xlsx';
 
         return Excel::download(new BookingsExport($bookings, $filters), $filename);
     }
@@ -154,7 +159,7 @@ class extends Component
         $pdfExport = new BookingsPdfExport($bookings, $filters);
         $html = $pdfExport->generateHtml();
 
-        $filename = 'bookings_report_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+        $filename = 'bookings_report_'.now()->format('Y-m-d_H-i-s').'.pdf';
 
         $pdf = Pdf::loadHTML($html);
         $pdf->setPaper('A4', 'landscape');

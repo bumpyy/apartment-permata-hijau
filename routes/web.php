@@ -38,7 +38,7 @@ Route::name('facilities.')
 
         Route::redirect('tennis/court/', 'facilities/tennis')->name('tennis.courts');
 
-        Volt::route('tennis/court/{id}', 'court-booking.main')->name('tennis.booking');
+        Volt::route('tennis/court/{id}', 'tenant.booking.main')->name('tennis.booking');
     });
 
 Route::middleware(['auth:admin'])
@@ -49,12 +49,10 @@ Route::middleware(['auth:admin'])
         Route::redirect('/', '/admin/dashboard');
 
         Volt::route('dashboard', 'admin.dashboard')->name('dashboard');
-        // Volt::route('calendar', 'admin.calendar')->name('calendar');
 
         Volt::route('dashboard', 'admin.dashboard')->name('dashboard');
 
-        Volt::route('booking', 'admin.booking')->name('booking.list');
-        Volt::route('booking/create', 'admin.booking.create.main')->name('booking.create');
+        Volt::route('booking', 'admin.booking.main')->name('booking.list');
 
         Volt::route('tenant', 'admin.tenant-list')->name('tenant.list');
 
