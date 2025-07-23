@@ -17,19 +17,27 @@
             </x-slot>
         </flux:brand>
         <flux:navlist variant="outline">
-            <flux:navlist.item wire:navigate icon="home" :href="route('admin.dashboard')">Home</flux:navlist.item>
-            {{-- <flux:navlist.item wire:navigate icon="calendar" :href="route('admin.calendar')">Calendar</flux:navlist.item> --}}
-            <flux:navlist.item wire:navigate icon="inbox" :href="route('admin.booking.list')">Bookings
+            <flux:navlist.item wire:navigate icon="home" :href="route('admin.dashboard')">
+                Home
             </flux:navlist.item>
-            <flux:navlist.item wire:navigate icon="users" :href="route('admin.tenant.list')">Tenants
+
+            <flux:navlist.item wire:navigate icon="inbox" :href="route('admin.booking.list')">
+                Bookings
             </flux:navlist.item>
+
+            <flux:navlist.item wire:navigate icon="users" :href="route('admin.tenant.list')">
+                Tenants
+            </flux:navlist.item>
+
             <flux:navlist.group expandable :expanded="true" heading="Settings">
                 <flux:navlist.item wire:navigate wire:navigate :href="route('admin.settings.premium')">
                     Premium Booking Setting
                 </flux:navlist.item>
+
                 <flux:navlist.item wire:navigate wire:navigate :href="route('admin.settings.tenants')">
                     Tenants Settings
                 </flux:navlist.item>
+
                 <flux:navlist.item wire:navigate wire:navigate :href="route('admin.settings.site')">
                     Site Settings
                 </flux:navlist.item>

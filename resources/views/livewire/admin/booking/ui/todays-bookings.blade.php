@@ -7,7 +7,7 @@
                         d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z">
                     </path>
                 </svg>
-                Today's Bookings ({{ Carbon::today()->format('l, d M Y') }})
+                Today's Bookings ({{ \Carbon\Carbon::today()->format('l, d M Y') }})
             </h2>
             <button class="text-sm text-blue-600 hover:text-blue-800"
                 wire:click="$set('showTodaysBookings', !$showTodaysBookings)">

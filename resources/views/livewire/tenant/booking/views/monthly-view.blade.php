@@ -40,19 +40,21 @@
                         </div>
                     @elseif($day['is_bookable'] && $day['is_current_month'])
                         <div class="mt-1 flex-1 space-y-1">
-                            @if ($day['can_book_free'])
+
+                            {{-- @if ($day['can_book_free'])
                                 <div class="rounded bg-green-100 px-1 py-0.5 text-xs text-green-700">🆓</div>
                             @endif
+
                             @if ($day['can_book_premium'])
                                 <div class="rounded bg-purple-100 px-1 py-0.5 text-xs text-purple-700">⭐</div>
-                            @endif
+                            @endif --}}
 
                             <!-- Booking counts at bottom -->
                             @if ($day['booked_count'] > 0 || $day['pending_count'] > 0 || $day['selected_count'] > 0 || $day['available_count'] < 14)
                                 <div class="mt-auto text-xs text-gray-600">
-                                    @if ($day['available_count'] > 0)
+                                    {{-- @if ($day['available_count'] > 0)
                                         <span class="text-green-600">{{ $day['available_count'] }} free</span>
-                                    @endif
+                                    @endif --}}
                                     @if ($day['booked_count'] > 0)
                                         <span class="text-red-600">{{ $day['booked_count'] }} booked</span>
                                     @endif

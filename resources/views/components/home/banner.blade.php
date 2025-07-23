@@ -18,17 +18,17 @@
             <div class="flex flex-wrap justify-center gap-8">
                 @foreach ([
         [
-            'icon' => 'lucide-house',
+            'icon' => 'measure',
             'value' => '18.000',
             'label' => 'Square Meters',
         ],
-        ['icon' => 'lucide-car', 'value' => '890', 'label' => 'Parking Slots'],
-        ['icon' => 'lucide-users', 'value' => '3', 'label' => 'Towers'],
-        ['icon' => 'lucide-sofa', 'value' => '182', 'label' => 'Unit Apartments'],
+        ['icon' => 'car', 'value' => '890', 'label' => 'Parking Slots'],
+        ['icon' => 'apt-low', 'value' => '3', 'label' => 'Towers'],
+        ['icon' => 'sofa', 'value' => '182', 'label' => 'Unit Apartments'],
     ] as $item)
                     <div class="flex items-center gap-2">
 
-                        <x-dynamic-component class="size-12" :component="$item['icon']" />
+                        <x-dynamic-component class="size-12" :component="'icons.' . $item['icon']" />
 
                         <div class="flex flex-col text-start">
                             <h3 class="text-3xl font-bold leading-6">{{ $item['value'] }}</h3>

@@ -7,4 +7,6 @@ new
 #[Layout('components.backend.layouts.app')]
 class extends Component {}; ?>
 
-<div><livewire:tenants-table/></div>
+<div>
+    <livewire:tenants-table/>
+</div>

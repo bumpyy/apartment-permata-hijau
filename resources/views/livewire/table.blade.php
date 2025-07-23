@@ -29,6 +29,7 @@
                     @endforeach
                 </tr>
             </thead>
+
             <tbody>
                 @foreach ($this->data() as $row)
                     <tr class="border-b bg-white hover:bg-gray-50">

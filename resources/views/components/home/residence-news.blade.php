@@ -22,7 +22,6 @@
                                 alt="">
                             <div class="bg-linear-to-t absolute inset-0 -z-10 from-gray-900 via-gray-900/40"></div>
                             <div class="absolute inset-0 -z-10 rounded-2xl ring-1 ring-inset ring-gray-900/10"></div>
-
                             <div class="flex flex-wrap items-center gap-y-1 overflow-hidden text-sm/6 text-gray-300">
                                 <time class="mr-8" datetime="{{ $item['date'] }}">{{ $item['date'] }}</time>
                             </div>

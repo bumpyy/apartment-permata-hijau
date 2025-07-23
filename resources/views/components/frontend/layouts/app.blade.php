@@ -3,11 +3,9 @@
 
 <head>
     @include('partials.head')
-
-
 </head>
 
-<body class="min-h-screen bg-white">
+<body class="relative bg-white">
     <header>
         <div class="bg-primary">
             <div class="container flex items-center justify-between py-1 text-gray-100">
@@ -31,17 +29,15 @@
             </div>
         </div>
 
-        <nav class="container flex flex-col items-center justify-between gap-8 py-4">
+        <div class="mt-4 flex flex-col items-center gap-1 text-center">
+            <x-site-logo class="size-8" />
+            <h1 class="text-primary text-4xl">{{ config('app.name', 'Apartemen Permata Hijau') }}</h1>
+        </div>
+    </header>
 
-            @if (request()->routeIs('home'))
-                <div class="flex flex-col items-center gap-1 text-center">
-                    <x-site-logo class="size-8" />
-                    <h1 class="text-primary text-4xl">{{ config('app.name', 'Apartemen Permata Hijau') }}</h1>
-                </div>
-            @endif
-
-            <ul class="flex flex-wrap gap-2 uppercase">
-                @foreach ([
+    <nav class="sticky top-0 z-30 flex w-full flex-col items-center justify-between gap-8 bg-white py-4 shadow-lg">
+        <ul class="container flex flex-wrap justify-center gap-2 uppercase">
+            @foreach ([
         'home' => 'home',
         'about' => 'about',
         'facilities' => 'facilities.index',
@@ -50,27 +46,26 @@
         'committee' => 'committee.index',
         'contact' => 'contact',
     ] as $item => $route)
-                    <li @class([
-                        'py-2 px-4',
-                        'font-bold text-white bg-primary' => request()->routeIs($route),
-                    ])>
-                        @if (Route::has($route))
-                            <a href="{{ route($route) }}">{{ $item }}</a>
-                        @else
-                            <span class="text-gray-400">{{ $item }}</span>
-                        @endif
-                    </li>
-                @endforeach
-            </ul>
-        </nav>
-    </header>
+                <li @class([
+                    'py-2 px-4',
+                    'font-bold text-white bg-primary' => request()->routeIs($route),
+                ])>
+                    @if (Route::has($route))
+                        <a href="{{ route($route) }}">{{ $item }}</a>
+                    @else
+                        <span class="text-gray-400">{{ $item }}</span>
+                    @endif
+                </li>
+            @endforeach
+        </ul>
+    </nav>
 
     {{ $slot }}
 
     <footer class="bg-primary relative">
         <div class="container flex flex-col gap-4 py-8 text-white">
             <div class="flex flex-wrap gap-6">
-                <x-site-logo class="basis-12 mix-blend-screen" />
+                <x-site-logo class="basis-12 brightness-0 invert" />
                 <p class="shrink basis-3/4">Jl. Permata Hijau No.8 Blok B, RT.008/RW.2, Grogol Utara, Kec. Kby. Lama,
                     Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12210</p>
             </div>

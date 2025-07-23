@@ -26,7 +26,9 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 
     // Modal properties
     public $showCancelModal = false;
+
     public $bookingToCancel = null;
+
     public $cancellationReason = '';
 
     public function mount()
@@ -102,7 +104,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $siteSettings = app(SiteSettings::class);
 
         // Check if cancellations are allowed globally
-        if (!$siteSettings->allow_booking_cancellations) {
+        if (! $siteSettings->allow_booking_cancellations) {
             return false;
         }
 
@@ -117,7 +119,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         }
 
         // Check cancellation hours limit
-        $bookingDateTime = Carbon::parse($booking->date->format('Y-m-d') . ' ' . $booking->start_time->format('H:i:s'));
+        $bookingDateTime = Carbon::parse($booking->date->format('Y-m-d').' '.$booking->start_time->format('H:i:s'));
         $hoursUntilBooking = Carbon::now()->diffInHours($bookingDateTime, false);
 
         return $hoursUntilBooking >= $siteSettings->cancellation_hours_limit;
@@ -127,7 +129,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     {
         $siteSettings = app(SiteSettings::class);
 
-        if (!$siteSettings->allow_booking_cancellations) {
+        if (! $siteSettings->allow_booking_cancellations) {
             return 'Booking cancellations are currently disabled.';
         }
 
@@ -139,11 +141,11 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             return 'This booking has already been cancelled.';
         }
 
-        $bookingDateTime = Carbon::parse($booking->date->format('Y-m-d') . ' ' . $booking->start_time->format('H:i:s'));
+        $bookingDateTime = $booking->date->format('Y-m-d');
         $hoursUntilBooking = Carbon::now()->diffInHours($bookingDateTime, false);
-
         if ($hoursUntilBooking < $siteSettings->cancellation_hours_limit) {
-            $hoursRemaining = $siteSettings->cancellation_hours_limit - $hoursUntilBooking;
+            return "You cannot cancel this booking as it is less than {$siteSettings->cancellation_hours_limit} hours away.";
+        } else {
             return "Cancellations must be made at least {$siteSettings->cancellation_hours_limit} hours before the booking. You have {$hoursRemaining} hours remaining.";
         }
 
@@ -154,14 +156,16 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     {
         $booking = Booking::find($bookingId);
 
-        if (!$booking || $booking->tenant_id !== $this->tenant->id) {
+        if (! $booking || $booking->tenant_id !== $this->tenant->id) {
             session()->flash('error', 'Booking not found or access denied.');
+
             return;
         }
 
-        if (!$this->canCancelBooking($booking)) {
+        if (! $this->canCancelBooking($booking)) {
             $message = $this->getCancellationMessage($booking);
             session()->flash('error', $message);
+
             return;
         }
 
@@ -178,17 +182,19 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 
     public function confirmCancellation()
     {
-        if (!$this->bookingToCancel) {
+        if (! $this->bookingToCancel) {
             session()->flash('error', 'No booking selected for cancellation.');
             $this->closeCancelModal();
+
             return;
         }
 
         // Double-check if we can still cancel this booking
-        if (!$this->canCancelBooking($this->bookingToCancel)) {
+        if (! $this->canCancelBooking($this->bookingToCancel)) {
             $message = $this->getCancellationMessage($this->bookingToCancel);
             session()->flash('error', $message);
             $this->closeCancelModal();
+
             return;
         }
 

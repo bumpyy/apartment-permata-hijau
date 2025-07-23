@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 175.216 175.552">
+<svg xmlns="http://www.w3.org/2000/svg" {{ $attributes->merge(['class' => '']) }} viewBox="0 0 175.216 175.552">
     <defs>
         <linearGradient id="b" x1="85.915" x2="86.535" y1="32.567" y2="137.092"
             gradientUnits="userSpaceOnUse">

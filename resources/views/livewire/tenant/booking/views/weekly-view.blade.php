@@ -24,15 +24,9 @@
                             !$day['is_bookable'] && !$day['is_today'] && !$day['is_past'],
                     ])>
                         <div class="flex flex-col items-center">
-                            <div @class([
-                                'font-bold',
-                                'text-sm',
-                            ])>
+                            <div @class(['font-bold', 'text-sm'])>
                                 {{ $day['day_name'] }}</div>
-                            <div @class([
-                                'font-bold',
-                                'text-2xl',
-                            ])>{{ $day['day_number'] }}</div>
+                            <div @class(['font-bold', 'text-2xl'])>{{ $day['day_number'] }}</div>
                             <div class="text-xs opacity-90">{{ $day['month_name'] }}</div>
 
                             @if ($day['is_today'])
@@ -49,7 +43,7 @@
                                 <div @class([
                                     'mt-1 rounded-full bg-green-400 px-1 py-0.5 text-xs font-bold',
                                     'text-xs',
-                                ])>{{ '🆓 FREE' }}</div>
+                                ])>{{ 'Bookable' }}</div>
                             @elseif($day['can_book_premium'])
                                 <div @class([
                                     'mt-1 rounded-full bg-purple-400 px-1 py-0.5 text-xs font-bold',
@@ -159,20 +153,18 @@
                                     @endif
                                 </div>
                             @elseif($canBook)
-                                <div @class([
-                                    'opacity-60 flex items-center justify-center',
-                                    'text-xs',
-                                ])>
-                                    @if ($slotType === 'free')
+                                <div @class(['opacity-60 flex items-center justify-center', 'text-xs'])>
+                                    Click to book
+                                    {{-- @if ($slotType === 'free')
                                         🆓 Free
                                     @else
                                         ⭐ Premium
-                                    @endif
+                                    @endif --}}
                                 </div>
                             @endif
 
                             @if ($slot['is_peak'] && $canBook)
-                                <div class="mt-1 text-xs text-orange-600">💡</div>
+                                <div class="mt-1 text-xs text-orange-600">Need light 💡</div>
                             @endif
 
                             @if ($canBook)
@@ -182,10 +174,16 @@
                                         $day['date'] . ' ' . $slot['start'],
                                     );
                                     $endTime = $slotDateTime->copy()->addHour()->format('H:i');
-                                    $crossCourtConflicts = $this->checkCrossCourtConflicts($day['date'], $slot['start'], $endTime);
+                                    $crossCourtConflicts = $this->checkCrossCourtConflicts(
+                                        $day['date'],
+                                        $slot['start'],
+                                        $endTime,
+                                    );
                                 @endphp
                                 @if (!empty($crossCourtConflicts))
-                                    <div class="mt-1 text-xs text-red-600" title="Cross-court conflict: You have bookings on other courts at this time">⚠️</div>
+                                    <div class="mt-1 text-xs text-red-600"
+                                        title="Cross-court conflict: You have bookings on other courts at this time">⚠️
+                                    </div>
                                 @endif
                             @endif
                         </td>
