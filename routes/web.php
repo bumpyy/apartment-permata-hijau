@@ -21,7 +21,7 @@ Route::prefix('news')->name('news.')->group(function () {
 });
 
 Route::get('/event', function () {
-    return view('events');
+    return view('event');
 })->name('event');
 
 Route::get('/committee', function () {

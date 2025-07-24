@@ -10,6 +10,7 @@ class CreateSiteSettings extends SettingsMigration
         $this->migrator->add('site.site_description', 'Professional court booking management system');
         $this->migrator->add('site.contact_email', 'admin@example.com');
         $this->migrator->add('site.contact_phone', '+1234567890');
+        $this->migrator->add('site.whatsapp_number', '+6281234567890');
         $this->migrator->add('site.site_url', config('app.url'));
         // Real-time polling settings
         $this->migrator->add('site.enable_realtime_polling', true);

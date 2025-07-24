@@ -605,59 +605,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         // Count days with existing bookings
         $bookedDaysCount = $existingBookings->count();
 
-        // Check if we're exceeding the 3-day limit
-        if ($selectedDates->count() + $bookedDaysCount > 3) {
-            // Check if all selected slots are for days that already have bookings
-            $allSlotsForExistingDays = true;
-
-            foreach ($selectedDates as $date) {
-                // If this date doesn't have existing bookings, we're adding a new day
-                if (! $existingBookings->has($date)) {
-                    $allSlotsForExistingDays = false;
-                    break;
-                }
-
-                // Check if the day already has 2 bookings (max quota per day)
-                $bookingsOnThisDay = $existingBookings->get($date)->count();
-                if ($bookingsOnThisDay >= 2) {
-                    $this->quotaWarning = 'Maximum 2 hours per day allowed.';
-                    $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
-
-                    return false;
-                }
-
-                // Count selected slots for this date
-                $selectedSlotsForThisDate = collect($this->selectedSlots)
-                    ->filter(function ($slot) use ($date) {
-                        return str_starts_with($slot, $date);
-                    })
-                    ->count();
-
-                // Check if total would exceed daily limit
-                if ($bookingsOnThisDay + $selectedSlotsForThisDate > 2) {
-                    $this->quotaWarning = 'Maximum 2 hours per day allowed.';
-                    $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
-
-                    return;
-                }
-            }
-
-            // If we're only adding slots to days that already have bookings
-            // AND we're not exceeding the 2-hour per day limit, allow it
-            if ($allSlotsForExistingDays) {
-                $this->quotaWarning = '';
-
-                return;
-            }
-
-            // Otherwise, we're trying to add a new day beyond the 3-day limit
-            $this->quotaWarning = 'You cannot book for more than 3 distinct days.';
-            $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
-
-            return;
-        }
-
-        // For each selected date, check if we're exceeding the 2-hour per day limit
+        // For each selected date, check daily quota first (2 hours max per day)
         foreach ($selectedDates as $date) {
             // Count existing bookings for this date
             $existingBookingsForDate = $existingBookings->has($date) ? $existingBookings->get($date)->count() : 0;
@@ -669,13 +617,31 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                 })
                 ->count();
 
-            // Check if total would exceed daily limit
+            // Check if total would exceed daily limit (2 hours per day)
             if ($existingBookingsForDate + $selectedSlotsForThisDate > 2) {
                 $this->quotaWarning = 'Maximum 2 hours per day allowed.';
                 $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
 
                 return;
             }
+        }
+
+        // Now check the 3 distinct days rule
+        // Count how many NEW distinct days we're trying to add
+        $newDaysCount = 0;
+        foreach ($selectedDates as $date) {
+            // If this date doesn't have existing bookings, it's a new day
+            if (! $existingBookings->has($date)) {
+                $newDaysCount++;
+            }
+        }
+
+        // Check if adding new days would exceed the 3-day limit
+        if ($bookedDaysCount + $newDaysCount > 3) {
+            $this->quotaWarning = 'You cannot book for more than 3 distinct days.';
+            $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
+
+            return;
         }
 
         $this->quotaWarning = ''; // Clear any previous warnings
@@ -1744,7 +1710,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 
         return true;
     }
-}; ?>
+} ?>
 
 <div>
     <!-- Header Component -->
@@ -1757,34 +1723,41 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         <!-- Booking Rules Component -->
         @include('livewire.tenant.booking.ui.booking-rules')
 
-        <!-- Login Prompt Component -->
-        @include('livewire.tenant.booking.ui.login-prompt')
+        <!-- Calendar Wrapper with Offline Overlay -->
+        <div class="relative">
+            <!-- Weekly View -->
+            @if ($viewMode === 'weekly')
+                @include('livewire.tenant.booking.views.weekly-view')
+            @endif
 
-        <!-- Quota Display Component -->
-        @include('livewire.tenant.booking.ui.quota-display')
+            <!-- Monthly View -->
+            @if ($viewMode === 'monthly')
+                @include('livewire.tenant.booking.views.monthly-view')
+            @endif
 
-        <!-- Quota Warning Component -->
-        @include('livewire.tenant.booking.ui.quota-warning')
+            <!-- Daily View -->
+            @if ($viewMode === 'daily')
+                @include('livewire.tenant.booking.views.daily-view')
+            @endif
 
-        <!-- Real-time Status Component -->
-        @include('livewire.tenant.booking.ui.real-time-status')
-
-
-
-        <!-- Weekly View -->
-        @if ($viewMode === 'weekly')
-            @include('livewire.tenant.booking.views.weekly-view')
-        @endif
-
-        <!-- Monthly View -->
-        @if ($viewMode === 'monthly')
-            @include('livewire.tenant.booking.views.monthly-view')
-        @endif
-
-        <!-- Daily View -->
-        @if ($viewMode === 'daily')
-            @include('livewire.tenant.booking.views.daily-view')
-        @endif
+            <!-- Offline Overlay on Calendar -->
+            <div
+                wire:offline
+                id="offline-calendar-overlay"
+                class="absolute inset-0 z-10 min-h-[300px] w-full bg-white/80 backdrop-blur-sm rounded-lg shadow-lg transition-opacity duration-300 pointer-events-auto"
+                role="alertdialog" aria-live="assertive"
+            >
+                <div class="size-full flex items-center justify-center">
+                    <div class="flex flex-col items-center justify-center w-full max-w-md p-6">
+                        <x-lucide-wifi-off id="offline-icon" class="w-14 h-14 text-red-500 mb-4" />
+                        <div class="text-2xl font-bold text-red-600 mb-2">You are offline</div>
+                        <div class="text-gray-700 mb-4 text-center">Calendar is unavailable while offline.<br>Please check your internet connection.</div>
+                        <button class="px-4 py-2 bg-gray-400 text-white rounded cursor-not-allowed" disabled>Booking Unavailable</button>
+                        <div class="mt-2 text-xs text-gray-500 text-center">The calendar will automatically refresh when you’re back online.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
         <!-- Selection Summary Component -->
@@ -1794,7 +1767,9 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         @include('livewire.tenant.booking.ui.legend')
 
         <!-- Confirm Button Component -->
-        @include('livewire.tenant.booking.ui.confirm-button')
+        <div wire:offline.class="pointer-events-none opacity-50">
+            @include('livewire.tenant.booking.ui.confirm-button')
+        </div>
     </div>
 
     <!-- Time Selector Modal -->
@@ -1914,6 +1889,34 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             } else if (isPollingEnabled) {
                 startPolling();
             }
+        });
+
+        // Animate the offline overlay and icon if anime.js is available
+        document.addEventListener('livewire:offline', () => {
+            const overlay = document.getElementById('offline-calendar-overlay');
+            if (overlay && window.anime && window.anime.animate) {
+                window.anime.animate(overlay, {
+                    opacity: [0, 1],
+                    duration: 500,
+                    easing: 'easeOutQuad',
+                });
+                const icon = document.getElementById('offline-icon');
+                if (icon) {
+                    window.anime.animate(icon, {
+                        scale: [0.8, 1.1, 1],
+                        duration: 900,
+                        direction: 'alternate',
+                        loop: 2,
+                        easing: 'easeInOutSine',
+                    });
+                }
+            } else if (overlay) {
+                overlay.style.opacity = 1;
+            }
+        });
+        document.addEventListener('livewire:online', () => {
+            const overlay = document.getElementById('offline-calendar-overlay');
+            if (overlay) overlay.style.opacity = 0;
         });
     </script>
 @endscript

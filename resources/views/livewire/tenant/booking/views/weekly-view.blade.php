@@ -88,6 +88,8 @@
                             );
                             $isPastSlot = $slotDateTime->isPast();
                             $canBook = $day['is_bookable'] && !$isPastSlot && !$isBooked && !$isPreliminary;
+                            $canBookFree = $day['can_book_free'] && !$isPastSlot && !$isBooked && !$isPreliminary;
+                            $canBookPremium = $day['can_book_premium'] && !$isPastSlot && !$isBooked && !$isPreliminary;
 
                             // $showBookingInfo = ($isPastSlot || !$day['is_bookable']) && ($isBooked || $isPreliminary);
                             $showBookingInfo = false;
@@ -110,7 +112,7 @@
                             'hover:bg-purple-50 hover:shadow-md transform hover:scale-105 cursor-pointer' =>
                                 $canBook && $slotType === 'premium' && !$isSelected,
                         ])
-                            @if ($canBook) wire:click="toggleTimeSlot('{{ $slotKey }}')" @endif
+                            @if ($canBookFree) wire:click="toggleTimeSlot('{{ $slotKey }}')" @endif
                             @if ($showBookingInfo) title="@if ($isBooked)Booked by: {{ $bookedSlot['tenant_name'] ?? 'Unknown' }}
                             @else Pending booking @endif"
                         @else
@@ -152,22 +154,26 @@
                                         Pending
                                     @endif
                                 </div>
-                            @elseif($canBook)
-                                <div @class(['opacity-60 flex items-center justify-center', 'text-xs'])>
+                            @elseif($canBookFree)
+                                <div @class(['opacity-60 flex items-center justify-center text-xs'])>
                                     Click to book
-                                    {{-- @if ($slotType === 'free')
-                                        🆓 Free
-                                    @else
-                                        ⭐ Premium
-                                    @endif --}}
                                 </div>
+                            @elseif($canBookPremium)
+                                @php
+                                    $siteSettings = app(\App\Settings\SiteSettings::class);
+                                    $whatsappNumber = preg_replace('/[^0-9]/', '', $siteSettings->whatsapp_number);
+                                @endphp
+                                <a class="flex size-full items-center justify-center text-xs opacity-60"
+                                    href="https://wa.me/{{ $whatsappNumber }}" target="_blank">
+                                    Chat to book
+                                </a>
                             @endif
 
-                            @if ($slot['is_peak'] && $canBook)
+                            @if ($slot['is_peak'] && $canBookFree)
                                 <div class="mt-1 text-xs text-orange-600">Need light 💡</div>
                             @endif
 
-                            @if ($canBook)
+                            @if ($canBookFree)
                                 @php
                                     $slotDateTime = \Carbon\Carbon::createFromFormat(
                                         'Y-m-d H:i',

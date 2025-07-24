@@ -108,8 +108,18 @@
                     <div class="text-xs">✓ Selected
                     </div>
                 @elseif($canBook)
-                    <div class="text-xs">{{ $slotType === 'free' ? '🆓' : '⭐' }} {{ $slotType === 'free' ? ' Free' : ' Premium' }}
-                    </div>
+                    @php
+                        $siteSettings = app(\App\Settings\SiteSettings::class);
+                        $whatsappNumber = preg_replace('/[^0-9]/', '', $siteSettings->whatsapp_number);
+                    @endphp
+                    @if($canBook && $slotType === 'premium' && !$isSelected)
+                        <a class="block w-full h-full flex flex-col items-center justify-center text-xs opacity-60"
+                            href="https://wa.me/{{ $whatsappNumber }}" target="_blank">
+                            Chat to book
+                        </a>
+                    @elseif($canBook && $slotType === 'free' && !$isSelected)
+                        <div class="text-xs">🆓 Free</div>
+                    @endif
                     @if ($slot['is_peak'])
                         <div class="text-xs text-orange-600">💡 Lights required</div>
                     @endif

@@ -651,11 +651,15 @@ class extends Component
             'addForm.time_slot' => 'required',
         ]);
 
-        // Additional validation for past dates and times
+        $tenant = \App\Models\Tenant::find($this->addForm['tenant_id']);
+        if (! $tenant) {
+            $this->addError = 'Invalid tenant.';
+            return;
+        }
+
         $bookingDate = \Carbon\Carbon::parse($this->addForm['date']);
         if ($bookingDate->isPast()) {
             $this->addError = 'Cannot book on a past date.';
-
             return;
         }
         [$start, $end] = explode('-', $this->addForm['time_slot']);
@@ -668,7 +672,6 @@ class extends Component
         if ($exists) {
             $this->addError = 'Selected time slot is already booked.';
             $this->updateAvailableTimeSlots();
-
             return;
         }
 
@@ -683,15 +686,12 @@ class extends Component
                     $end,
                     $this->addForm['court_id']
                 );
-
                 if (! empty($crossCourtConflicts)) {
                     $conflictDetails = collect($crossCourtConflicts)->map(function ($conflict) {
                         return "{$conflict['court_name']} at {$conflict['start_time']}-{$conflict['end_time']} (Ref: #{$conflict['booking_reference']})";
                     })->implode(', ');
-
                     $this->addError = "Cross-court conflict detected. Tenant already has bookings: {$conflictDetails}";
                     $this->updateAvailableTimeSlots();
-
                     return;
                 }
             }
@@ -702,14 +702,47 @@ class extends Component
         if ($this->addForm['date'] === now()->format('Y-m-d') && $start <= now()->format('H:i')) {
             $this->addError = 'Cannot book a past time slot.';
             $this->updateAvailableTimeSlots();
-
             return;
         }
 
         // Determine booking type
-        $bookingDate = \Carbon\Carbon::parse($this->addForm['date']);
         $bookingType = $this->getDateBookingType($bookingDate);
-
+        if ($bookingType === 'none') {
+            $this->addError = 'Booking is not allowed for this date.';
+            return;
+        }
+        // Check if premium booking is open if type is premium
+        if ($bookingType === 'premium' && ! $this->isPremiumBookingOpen()) {
+            $this->addError = 'Premium booking is not open yet.';
+            return;
+        }
+        // Enforce tenant quota rules
+        $quotaCheck = $tenant->canMakeSpecificTypeBooking($this->addForm['date'], $bookingType, 1);
+        if (! $quotaCheck['can_book']) {
+            $this->addError = $quotaCheck['reason'] ?? 'Tenant quota exceeded.';
+            return;
+        }
+        // Enforce max 2 slots per day
+        $existingBookingsForDate = \App\Models\Booking::where('tenant_id', $tenant->id)
+            ->where('date', $this->addForm['date'])
+            ->where('status', '!=', 'cancelled')
+            ->count();
+        if ($existingBookingsForDate >= 2) {
+            $this->addError = 'Maximum 2 hours per day allowed for this tenant.';
+            return;
+        }
+        // Enforce max 3 distinct days per week
+        $weekStart = $bookingDate->copy()->startOfWeek()->format('Y-m-d');
+        $distinctDays = \App\Models\Booking::where('tenant_id', $tenant->id)
+            ->where('booking_week_start', $weekStart)
+            ->where('status', '!=', 'cancelled')
+            ->distinct('date')
+            ->count('date');
+        if ($distinctDays >= 3 && !\App\Models\Booking::where('tenant_id', $tenant->id)->where('date', $this->addForm['date'])->exists()) {
+            $this->addError = 'Tenant cannot book for more than 3 distinct days in a week.';
+            return;
+        }
+        // Proceed with booking
         $booking = \App\Models\Booking::create([
             'tenant_id' => $this->addForm['tenant_id'],
             'court_id' => $this->addForm['court_id'],
@@ -785,20 +818,20 @@ class extends Component
             'panelAddForm.end_time' => 'required',
         ]);
 
-        // Additional validation for past dates and times
+        $tenant = \App\Models\Tenant::find($this->panelAddForm['tenant_id']);
+        if (! $tenant) {
+            $this->panelAddError = 'Invalid tenant.';
+            return;
+        }
         $bookingDate = \Carbon\Carbon::parse($this->panelAddForm['date']);
         if ($bookingDate->isPast()) {
             $this->panelAddError = 'Cannot book on a past date.';
-
             return;
         }
-
         if ($bookingDate->isToday() && $this->panelAddForm['start_time'] <= now()->format('H:i')) {
             $this->panelAddError = 'Cannot book a past time slot for today.';
-
             return;
         }
-        // Check again for slot conflict
         $exists = \App\Models\Booking::where('court_id', $this->panelAddForm['court_id'])
             ->where('date', $this->panelAddForm['date'])
             ->where('start_time', $this->panelAddForm['start_time'])
@@ -806,10 +839,8 @@ class extends Component
             ->exists();
         if ($exists) {
             $this->panelAddError = 'Selected court and time slot is already booked.';
-
             return;
         }
-
         // Check for cross-court conflicts if enabled
         try {
             $siteSettings = app(\App\Settings\SiteSettings::class);
@@ -821,31 +852,54 @@ class extends Component
                     $this->panelAddForm['end_time'],
                     $this->panelAddForm['court_id']
                 );
-
                 if (! empty($crossCourtConflicts)) {
                     $conflictDetails = collect($crossCourtConflicts)->map(function ($conflict) {
                         return "{$conflict['court_name']} at {$conflict['start_time']}-{$conflict['end_time']} (Ref: #{$conflict['booking_reference']})";
                     })->implode(', ');
-
                     $this->panelAddError = "Cross-court conflict detected. Tenant already has bookings: {$conflictDetails}";
-
                     return;
                 }
             }
         } catch (\Exception $e) {
             // If settings are not available, continue without cross-court conflict detection
         }
-        // Prevent booking in the past
         if ($this->panelAddForm['date'] === now()->format('Y-m-d') && $this->panelAddForm['start_time'] <= now()->format('H:i')) {
             $this->panelAddError = 'Cannot book a past time slot.';
-
             return;
         }
-
         // Determine booking type
-        $bookingDate = \Carbon\Carbon::parse($this->panelAddForm['date']);
         $bookingType = $this->getDateBookingType($bookingDate);
-
+        if ($bookingType === 'none') {
+            $this->panelAddError = 'Booking is not allowed for this date.';
+            return;
+        }
+        if ($bookingType === 'premium' && ! $this->isPremiumBookingOpen()) {
+            $this->panelAddError = 'Premium booking is not open yet.';
+            return;
+        }
+        $quotaCheck = $tenant->canMakeSpecificTypeBooking($this->panelAddForm['date'], $bookingType, 1);
+        if (! $quotaCheck['can_book']) {
+            $this->panelAddError = $quotaCheck['reason'] ?? 'Tenant quota exceeded.';
+            return;
+        }
+        $existingBookingsForDate = \App\Models\Booking::where('tenant_id', $tenant->id)
+            ->where('date', $this->panelAddForm['date'])
+            ->where('status', '!=', 'cancelled')
+            ->count();
+        if ($existingBookingsForDate >= 2) {
+            $this->panelAddError = 'Maximum 2 hours per day allowed for this tenant.';
+            return;
+        }
+        $weekStart = $bookingDate->copy()->startOfWeek()->format('Y-m-d');
+        $distinctDays = \App\Models\Booking::where('tenant_id', $tenant->id)
+            ->where('booking_week_start', $weekStart)
+            ->where('status', '!=', 'cancelled')
+            ->distinct('date')
+            ->count('date');
+        if ($distinctDays >= 3 && !\App\Models\Booking::where('tenant_id', $tenant->id)->where('date', $this->panelAddForm['date'])->exists()) {
+            $this->panelAddError = 'Tenant cannot book for more than 3 distinct days in a week.';
+            return;
+        }
         $booking = \App\Models\Booking::create([
             'tenant_id' => $this->panelAddForm['tenant_id'],
             'court_id' => $this->panelAddForm['court_id'],

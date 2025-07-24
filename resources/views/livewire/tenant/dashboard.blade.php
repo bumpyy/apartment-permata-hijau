@@ -14,9 +14,9 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 {
     public $tenant;
 
-    public $upcomingBookings = [];
+    public $upcomingBookings;
 
-    public $pastBookings = [];
+    public $pastBookings;
 
     public $quotaInfo = [];
 
@@ -146,7 +146,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         if ($hoursUntilBooking < $siteSettings->cancellation_hours_limit) {
             return "You cannot cancel this booking as it is less than {$siteSettings->cancellation_hours_limit} hours away.";
         } else {
-            return "Cancellations must be made at least {$siteSettings->cancellation_hours_limit} hours before the booking. You have {$hoursRemaining} hours remaining.";
+            return "Cancellations must be made at least {$siteSettings->cancellation_hours_limit} hours before the booking. You have {$hoursUntilBooking} hours remaining.";
         }
 
         return null; // Can cancel
@@ -622,12 +622,18 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                     </div>
 
                     <div class="flex items-center space-x-2">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                            @if($bookingToCancel->booking_type === 'free') bg-blue-100 text-blue-800 @else bg-purple-100 text-purple-800 @endif">
+                        <span @class([
+                            'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
+                            'bg-blue-100 text-blue-800' => $bookingToCancel->booking_type === 'free',
+                            'bg-purple-100 text-purple-800' => $bookingToCancel->booking_type !== 'free',
+                        ])>
                             @if($bookingToCancel->booking_type === 'free') 🆓 Free @else ⭐ Premium @endif
                         </span>
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                            @if($bookingToCancel->status === BookingStatusEnum::CONFIRMED) bg-green-100 text-green-800 @else bg-orange-100 text-orange-800 @endif">
+                        <span @class([
+                            'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
+                            'bg-green-100 text-green-800' => $bookingToCancel->status === BookingStatusEnum::CONFIRMED,
+                            'bg-orange-100 text-orange-800' => $bookingToCancel->status !== BookingStatusEnum::CONFIRMED,
+                        ])>
                             @if($bookingToCancel->status === BookingStatusEnum::CONFIRMED) ✅ Confirmed @else ⏳ Pending @endif
                         </span>
                     </div>

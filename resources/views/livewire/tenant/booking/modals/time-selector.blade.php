@@ -87,8 +87,18 @@
                                 <div class="text-xs">✓ Selected
                                 </div>
                             @elseif($timeSlot['is_available'])
-                                <div class="text-xs">{{ $timeSlot['slot_type'] === 'free' ? '🆓' : '⭐' }} {{ $timeSlot['slot_type'] === 'free' ? ' Free' : ' Premium' }}
-                                </div>
+                                @php
+                                    $siteSettings = app(\App\Settings\SiteSettings::class);
+                                    $whatsappNumber = preg_replace('/[^0-9]/', '', $siteSettings->whatsapp_number);
+                                @endphp
+                                @if ($timeSlot['is_available'] && $timeSlot['slot_type'] === 'premium' && !$timeSlot['is_selected'])
+                                    <a class="block w-full h-full flex flex-col items-center justify-center text-xs opacity-60"
+                                        href="https://wa.me/{{ $whatsappNumber }}" target="_blank">
+                                        Chat to book
+                                    </a>
+                                @elseif ($timeSlot['is_available'] && $timeSlot['slot_type'] === 'free' && !$timeSlot['is_selected'])
+                                    <div class="text-xs">🆓 Free</div>
+                                @endif
                                 @if ($timeSlot['is_peak'])
                                     <div class="text-xs text-orange-600">💡 Lights required</div>
                                 @endif

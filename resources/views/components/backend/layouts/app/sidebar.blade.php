@@ -3,7 +3,6 @@
 
 <head>
     @include('partials.head')
-    @vite(['resources/js/editor.js'])
 </head>
 
 <body class="min-h-screen bg-white dark:bg-zinc-800">

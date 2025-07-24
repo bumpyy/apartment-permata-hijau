@@ -15,6 +15,8 @@ class SiteSettings extends Settings
 
     public string $contact_phone;
 
+    public string $whatsapp_number;
+
     public string $site_url;
 
     // === REAL-TIME POLLING SETTINGS ===
@@ -113,6 +115,7 @@ class SiteSettings extends Settings
             'site_description' => 'Professional court booking management system',
             'contact_email' => 'admin@example.com',
             'contact_phone' => '+1234567890',
+            'whatsapp_number' => '+6281234567890',
             'site_url' => config('app.url'),
 
             // Real-time Polling Settings
