@@ -7,8 +7,13 @@
 
         <!-- Calendar days -->
         @foreach ($monthDays as $day)
-            <div class="relative aspect-square border-b border-r border-gray-200 bg-white p-1 transition-all duration-200 hover:bg-gray-50"
-                @if ($day['is_bookable'] && $day['is_current_month']) wire:click="showTimesForDate('{{ $day['date'] }}')" @endif>
+            <div @class([
+                'relative aspect-square border-b border-r border-gray-200 p-1 transition-all duration-200 hover:bg-gray-50',
+                'bg-purple-100' => $day['can_book_premium'],
+                'bg-blue-100' => $day['can_book_free'],
+                'bg-white' => !$day['is_bookable'],
+            ])
+                @if ($day['can_book_free'] && $day['is_current_month']) wire:click="showTimesForDate('{{ $day['date'] }}')" @endif>
                 <div class="flex h-full flex-col">
                     <div class="flex items-start justify-between">
                         <div class="font-medium text-blue-600">
@@ -40,15 +45,6 @@
                         </div>
                     @elseif($day['is_bookable'] && $day['is_current_month'])
                         <div class="mt-1 flex-1 space-y-1">
-
-                            {{-- @if ($day['can_book_free'])
-                                <div class="rounded bg-green-100 px-1 py-0.5 text-xs text-green-700">🆓</div>
-                            @endif
-
-                            @if ($day['can_book_premium'])
-                                <div class="rounded bg-purple-100 px-1 py-0.5 text-xs text-purple-700">⭐</div>
-                            @endif --}}
-
                             <!-- Booking counts at bottom -->
                             @if ($day['booked_count'] > 0 || $day['pending_count'] > 0 || $day['selected_count'] > 0 || $day['available_count'] < 14)
                                 <div class="mt-auto text-xs text-gray-600">
