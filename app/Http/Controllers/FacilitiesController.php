@@ -6,10 +6,15 @@ use App\Models\Court;
 
 class FacilitiesController extends Controller
 {
-    public function __invoke()
+    public function index()
+    {
+        return view('facilities');
+    }
+
+    public function tennis()
     {
         $courts = Court::all();
 
-        return view('facilities', compact('courts'));
+        return view('facilities.tennis', compact('courts'));
     }
 }

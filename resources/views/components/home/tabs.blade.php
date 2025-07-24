@@ -32,11 +32,11 @@
             $tabs = ['Tennis', 'Basketball', 'Swimming Pool', 'Table Tennis', 'Mini Golf', 'BBQ'];
             $routes = [
                 'Tennis' => 'facilities.index',
-                'Basketball' => '',
-                'Swimming Pool' => '',
-                'Table Tennis' => '',
-                'Mini Golf' => '',
-                'BBQ' => '',
+                'Basketball' => 'facilities.index',
+                'Swimming Pool' => 'facilities.index',
+                'Table Tennis' => 'facilities.index',
+                'Mini Golf' => 'facilities.index',
+                'BBQ' => 'facilities.index',
             ];
         @endphp
 

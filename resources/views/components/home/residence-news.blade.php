@@ -16,36 +16,22 @@
             <ul class="glide__slides">
                 @foreach ($data as $item)
                     <li class="glide__slide">
-                        <article
-                            class="relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-gray-400 px-8 pb-8 pt-80 sm:pt-48 lg:pt-80">
-                            <img class="absolute inset-0 -z-10 size-full object-cover" src="{{ $item['image'] }}"
-                                alt="">
-                            <div class="bg-linear-to-t absolute inset-0 -z-10 from-gray-900 via-gray-900/40"></div>
-                            <div class="absolute inset-0 -z-10 rounded-2xl ring-1 ring-inset ring-gray-900/10"></div>
-                            <div class="flex flex-wrap items-center gap-y-1 overflow-hidden text-sm/6 text-gray-300">
-                                <time class="mr-8" datetime="{{ $item['date'] }}">{{ $item['date'] }}</time>
-                            </div>
-                            <h3 class="mt-3 text-lg/6 font-semibold text-white">
-                                <a href="#">
-                                    <span class="absolute inset-0"></span>
-                                    {{ $item['title'] }}
-                                </a>
-                            </h3>
-                        </article>
+                        <x-news-card :image="$item['image']" :title="$item['title']" :date="$item['date']"
+                            excerpt="Lorem ipsum dolor sit amet, consectetur adipiscing elit." />
                     </li>
                 @endforeach
             </ul>
         </div>
 
         <div class="glide__arrows" data-glide-el="controls">
-            <button class="glide__arrow glide__arrow--left rounded-full border-none bg-white shadow-none sm:left-0"
+            <button class="glide__arrow glide__arrow--left rounded-full border-none shadow-none sm:left-0"
                 data-glide-dir="<">
-                <x-lucide-chevron-left class="size-8 text-black" />
+                <x-lucide-chevron-left class="size-8 rounded-full bg-white p-1 text-black" />
             </button>
 
-            <button class="glide__arrow glide__arrow--right rounded-full border-none bg-white shadow-none sm:right-0"
+            <button class="glide__arrow glide__arrow--right rounded-full border-none shadow-none sm:right-0"
                 data-glide-dir=">">
-                <x-lucide-chevron-right class="size-8 text-black" />
+                <x-lucide-chevron-right class="size-8 rounded-full bg-white p-1 text-black" />
             </button>
         </div>
     </div>

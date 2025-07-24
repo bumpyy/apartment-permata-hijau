@@ -2,6 +2,7 @@
 
 use App\Enum\BookingStatusEnum;
 use App\Models\Booking;
+use App\Models\Court;
 use App\Settings\PremiumSettings;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -10,7 +11,8 @@ use Livewire\Attributes\Polling;
 use Livewire\Attributes\Reactive;
 use Livewire\Volt\Component;
 
-new #[Layout('components.frontend.layouts.app')] class extends Component {
+new #[Layout('components.frontend.layouts.app')] class extends Component
+{
     // === CORE PROPERTIES ===
     public $courtNumber; // Which court we're booking (e.g., Court 2)
 
@@ -139,8 +141,13 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
      */
     public function mount(PremiumSettings $premiumSettings)
     {
+
         // Set default court (hardcoded to Court 2 for now)
         $this->courtNumber = request()->route('id');
+
+        if (! $this->courtNumber || ! Court::find($this->courtNumber)) {
+            return redirect()->route('facilities.tennis');
+        }
 
         // Initialize dates to today
         $this->selectedDate = now()->format('Y-m-d');
@@ -190,7 +197,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
     public function getQuotaInfo()
     {
         // If not logged in, return empty quota
-        if (!$this->isLoggedIn) {
+        if (! $this->isLoggedIn) {
             return ['weekly_remaining' => 0, 'weekly_used' => 0, 'weekly_total' => 3];
         }
 
@@ -221,7 +228,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
     public function getCurrentViewTitleProperty()
     {
         return match ($this->viewMode) {
-            'weekly' => $this->currentWeekStart->format('M j') . ' - ' . $this->currentWeekStart->copy()->addDays(6)->format('M j, Y'),
+            'weekly' => $this->currentWeekStart->format('M j').' - '.$this->currentWeekStart->copy()->addDays(6)->format('M j, Y'),
             'monthly' => $this->currentMonthStart->format('F Y'),
             'daily' => $this->currentDate->format('l, F j, Y'),
             default => $this->currentDate->format('l, F j, Y'),
@@ -265,14 +272,14 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
      */
     public function loadCrossCourtBookings()
     {
-        if (!$this->isLoggedIn || $this->crossCourtBookingsLoaded) {
+        if (! $this->isLoggedIn || $this->crossCourtBookingsLoaded) {
             return;
         }
 
         // Check if cross-court conflict detection is enabled
         try {
             $siteSettings = app(\App\Settings\SiteSettings::class);
-            if (!$siteSettings->isCrossCourtConflictDetectionEnabled()) {
+            if (! $siteSettings->isCrossCourtConflictDetectionEnabled()) {
                 $this->crossCourtBookings = [];
                 $this->crossCourtBookingsLoaded = true;
 
@@ -303,7 +310,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
             $startTime = $booking->start_time->format('H:i');
             $endTime = $booking->end_time->format('H:i');
 
-            if (!isset($this->crossCourtBookings[$date])) {
+            if (! isset($this->crossCourtBookings[$date])) {
                 $this->crossCourtBookings[$date] = [];
             }
 
@@ -328,11 +335,11 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
     public function loadBookedSlots()
     {
         // Use cache key based on court, view mode, and date range
-        $cacheKey = "booked_slots_{$this->courtNumber}_{$this->viewMode}_" . ($this->viewMode === 'weekly' ? $this->currentWeekStart->format('Y-m-d') : $this->currentMonthStart->format('Y-m'));
+        $cacheKey = "booked_slots_{$this->courtNumber}_{$this->viewMode}_".($this->viewMode === 'weekly' ? $this->currentWeekStart->format('Y-m-d') : $this->currentMonthStart->format('Y-m'));
 
         // Try to get from cache first
         $cachedData = cache()->get($cacheKey);
-        if ($cachedData && !$this->isRefreshing) {
+        if ($cachedData && ! $this->isRefreshing) {
             $this->bookedSlots = $cachedData['booked'] ?? [];
             $this->preliminaryBookedSlots = $cachedData['pending'] ?? [];
             // Also load cross-court bookings when loading from cache
@@ -359,7 +366,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
         // Process each booking
         foreach ($bookings as $booking) {
             // Create slot key in format "YYYY-MM-DD-HH:MM"
-            $slotKey = $booking->date->format('Y-m-d') . '-' . $booking->start_time->format('H:i');
+            $slotKey = $booking->date->format('Y-m-d').'-'.$booking->start_time->format('H:i');
 
             // Create slot data with tenant info
             $slotData = [
@@ -441,15 +448,15 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
         // Generate time slots
         while ($startTime <= $endTime) {
             $time = $startTime->format('H:i');
-            $slotKey = $targetDate->format('Y-m-d') . '-' . $time;
+            $slotKey = $targetDate->format('Y-m-d').'-'.$time;
             $slotType = $this->getSlotType($slotKey);
             $isBooked = in_array($time, $bookedSlotsForDate);
             $isSelected = in_array($slotKey, $this->selectedSlots);
             $isPast = $startTime->copy()->setDateFrom($targetDate)->isPast();
 
             // For daily view (simple array of available times)
-            if (!$date) {
-                if (!$isBooked) {
+            if (! $date) {
+                if (! $isBooked) {
                     $this->availableTimes[] = $time;
                 }
             }
@@ -460,7 +467,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
                 'end_time' => $startTime->copy()->addHour()->format('H:i'),
                 'slot_key' => $slotKey,
                 'slot_type' => $slotType,
-                'is_available' => !$isBooked && !$isPast && $this->canBookSlot($targetDate),
+                'is_available' => ! $isBooked && ! $isPast && $this->canBookSlot($targetDate),
                 'is_booked' => $isBooked,
                 'is_selected' => $isSelected,
                 'is_past' => $isPast,
@@ -489,7 +496,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
                 // ADD SLOT: Check quotas first
                 $parts = explode('-', $slotKey);
                 if (count($parts) >= 3) {
-                    $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
+                    $date = $parts[0].'-'.$parts[1].'-'.$parts[2];
 
                     // Count currently selected slots for this date
                     $dailySlots = array_filter($this->selectedSlots, function ($slot) use ($date) {
@@ -517,8 +524,8 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
                         // Check if slot is already booked by someone else
                         $parts = explode('-', $slotKey);
                         if (count($parts) >= 4) {
-                            $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
-                            $startTime = count($parts) == 4 ? $parts[3] : $parts[3] . ':' . $parts[4];
+                            $date = $parts[0].'-'.$parts[1].'-'.$parts[2];
+                            $startTime = count($parts) == 4 ? $parts[3] : $parts[3].':'.$parts[4];
                             $endTime = Carbon::createFromFormat('H:i', $startTime)->addHour()->format('H:i');
 
                             if ($this->isSlotAlreadyBooked($date, $startTime)) {
@@ -534,7 +541,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
 
                             // Check for cross-court conflicts
                             $crossCourtConflicts = $this->checkCrossCourtConflicts($date, $startTime, $endTime);
-                            if (!empty($crossCourtConflicts)) {
+                            if (! empty($crossCourtConflicts)) {
                                 $this->crossCourtConflictDetails = $crossCourtConflicts;
                                 $this->showCrossCourtConflictModal = true;
 
@@ -577,7 +584,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
     public function validateSelections()
     {
         // If not logged in, no validation needed
-        if (!$this->isLoggedIn) {
+        if (! $this->isLoggedIn) {
             return;
         }
 
@@ -588,7 +595,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
             ->map(function ($slot) {
                 $parts = explode('-', $slot);
 
-                return $parts[0] . '-' . $parts[1] . '-' . $parts[2];
+                return $parts[0].'-'.$parts[1].'-'.$parts[2];
             })
             ->unique();
 
@@ -605,7 +612,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
 
             foreach ($selectedDates as $date) {
                 // If this date doesn't have existing bookings, we're adding a new day
-                if (!$existingBookings->has($date)) {
+                if (! $existingBookings->has($date)) {
                     $allSlotsForExistingDays = false;
                     break;
                 }
@@ -681,7 +688,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
     public function confirmBooking()
     {
         // Check if user is logged in
-        if (!$this->isLoggedIn) {
+        if (! $this->isLoggedIn) {
             $this->showLoginReminder = true;
 
             return;
@@ -691,7 +698,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
         $this->validateSelections();
 
         // Don't proceed if there are quota violations
-        if (!empty($this->quotaWarning)) {
+        if (! empty($this->quotaWarning)) {
             return;
         }
 
@@ -701,7 +708,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
         }
 
         // Check for booking conflicts before showing confirmation
-        if (!$this->validateSlotsStillAvailable()) {
+        if (! $this->validateSlotsStillAvailable()) {
             // Conflicts were found and slots were removed, don't show confirmation
             return;
         }
@@ -711,8 +718,8 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
         foreach ($this->selectedSlots as $slot) {
             $parts = explode('-', $slot);
             if (count($parts) >= 4) {
-                $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
-                $startTime = count($parts) == 4 ? $parts[3] : $parts[3] . ':' . $parts[4];
+                $date = $parts[0].'-'.$parts[1].'-'.$parts[2];
+                $startTime = count($parts) == 4 ? $parts[3] : $parts[3].':'.$parts[4];
                 $bookingDate = Carbon::parse($date);
                 $slotType = $this->getDateBookingType($bookingDate);
 
@@ -747,7 +754,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
         $tenant = auth('tenant')->user();
 
         // Final validation: Check if slots are still available before processing
-        if (!$this->validateSlotsStillAvailable()) {
+        if (! $this->validateSlotsStillAvailable()) {
             // If there are conflicts, close the confirmation modal and show the warning
             $this->showConfirmModal = false;
 
@@ -776,7 +783,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
                 $booking = Booking::create([...$slot, 'tenant_id' => $tenant->id, 'booking_reference' => $this->bookingReference]);
             } catch (\Exception $e) {
                 // Log detailed error information for debugging
-                Log::error('Booking creation failed: ' . $e->getMessage(), [
+                Log::error('Booking creation failed: '.$e->getMessage(), [
                     'slot' => $slot,
                     'tenant_id' => $tenant->id,
                     'court_id' => $this->courtNumber,
@@ -1040,7 +1047,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
     {
         $parts = explode('-', $slotKey);
         if (count($parts) >= 3) {
-            $date = Carbon::createFromFormat('Y-m-d', $parts[0] . '-' . $parts[1] . '-' . $parts[2]);
+            $date = Carbon::createFromFormat('Y-m-d', $parts[0].'-'.$parts[1].'-'.$parts[2]);
 
             return $this->getDateBookingType($date);
         }
@@ -1285,7 +1292,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
             $this->calendarWeeks[] = [
                 'week_start' => $current->format('Y-m-d'),
                 'week_number' => $weekNumber,
-                'formatted_range' => $current->format('M j') . ' - ' . $weekEnd->format('M j'),
+                'formatted_range' => $current->format('M j').' - '.$weekEnd->format('M j'),
                 'is_current_week' => now()->between($current, $weekEnd),
                 'is_past_week' => $weekEnd->isPast(),
                 'can_book_free' => $this->canBookFree($current),
@@ -1556,11 +1563,11 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
     public function notifyNewBookings($previousBookedSlots, $previousPreliminarySlots)
     {
         $newBookings = collect($this->bookedSlots)->filter(function ($slot) use ($previousBookedSlots) {
-            return !collect($previousBookedSlots)->contains('key', $slot['key']);
+            return ! collect($previousBookedSlots)->contains('key', $slot['key']);
         });
 
         $newPreliminaryBookings = collect($this->preliminaryBookedSlots)->filter(function ($slot) use ($previousPreliminarySlots) {
-            return !collect($previousPreliminarySlots)->contains('key', $slot['key']);
+            return ! collect($previousPreliminarySlots)->contains('key', $slot['key']);
         });
 
         $totalNewBookings = $newBookings->count() + $newPreliminaryBookings->count();
@@ -1580,7 +1587,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
         $months = [$this->currentMonthStart->copy()->subMonth(), $this->currentMonthStart, $this->currentMonthStart->copy()->addMonth()];
 
         foreach ($months as $month) {
-            $cacheKey = "booked_slots_{$this->courtNumber}_monthly_" . $month->format('Y-m');
+            $cacheKey = "booked_slots_{$this->courtNumber}_monthly_".$month->format('Y-m');
             cache()->forget($cacheKey);
         }
 
@@ -1588,7 +1595,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
         $weeks = [$this->currentWeekStart->copy()->subWeek(), $this->currentWeekStart, $this->currentWeekStart->copy()->addWeek()];
 
         foreach ($weeks as $week) {
-            $cacheKey = "booked_slots_{$this->courtNumber}_weekly_" . $week->format('Y-m-d');
+            $cacheKey = "booked_slots_{$this->courtNumber}_weekly_".$week->format('Y-m-d');
             cache()->forget($cacheKey);
         }
     }
@@ -1618,19 +1625,19 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
      */
     public function checkCrossCourtConflicts($date, $startTime, $endTime)
     {
-        if (!$this->isLoggedIn) {
+        if (! $this->isLoggedIn) {
             return [];
         }
 
         // Load cross-court bookings if not already loaded
-        if (!$this->crossCourtBookingsLoaded) {
+        if (! $this->crossCourtBookingsLoaded) {
             $this->loadCrossCourtBookings();
         }
 
         // Check if cross-court conflict detection is enabled
         try {
             $siteSettings = app(\App\Settings\SiteSettings::class);
-            if (!$siteSettings->isCrossCourtConflictDetectionEnabled()) {
+            if (! $siteSettings->isCrossCourtConflictDetectionEnabled()) {
                 return [];
             }
         } catch (\Exception $e) {
@@ -1680,8 +1687,8 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
         foreach ($this->selectedSlots as $slotKey) {
             $parts = explode('-', $slotKey);
             if (count($parts) >= 4) {
-                $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
-                $startTime = count($parts) == 4 ? $parts[3] : $parts[3] . ':' . $parts[4];
+                $date = $parts[0].'-'.$parts[1].'-'.$parts[2];
+                $startTime = count($parts) == 4 ? $parts[3] : $parts[3].':'.$parts[4];
 
                 if ($this->isSlotAlreadyBooked($date, $startTime)) {
                     $conflicts[] = $slotKey;
@@ -1702,13 +1709,13 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
     {
         $conflicts = $this->checkForBookingConflicts();
 
-        if (!empty($conflicts)) {
+        if (! empty($conflicts)) {
             // Prepare conflict details for better UX
             $this->conflictDetails = collect($conflicts)
                 ->map(function ($slot) {
                     $parts = explode('-', $slot);
-                    $date = Carbon::createFromFormat('Y-m-d', $parts[0] . '-' . $parts[1] . '-' . $parts[2]);
-                    $time = count($parts) == 4 ? $parts[3] : $parts[3] . ':' . $parts[4];
+                    $date = Carbon::createFromFormat('Y-m-d', $parts[0].'-'.$parts[1].'-'.$parts[2]);
+                    $time = count($parts) == 4 ? $parts[3] : $parts[3].':'.$parts[4];
                     $endTime = Carbon::createFromFormat('H:i', $time)->addHour()->format('H:i');
 
                     return [
@@ -1716,7 +1723,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component {
                         'date' => $date->format('l, F j, Y'),
                         'time' => $time,
                         'end_time' => $endTime,
-                        'formatted_time' => $date->format('M j') . ' at ' . $time,
+                        'formatted_time' => $date->format('M j').' at '.$time,
                         'is_peak' => Carbon::createFromFormat('H:i', $time)->hour >= 18,
                     ];
                 })

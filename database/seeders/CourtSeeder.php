@@ -32,17 +32,6 @@ class CourtSeeder extends Seeder
                     'close' => '23:00',
                 ],
             ],
-            [
-                'name' => 'Court 3',
-                'description' => 'Practice court for training sessions',
-                'hourly_rate' => 0,
-                'light_surcharge' => 50000,
-                'is_active' => true,
-                'operating_hours' => [
-                    'open' => '08:00',
-                    'close' => '23:00',
-                ],
-            ],
         ];
 
         foreach ($courts as $court) {

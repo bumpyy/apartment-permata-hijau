@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\FacilitiesController;
-use App\Models\Court;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -9,28 +8,45 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::get('/about', function () {
-    return view('about');
-})->name('about');
+Route::view('/about', 'about')->name('about');
+
+Route::prefix('news')->name('news.')->group(function () {
+    Route::get('/', function () {
+        return view('news');
+    })->name('index');
+
+    Route::get('/{slug}', function ($slug) {
+        return view('news-detail', ['slug' => $slug]);
+    })->name('detail');
+});
+
+Route::get('/event', function () {
+    return view('events');
+})->name('event');
+
+Route::get('/committee', function () {
+    return view('committee');
+})->name('committee');
+
+Route::get('/contact', function () {
+    return view('contact');
+})->name('contact');
 
 Route::name('facilities.')
     ->prefix('facilities')
     ->name('facilities.')
     ->group(function () {
-        // Route::get('/', FacilitiesController::class)->name('index');
-        Route::redirect('/', 'facilities/tennis')->name('index');
+        Route::get('/', [FacilitiesController::class, 'index'])
+            ->name('index');
+        // Route::redirect('/', 'facilities/tennis')->name('index');
 
-        Route::get('tennis', function () {
+        Route::get('tennis', [FacilitiesController::class, 'tennis'])
+            ->name('tennis');
 
-            $courts = Court::all();
+        Route::redirect('tennis/court/', 'facilities/tennis');
 
-            return view('facilities', compact('courts'));
-
-        })->name('tennis');
-
-        Route::redirect('tennis/court/', 'facilities/tennis')->name('tennis.courts');
-
-        Volt::route('tennis/court/{id}', 'tenant.booking.main')->name('tennis.booking');
+        Volt::route('tennis/court/{id}', 'tenant.booking.main')
+            ->name('tennis.booking');
     });
 
 Volt::route('dashboard', 'tenant.dashboard')

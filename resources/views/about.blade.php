@@ -1,5 +1,5 @@
 <x-frontend.layouts.app :title="__('Welcome')">
-    <section>
+    <section class="mb-28">
         <div class="max-h-[550px] min-h-48 overflow-clip bg-gray-300">
             <img class="h-full w-full object-cover" src="{{ asset('img/header.jpg') }}" alt="">
         </div>
@@ -72,5 +72,62 @@
                 </div>
             </div>
         </div>
+    </section>
+
+    <section>
+        <x-section-title>
+            Key Highlight
+        </x-section-title>
+
+        <x-split-grid title="Developer" image="https://picsum.photos/seed/1/320/240">
+            <x-slot:description>
+                Although the specific developer is not widely documented, this apartment is recognized as one of
+                <strong>the earliest buildings</strong> in the Permata Hijau area.
+            </x-slot:description>
+        </x-split-grid>
+
+        <x-split-grid title="Architectural Style" image="https://picsum.photos/seed/2/320/240" reverse>
+            <x-slot:description>
+                The apartment showcases a luxurious classical <strong>design</strong>, offering an elegant and
+                sophisticated living experience.
+            </x-slot:description>
+        </x-split-grid>
+
+        <x-split-grid title="Developer" image="https://picsum.photos/seed/3/320/240">
+            <x-slot:description>
+                Although the specific developer is not widely documented, this apartment is recognized as one of
+                <strong>the earliest buildings</strong> in the Permata Hijau area.
+            </x-slot:description>
+        </x-split-grid>
+
+        <x-split-grid title="Location" image="https://picsum.photos/seed/4/320/240" reverse>
+            <x-slot:description>
+                Strategically located in <strong>South Jakarta</strong>, it provides easy access to business centers,
+                shopping malls, and entertainment venues.
+            </x-slot:description>
+        </x-split-grid>
+
+        <x-split-grid title="Area Development" image="https://picsum.photos/seed/5/320/240">
+            <x-slot:description>
+                The presence of Permata Hijau Apartment played a key role in the <strong>development of Permata
+                    Hijau</strong> into a
+                premium residential district favored by the upper-middle class.
+            </x-slot:description>
+        </x-split-grid>
+
+        <x-split-grid title="Facilities" image="https://picsum.photos/seed/6/320/240" reverse>
+            <x-slot:description>
+                In addition to spacious residential units, the complex is equipped with <strong>comprehensive
+                    facilities</strong> to
+                support a modern and convenient lifestyle.
+            </x-slot:description>
+        </x-split-grid>
+
+        <x-split-grid title="Elite Living" image="https://picsum.photos/seed/7/320/240">
+            <x-slot:description>
+                Permata Hijau Apartment remains a <strong>sought-after</strong> residence in Jakarta, attracting
+                professionals, expatriates, and families seeking comfortable, prestigious living.
+            </x-slot:description>
+        </x-split-grid>
     </section>
 </x-frontend.layouts.app>

@@ -42,8 +42,8 @@
         'about' => 'about',
         'facilities' => 'facilities.index',
         'news' => 'news.index',
-        'event' => 'event.index',
-        'committee' => 'committee.index',
+        'event' => 'event',
+        'committee' => 'committee',
         'contact' => 'contact',
     ] as $item => $route)
                 <li @class([
@@ -72,25 +72,26 @@
 
             <ul class="flex flex-col items-start justify-center gap-2">
                 <li class="flex flex-wrap items-center gap-2">
-                    <x-dynamic-component class="text-primary/90 size-6 mix-blend-screen"
-                        component="lucide-message-circle" />
+                    <x-lucide-message-circle class="text-primary/90 size-6 mix-blend-screen" />
                     <a class="text-white" href="tel:+628161308888">+62 816 130 8888</a>
                 </li>
                 <li class="flex flex-wrap items-center gap-2">
-                    <x-dynamic-component class="text-primary/90 size-6 mix-blend-screen" component="lucide-mail" />
+                    <x-lucide-mail class="text-primary/90 size-6 mix-blend-screen" />
                     <a class="text-white"
                         href="mailto:pprs@apartmentpermatahijau.com">pprs@apartmentpermatahijau.com</a>
                 </li>
                 <li class="flex flex-wrap items-center gap-2">
-                    <x-dynamic-component class="text-primary/90 size-6 mix-blend-screen" component="lucide-phone" />
+                    <x-lucide-phone class="text-primary/90 size-6 mix-blend-screen" />
                     <a class="text-white" href="tel:(021) 5320809">(021) 5320809</a>
                 </li>
-
             </ul>
 
-            <a class="absolute -top-8 right-6 inline-block size-16 drop-shadow-lg transition-all duration-200 hover:scale-110"
+            <a class="absolute -top-8 right-6 flex items-center justify-center drop-shadow-2xl transition-all duration-200 hover:scale-110"
                 href="https://wa.me/1234567890" target="_blank">
-                <x-icons.wa />
+                <span class="left-0 -mr-4 inline-block w-fit bg-white p-1 pl-3 pr-4 text-black">
+                    Need Help? Chat with us
+                </span>
+                <x-icons.wa class="size-16" />
             </a>
         </div>
     </footer>
