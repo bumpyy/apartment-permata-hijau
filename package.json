@@ -10,14 +10,12 @@
         "@alpinejs/collapse": "^3.14.9",
         "@alpinejs/focus": "^3.14.9",
         "@glidejs/glide": "^3.7.1",
-        "@tailwindcss/vite": "^4.0.7",
         "@tiptap/extension-link": "^3.0.7",
         "animejs": "^4.0.2",
         "autoprefixer": "^10.4.20",
         "axios": "^1.7.4",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^1.0",
-        "tailwindcss": "^4.0.7",
         "vite": "^6.0"
     },
     "optionalDependencies": {
@@ -26,9 +24,11 @@
         "lightningcss-linux-x64-gnu": "^1.29.1"
     },
     "devDependencies": {
+        "@tailwindcss/vite": "^4.1.11",
         "@tiptap/core": "^3.0.7",
         "@tiptap/starter-kit": "^3.0.7",
         "prettier-plugin-blade": "^2.1.21",
+        "tailwindcss": "^4.1.11",
         "tailwindcss-animate": "^1.0.7"
     }
 }
