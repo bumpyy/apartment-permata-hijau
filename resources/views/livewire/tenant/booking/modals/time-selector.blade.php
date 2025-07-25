@@ -7,15 +7,11 @@
             <!-- Header -->
             <div class="rounded-t-xl border-b border-gray-200 bg-gray-50 p-4">
                 <div class="flex items-center justify-between">
-                    <h3 @class([
-                        'font-bold text-gray-800',
-                        'text-lg',
-                    ])>
+                    <h3 @class(['font-bold text-gray-800', 'text-lg'])>
                         🕐 Select Time for
                         {{ \Carbon\Carbon::parse($selectedDateForTime)->format('l, F j, Y') }}
                     </h3>
-                    <button class="text-gray-400 transition-colors hover:text-gray-600"
-                        wire:click="closeTimeSelector">
+                    <button class="text-gray-400 transition-colors hover:text-gray-600" wire:click="closeTimeSelector">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12"></path>
@@ -42,14 +38,8 @@
             </div>
 
             <!-- Time Slots Grid -->
-            <div @class([
-                'max-h-96 overflow-y-auto',
-                'p-4',
-            ])>
-                <div @class([
-                    'grid gap-2',
-                    'sm:grid-cols-2 lg:grid-cols-3',
-                ])>
+            <div @class(['max-h-96 overflow-y-auto', 'p-4'])>
+                <div @class(['grid gap-2', 'sm:grid-cols-2 lg:grid-cols-3'])>
                     @foreach ($availableTimesForDate as $timeSlot)
                         <div @class([
                             'rounded-lg border text-center transition-all duration-200',
@@ -72,10 +62,8 @@
                         ])
                             @if ($timeSlot['is_available']) wire:click="toggleTimeSlot('{{ $timeSlot['slot_key'] }}')" @endif
                             title="{{ $timeSlot['is_booked'] ? 'Booked by another tenant' : ($timeSlot['is_past'] ? 'Past time slot' : 'Click to select') }}">
-                            <div @class([
-                                'font-semibold',
-                                '',
-                            ])>{{ $timeSlot['start_time'] }} - {{ $timeSlot['end_time'] }}
+                            <div @class(['font-semibold', ''])>{{ $timeSlot['start_time'] }} -
+                                {{ $timeSlot['end_time'] }}
                             </div>
                             @if ($timeSlot['is_past'])
                                 <div class="text-xs">
@@ -87,12 +75,8 @@
                                 <div class="text-xs">✓ Selected
                                 </div>
                             @elseif($timeSlot['is_available'])
-                                @php
-                                    $siteSettings = app(\App\Settings\SiteSettings::class);
-                                    $whatsappNumber = preg_replace('/[^0-9]/', '', $siteSettings->whatsapp_number);
-                                @endphp
                                 @if ($timeSlot['is_available'] && $timeSlot['slot_type'] === 'premium' && !$timeSlot['is_selected'])
-                                    <a class="block w-full h-full flex flex-col items-center justify-center text-xs opacity-60"
+                                    <a class="block flex h-full w-full flex-col items-center justify-center text-xs opacity-60"
                                         href="https://wa.me/{{ $whatsappNumber }}" target="_blank">
                                         Chat to book
                                     </a>

@@ -1,13 +1,7 @@
 <div class="mb-8 rounded-xl border border-gray-300 bg-white shadow-lg">
-    <div @class([
-        'border-b border-gray-200 bg-gray-50',
-        'p-4 rounded-t-xl',
-    ])>
+    <div @class(['border-b border-gray-200 bg-gray-50', 'p-4 rounded-t-xl'])>
         <div class="flex items-center justify-between">
-            <h3 @class([
-                'font-semibold text-gray-800',
-                'text-lg',
-            ])>
+            <h3 @class(['font-semibold text-gray-800', 'text-lg'])>
                 {{ $currentDate->format('l, F j, Y') }}
             </h3>
             <div class="flex items-center gap-2">
@@ -40,10 +34,7 @@
             </div>
         </div>
     </div>
-    <div @class([
-        'grid gap-2',
-        'p-4 sm:grid-cols-2 lg:grid-cols-3',
-    ])>
+    <div @class(['grid gap-2', 'p-4 sm:grid-cols-2 lg:grid-cols-3'])>
 
         @foreach ($timeSlots as $slot)
             @php
@@ -79,10 +70,7 @@
                     $isSelected && $slotType === 'premium',
             ])
                 @if ($canBook) wire:click="toggleTimeSlot('{{ $slotKey }}')" @endif>
-                <div @class([
-                    'font-semibold',
-                    '',
-                ])>{{ $slot['start'] }} - {{ $slot['end'] }}
+                <div @class(['font-semibold', ''])>{{ $slot['start'] }} - {{ $slot['end'] }}
                 </div>
                 @if ($isPastSlot && !$isBooked && !$isPreliminary)
                     <div class="text-xs">
@@ -108,12 +96,8 @@
                     <div class="text-xs">✓ Selected
                     </div>
                 @elseif($canBook)
-                    @php
-                        $siteSettings = app(\App\Settings\SiteSettings::class);
-                        $whatsappNumber = preg_replace('/[^0-9]/', '', $siteSettings->whatsapp_number);
-                    @endphp
-                    @if($canBook && $slotType === 'premium' && !$isSelected)
-                        <a class="block w-full h-full flex flex-col items-center justify-center text-xs opacity-60"
+                    @if ($canBook && $slotType === 'premium' && !$isSelected)
+                        <a class="block flex h-full w-full flex-col items-center justify-center text-xs opacity-60"
                             href="https://wa.me/{{ $whatsappNumber }}" target="_blank">
                             Chat to book
                         </a>
@@ -131,10 +115,16 @@
                                 $currentDate->format('Y-m-d') . ' ' . $slot['start'],
                             );
                             $endTime = $slotDateTime->copy()->addHour()->format('H:i');
-                            $crossCourtConflicts = $this->checkCrossCourtConflicts($currentDate->format('Y-m-d'), $slot['start'], $endTime);
+                            $crossCourtConflicts = $this->checkCrossCourtConflicts(
+                                $currentDate->format('Y-m-d'),
+                                $slot['start'],
+                                $endTime,
+                            );
                         @endphp
                         @if (!empty($crossCourtConflicts))
-                            <div class="text-xs text-red-600" title="Cross-court conflict: You have bookings on other courts at this time">⚠️ Conflict</div>
+                            <div class="text-xs text-red-600"
+                                title="Cross-court conflict: You have bookings on other courts at this time">⚠️ Conflict
+                            </div>
                         @endif
                     @endif
                 @else

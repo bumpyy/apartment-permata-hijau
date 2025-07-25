@@ -1,11 +1,8 @@
 <div class="flex justify-end">
-    @php
-        $siteSettings = app(\App\Settings\SiteSettings::class);
-        $whatsappNumber = preg_replace('/[^0-9]/', '', $siteSettings->whatsapp_number);
-    @endphp
+
     @if ($bookingType === 'premium' && count($selectedSlots) > 0)
-        <a href="https://wa.me/{{ $whatsappNumber }}" target="_blank"
-            class="transform rounded-xl font-bold shadow-lg transition-all duration-500 hover:scale-105 px-8 py-4 text-sm bg-green-500 text-white hover:bg-green-600 cursor-pointer hover:shadow-xl block text-center">
+        <a class="block transform cursor-pointer rounded-xl bg-green-500 px-8 py-4 text-center text-sm font-bold text-white shadow-lg transition-all duration-500 hover:scale-105 hover:bg-green-600 hover:shadow-xl"
+            href="https://wa.me/{{ $whatsappNumber }}" target="_blank">
             ⭐ Chat Admin to Book Premium Slot(s)
         </a>
     @else

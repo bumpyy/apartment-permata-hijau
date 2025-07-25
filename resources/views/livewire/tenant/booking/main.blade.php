@@ -3,7 +3,7 @@
 use App\Enum\BookingStatusEnum;
 use App\Models\Booking;
 use App\Models\Court;
-use App\Settings\PremiumSettings;
+use App\Settings\SiteSettings;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
@@ -135,11 +135,13 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 
     public $calendarMonths = []; // Calendar months for date picker
 
+    public $whatsappNumber;
+
     /**
      * Initialize the component when it's first loaded
      * Sets up default values and loads initial data
      */
-    public function mount(PremiumSettings $premiumSettings)
+    public function mount(SiteSettings $siteSettings)
     {
 
         // Set default court (hardcoded to Court 2 for now)
@@ -148,6 +150,8 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         if (! $this->courtNumber || ! Court::find($this->courtNumber)) {
             return redirect()->route('facilities.tennis');
         }
+
+        $whatsappNumber = preg_replace('/[^0-9]/', '', $siteSettings->whatsapp_number);
 
         // Initialize dates to today
         $this->selectedDate = now()->format('Y-m-d');

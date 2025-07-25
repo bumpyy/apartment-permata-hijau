@@ -159,10 +159,6 @@
                                     Click to book
                                 </div>
                             @elseif($canBookPremium)
-                                @php
-                                    $siteSettings = app(\App\Settings\SiteSettings::class);
-                                    $whatsappNumber = preg_replace('/[^0-9]/', '', $siteSettings->whatsapp_number);
-                                @endphp
                                 <a class="flex size-full items-center justify-center text-xs opacity-60"
                                     href="https://wa.me/{{ $whatsappNumber }}" target="_blank">
                                     Chat to book

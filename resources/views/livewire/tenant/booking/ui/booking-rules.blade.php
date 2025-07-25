@@ -17,11 +17,9 @@
             </span>
         </div>
     </div>
-    @php
-        $siteSettings = app(\App\Settings\SiteSettings::class);
-        $whatsappNumber = preg_replace('/[^0-9]/', '', $siteSettings->whatsapp_number);
-    @endphp
+
     <div class="mt-2 text-xs text-purple-700">
-        ⭐ To book premium slots, please <a href="https://wa.me/{{ $whatsappNumber }}" target="_blank" class="underline text-purple-800 hover:text-purple-900">chat admin via WhatsApp</a>.
+        ⭐ To book premium slots, please <a class="text-purple-800 underline hover:text-purple-900"
+            href="https://wa.me/{{ $whatsappNumber }}" target="_blank">chat admin via WhatsApp</a>.
     </div>
 </div>
