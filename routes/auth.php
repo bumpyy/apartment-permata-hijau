@@ -16,19 +16,19 @@ Route::middleware(['guest:tenant'])
             ->name('password.reset');
     });
 
-Route::middleware(['guest:admin'])
-    ->name('admin.')
-    ->prefix('admin')
-    ->group(function () {
-        Volt::route('login', 'admin.auth.login')
-            ->name('login');
+// Route::middleware(['guest:admin'])
+//     ->name('admin.')
+//     ->prefix('admin')
+//     ->group(function () {
+//         Volt::route('login', 'admin.auth.login')
+//             ->name('login');
 
-        Volt::route('forgot-password', 'admin.auth.forgot-password')
-            ->name('password.request');
+//         Volt::route('forgot-password', 'admin.auth.forgot-password')
+//             ->name('password.request');
 
-        Volt::route('reset-password/{token}', 'admin.auth.reset-password')
-            ->name('password.reset');
-    });
+//         Volt::route('reset-password/{token}', 'admin.auth.reset-password')
+//             ->name('password.reset');
+//     });
 
 // Route::middleware(['auth:tenant'])->group(function () {
 //     Volt::route('verify-email', 'auth.verify-email')

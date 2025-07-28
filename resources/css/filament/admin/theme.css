@@ -3,3 +3,5 @@
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
 @source '../../../../resources/views/livewire/admin/**/*';
+@source '../../../../resources/views/components/modal.blade.php';
+@source '../../../../vendor/guava/calendar/resources/**/*.blade.php';

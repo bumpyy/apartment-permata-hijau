@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CommitteeController;
 use App\Http\Controllers\FacilitiesController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -10,23 +11,23 @@ Route::get('/', function () {
 
 Route::view('/about', 'about')->name('about');
 
-Route::prefix('news')->name('news.')->group(function () {
-    Route::get('/', function () {
-        return view('news');
-    })->name('index');
+Route::prefix('news')
+    ->name('news.')
+    ->group(function () {
+        Route::get('/', function () {
+            return view('news');
+        })->name('index');
 
-    Route::get('/{slug}', function ($slug) {
-        return view('news-detail', ['slug' => $slug]);
-    })->name('detail');
-});
+        Route::get('/{slug}', function ($slug) {
+            return view('news-detail', ['slug' => $slug]);
+        })->name('detail');
+    });
 
 Route::get('/event', function () {
     return view('event');
 })->name('event');
 
-Route::get('/committee', function () {
-    return view('committee');
-})->name('committee');
+Route::get('/committee', CommitteeController::class)->name('committee');
 
 Route::get('/contact', function () {
     return view('contact');
@@ -55,5 +56,5 @@ Volt::route('dashboard', 'tenant.dashboard')
     ])
     ->name('tenant.dashboard');
 
+require __DIR__.'/auth.php';
 // require __DIR__.'/admin.php';
-// require __DIR__.'/auth.php';

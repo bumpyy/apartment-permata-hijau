@@ -1,3 +1,24 @@
-<div>
-    <!-- I begin to speak only when I am certain what I will say is not better left unsaid. - Cato the Younger -->
-</div>
+<x-frontend.layouts.app>
+    <x-home.article-update columnNumber="2" title="Upcoming Event" variant="basic" :data="[
+        [
+            'title' => 'Celebrate Independence Day',
+            'date' => '2022-12-31',
+            'image' => 'https://picsum.photos/seed/1/320/240',
+        ],
+        [
+            'title' => 'New Leadership Team Voting',
+            'date' => '2022-12-30',
+            'image' => 'https://picsum.photos/seed/2/320/240',
+        ],
+        [
+            'title' => 'Celebrate Independence Day',
+            'date' => '2022-12-31',
+            'image' => 'https://picsum.photos/seed/1/320/240',
+        ],
+        [
+            'title' => 'New Leadership Team Voting',
+            'date' => '2022-12-30',
+            'image' => 'https://picsum.photos/seed/2/320/240',
+        ],
+    ]" />
+</x-frontend.layouts.app>
