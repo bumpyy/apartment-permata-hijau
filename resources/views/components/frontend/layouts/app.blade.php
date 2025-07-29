@@ -65,6 +65,17 @@
     {{ $slot }}
 
     <footer class="bg-primary font-gotham relative">
+
+        @unless (request()->routeIs('facilities.*'))
+            <button
+                class="bg-primary fixed bottom-6 right-6 flex items-center justify-center rounded-full p-2 text-white transition-all duration-200 hover:scale-110"
+                id="back-to-top">
+                <x-lucide-chevron-up class="size-6" />
+            </button>
+        @endunless
+
+
+
         <div class="container flex flex-col gap-4 py-8 text-white">
             <div class="flex flex-wrap gap-6">
                 <x-site-logo class="basis-12 brightness-0 invert" />
@@ -100,6 +111,28 @@
     </footer>
 
     @stack('scripts')
+    <script>
+        const backToTopButton = document.getElementById('back-to-top')
+
+        if (backToTopButton) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 500) {
+                    backToTopButton.classList.remove('opacity-0')
+                    backToTopButton.classList.add('opacity-100')
+                } else {
+                    backToTopButton.classList.remove('opacity-100')
+                    backToTopButton.classList.add('opacity-0')
+                }
+            })
+
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                })
+            })
+        }
+    </script>
     @fluxScripts
 </body>
 

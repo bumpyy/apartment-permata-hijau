@@ -21,8 +21,8 @@
     </div>
 
     <!-- Tab List -->
-    <ul class="container mb-6 flex items-stretch justify-center max-sm:flex-col max-sm:items-center" x-ref="tablist"
-        @keydown.right.prevent.stop="$focus.wrap().next()" @keydown.home.prevent.stop="$focus.first()"
+    <ul class="font-imbue container mb-6 flex items-stretch justify-center max-sm:flex-col max-sm:items-center"
+        x-ref="tablist" @keydown.right.prevent.stop="$focus.wrap().next()" @keydown.home.prevent.stop="$focus.first()"
         @keydown.page-up.prevent.stop="$focus.first()" @keydown.left.prevent.stop="$focus.wrap().prev()"
         @keydown.end.prevent.stop="$focus.last()" @keydown.page-down.prevent.stop="$focus.last()" role="tablist">
         <!-- Tab -->
@@ -52,7 +52,7 @@
     </ul>
 
     <!-- Panels -->
-    <div class="bg-secondary text-black" role="tabpanels">
+    <div class="bg-secondary font-montserrat text-black" role="tabpanels">
         <!-- Panels -->
         @foreach ($tabs as $index => $text)
             <section class="grid grid-cols-1 gap-4 sm:grid-cols-2"
@@ -63,7 +63,7 @@
                 <div class="space-y-4 px-4 pb-32 pt-8">
 
                     <div class="text-primary">
-                        <h3 class="text-2xl font-bold">{{ $text }}</h3>
+                        <h3 class="font-imbue text-4xl font-bold">{{ $text }}</h3>
                         <hr class="bg-primary my-6 h-0.5 w-1/3 border-0" />
                     </div>
 
@@ -79,7 +79,7 @@
                         Please note: an additional fee applies for light usage after dark. Perfect for
                         both casual and serious players seeking convenience and performance.
                     </p>
-                    <a class="bg-primary mt-5 rounded-md border border-gray-200 px-4 py-2 text-sm text-white"
+                    <a class="bg-primary font-imbue mt-5 rounded-md border border-gray-200 px-4 py-2 text-sm text-white"
                         href="{{ !empty($routes[$text]) ? route($routes[$text]) : '#' }}">Book
                         Now</a>
                 </div>

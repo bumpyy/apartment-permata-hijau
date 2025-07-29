@@ -15,11 +15,6 @@
         "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
         "Noto Color Emoji";
 
-    --font-gotham: "Gotham", "sans-serif";
-    --font-montserrat: "Montserrat", "sans-serif";
-    --font-imbue: "Imbue", "sans-serif";
-    --font-myriad-pro: "Myriad Pro", "sans-serif";
-
     --color-primary: #9a7637;
     --color-secondary: #f3efe7;
 
@@ -40,6 +35,10 @@
     --color-accent-foreground: var(--color-white);
 
     --font-display: "Oswald", "sans-serif";
+    --font-gotham: "Gotham", "sans-serif";
+    --font-montserrat: "Montserrat", "sans-serif";
+    --font-imbue: "Imbue", "sans-serif";
+    --font-myriad-pro: "Myriad Pro", "sans-serif";
 }
 
 @layer theme {
