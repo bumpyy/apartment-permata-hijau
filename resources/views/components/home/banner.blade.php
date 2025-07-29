@@ -6,7 +6,7 @@
     <div class="bg-secondary">
         <div class="text-primary container flex flex-col items-center justify-center gap-8 py-24 text-center">
             <x-site-logo class="-mt-52 size-52 opacity-35" />
-            <h2 class="text-5xl font-bold">Timeless Luxury, Since 1995</h2>
+            <h2 class="font-imbue text-5xl font-thin">Timeless Luxury, Since 1995</h2>
             <p class="text-black">
                 Experience timeless elegance and premium comfort in a colonial-style residence that has defined luxury
                 living in
@@ -19,7 +19,7 @@
                 @foreach ([
         [
             'icon' => 'measure',
-            'value' => '18.000',
+            'value' => '±38,179 m²',
             'label' => 'Square Meters',
         ],
         ['icon' => 'car', 'value' => '890', 'label' => 'Parking Slots'],
@@ -31,7 +31,7 @@
                         <x-dynamic-component class="size-12" :component="'icons.' . $item['icon']" />
 
                         <div class="flex flex-col text-start">
-                            <h3 class="text-3xl font-bold leading-6">{{ $item['value'] }}</h3>
+                            <h3 class="font-imbue text-3xl font-thin leading-6">{{ $item['value'] }}</h3>
                             <p>{{ $item['label'] }}</p>
                         </div>
                     </div>

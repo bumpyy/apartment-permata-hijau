@@ -12,7 +12,7 @@
             <x-button class="text-5xl" variant="secondary">Event</x-button>
         </div> --}}
         <div class="group relative">
-            <h3 class="text-primary mt-3 text-center text-lg/6 font-semibold">
+            <h3 class="text-primary font-imbue mt-6 text-center text-2xl/6 font-thin">
                 <a href="#">
                     <span class="absolute inset-0"></span>
                     {{ $title }}

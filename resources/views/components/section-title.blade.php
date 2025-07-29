@@ -2,7 +2,7 @@
 
 <div {{ $attributes->merge(['class' => 'text-primary mx-auto max-w-2xl text-center']) }}>
     <h2 @class([
-        'text-balance font-semibold tracking-tight text-2xl sm:text-5xl',
+        'text-balance  tracking-tight text-2xl sm:text-5xl font-imbue font-thin',
     ])>
         {{ $slot }}
     </h2>

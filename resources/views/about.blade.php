@@ -118,8 +118,7 @@
         <x-split-grid title="Facilities" image="https://picsum.photos/seed/6/320/240" reverse>
             <x-slot:description>
                 In addition to spacious residential units, the complex is equipped with <strong>comprehensive
-                    facilities</strong> to
-                support a modern and convenient lifestyle.
+                    facilities</strong> to support a modern and convenient lifestyle.
             </x-slot:description>
         </x-split-grid>
 

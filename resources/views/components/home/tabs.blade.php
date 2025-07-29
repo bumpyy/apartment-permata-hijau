@@ -16,7 +16,7 @@
 }" x-id="['tab']">
 
     <div class="text-primary container w-max">
-        <h2 class="w-max text-center text-3xl font-bold">Facilities</h2>
+        <h2 class="font-imbue w-max text-center text-3xl font-thin">Facilities</h2>
         <hr class="bg-primary mx-auto my-6 h-0.5 w-3/4 border-0" />
     </div>
 

@@ -30,8 +30,10 @@
         </div>
 
         <div class="mt-4 flex flex-col items-center gap-1 text-center">
-            <x-site-logo class="size-8" />
-            <h1 class="text-primary text-4xl">{{ config('app.name', 'Apartemen Permata Hijau') }}</h1>
+            <x-site-logo-long class="max-w-lg" />
+            <h1 class="text-primary font-imbue sr-only text-4xl">
+                {{ config('app.name', 'Apartemen Permata Hijau') }}
+            </h1>
         </div>
     </header>
 
@@ -62,11 +64,12 @@
 
     {{ $slot }}
 
-    <footer class="bg-primary relative">
+    <footer class="bg-primary font-gotham relative">
         <div class="container flex flex-col gap-4 py-8 text-white">
             <div class="flex flex-wrap gap-6">
                 <x-site-logo class="basis-12 brightness-0 invert" />
-                <p class="shrink basis-3/4">Jl. Permata Hijau No.8 Blok B, RT.008/RW.2, Grogol Utara, Kec. Kby. Lama,
+                <p class="shrink basis-3/4">Jl. Permata Hijau No.8 Blok B, RT.008/RW.2, Grogol Utara, Kec.
+                    Kby. Lama,
                     Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12210</p>
             </div>
 
