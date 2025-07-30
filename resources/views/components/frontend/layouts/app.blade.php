@@ -5,7 +5,7 @@
     @include('partials.head')
 </head>
 
-<body class="relative bg-white">
+<body class="font-montserrat relative bg-white">
     <header>
         <div class="bg-primary">
             <div class="container flex items-center justify-between py-1 text-gray-100">

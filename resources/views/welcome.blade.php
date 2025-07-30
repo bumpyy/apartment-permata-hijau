@@ -1,5 +1,4 @@
 <x-frontend.layouts.app :title="__('Welcome')">
-
     <x-home.banner />
 
     <x-home.article-update title="Upcoming Event" variant="basic" :data="[

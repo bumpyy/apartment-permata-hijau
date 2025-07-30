@@ -76,7 +76,7 @@
                                 </div>
                             @elseif($timeSlot['is_available'])
                                 @if ($timeSlot['is_available'] && $timeSlot['slot_type'] === 'premium' && !$timeSlot['is_selected'])
-                                    <a class="block flex h-full w-full flex-col items-center justify-center text-xs opacity-60"
+                                    <a class="flex h-full w-full flex-col items-center justify-center text-xs opacity-60"
                                         href="https://wa.me/{{ $whatsappNumber }}" target="_blank">
                                         Chat to book
                                     </a>
