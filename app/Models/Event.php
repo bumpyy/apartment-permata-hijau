@@ -19,6 +19,11 @@ class Event extends Model implements Eventable, HasMedia
         'end_at',
     ];
 
+    protected $casts = [
+        'start_at' => 'datetime:H:i',
+        'end_at' => 'datetime:H:i',
+    ];
+
     public function toCalendarEvent(): CalendarEvent|array
     {
         return CalendarEvent::make($this)

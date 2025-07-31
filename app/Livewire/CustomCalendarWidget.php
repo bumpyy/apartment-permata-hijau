@@ -13,7 +13,7 @@ use Illuminate\Support\Collection;
 
 class CustomCalendarWidget extends CalendarWidget
 {
-    protected bool $dateClickEnabled = true;
+    // protected bool $dateClickEnabled = true;
 
     public ?array $data = [];
 
@@ -39,17 +39,14 @@ class CustomCalendarWidget extends CalendarWidget
     public function getResources(): Collection|array
     {
         return [
-            // Chainable object-oriented variant
-
-            // Eloquent model implementing the `Resourceable` interface
-            ...Event::all(),
+            Event::first()->toCalendarEvent(),
         ];
     }
 
     public function getEvents(array $fetchInfo = []): Collection|array
     {
         return [
-            ...Event::all(),
+            Event::first()->toCalendarEvent(),
         ];
     }
 
