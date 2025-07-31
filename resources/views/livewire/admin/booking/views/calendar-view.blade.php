@@ -139,7 +139,7 @@
                                     @elseif($isPastTime)
                                         ⏰ Past Time
                                     @else
-                                        🔒 Past Date
+                                        🔒 Locked
                                     @endif
                                 </div>
                             @endforelse

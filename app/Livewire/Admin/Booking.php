@@ -128,21 +128,25 @@ class Booking extends Component
     {
         // Reset pagination when any filter changes
         if (in_array($property, ['search', 'statusFilter', 'dateFilter', 'courtFilter', 'excludeCancelled', 'tableTab'])) {
-            $this->refreshBookingData();
+            $this->resetPage();
+            $this->clearCache();
         }
     }
 
     public function showDetail($bookingId)
     {
-        // Always fetch fresh data to ensure we have the latest booking information
-        $this->selectedBooking = BookingModel::with([
-            'tenant',
-            'court',
-            'approver',
-            'canceller',
-            'editor',
-        ])->find($bookingId);
-
+        // Use cached booking if available, otherwise fetch with eager loading
+        if ($this->cachedBookings) {
+            $this->selectedBooking = $this->cachedBookings->firstWhere('id', $bookingId);
+        } else {
+            $this->selectedBooking = BookingModel::with([
+                'tenant',
+                'court',
+                'approver',
+                'canceller',
+                'editor',
+            ])->find($bookingId);
+        }
         $this->showDetailPanel = true;
     }
 
@@ -153,8 +157,9 @@ class Booking extends Component
 
     public function edit($bookingId)
     {
-        // Always fetch fresh data to ensure we have the latest booking information
-        $booking = BookingModel::find($bookingId);
+        $booking = $this->cachedBookings ?
+            $this->cachedBookings->firstWhere('id', $bookingId) :
+            BookingModel::find($bookingId);
 
         if ($booking) {
             $this->editingBooking = $booking;
@@ -185,9 +190,7 @@ class Booking extends Component
             $this->showEditModal = false;
             $this->editingBooking = null;
             $this->reset('editForm');
-
-            // Refresh booking data with updated booking
-            $this->refreshBookingData($this->editingBooking);
+            $this->clearCache();
 
             session()->flash('message', 'Booking updated successfully.');
             $this->dispatch('close-edit-modal');
@@ -203,10 +206,8 @@ class Booking extends Component
                 'approved_by' => auth('admin')->id(),
                 'approved_at' => now(),
             ]);
-
-            // Refresh booking data with updated booking
-            $this->refreshBookingData($booking);
-
+            $this->selectedBooking = $booking->fresh(['tenant', 'court']);
+            $this->clearCache();
             session()->flash('message', 'Booking confirmed successfully.');
         }
     }
@@ -243,9 +244,8 @@ class Booking extends Component
             'cancellation_reason' => $this->cancellationReason ?: 'Cancelled by admin',
         ]);
 
-        // Refresh booking data with updated booking
-        $this->refreshBookingData($this->bookingToCancel);
-
+        $this->selectedBooking = $this->bookingToCancel->fresh(['tenant', 'court']);
+        $this->clearCache();
         session()->flash('message', 'Booking cancelled successfully.');
         $this->closeCancelModal();
     }
@@ -255,9 +255,6 @@ class Booking extends Component
         $this->showEditModal = false;
         $this->editingBooking = null;
         $this->reset('editForm');
-
-        // Refresh data to ensure UI is up to date
-        $this->refreshBookingData();
     }
 
     public function getBookingsProperty()
@@ -351,27 +348,27 @@ class Booking extends Component
     public function prevWeek()
     {
         $this->weekStart = Carbon::parse($this->weekStart)->subWeek()->startOfWeek()->format('Y-m-d');
-        $this->refreshBookingData();
+        $this->clearCache();
     }
 
     public function nextWeek()
     {
         $this->weekStart = Carbon::parse($this->weekStart)->addWeek()->startOfWeek()->format('Y-m-d');
-        $this->refreshBookingData();
+        $this->clearCache();
     }
 
     public function goToToday()
     {
         $this->weekStart = now()->startOfWeek()->format('Y-m-d');
         $this->weekPicker = $this->weekStart;
-        $this->refreshBookingData();
+        $this->clearCache();
     }
 
     public function updatedWeekPicker()
     {
         if ($this->weekPicker) {
             $this->weekStart = Carbon::parse($this->weekPicker)->startOfWeek()->format('Y-m-d');
-            $this->refreshBookingData();
+            $this->clearCache();
         }
     }
 
@@ -409,7 +406,7 @@ class Booking extends Component
     public function filterByCourt($courtId)
     {
         $this->courtFilter = $courtId;
-        $this->refreshBookingData();
+        $this->clearCache();
     }
 
     public function setViewMode($mode)
@@ -420,7 +417,8 @@ class Booking extends Component
     public function setTableTab($tab)
     {
         $this->tableTab = $tab;
-        $this->refreshBookingData();
+        $this->resetPage();
+        $this->clearCache();
     }
 
     public function getGroupedBookingsProperty()
@@ -501,36 +499,6 @@ class Booking extends Component
     {
         $this->cachedBookings = null;
         $this->cachedStats = null;
-        $this->cachedCourts = null;
-
-        // Force refresh of computed properties
-        $this->dispatch('$refresh');
-    }
-
-    /**
-     * Refresh booking data and update UI after any booking operation
-     */
-    private function refreshBookingData($booking = null)
-    {
-        // Clear all caches
-        $this->clearCache();
-
-        // Update selected booking if provided
-        if ($booking) {
-            $this->selectedBooking = $booking->fresh(['tenant', 'court', 'approver', 'canceller', 'editor']);
-        }
-
-        // Reset pagination to show updated data
-        $this->resetPage();
-
-        // Update available time slots if in add mode
-        if ($this->showAddModal || $this->isAddMode) {
-            $this->updateAvailableTimeSlots();
-        }
-
-        // Dispatch events for UI updates
-        $this->dispatch('booking-updated');
-        $this->dispatch('refresh-weekly-view');
     }
 
     private function generateTimeSlots()
@@ -612,14 +580,6 @@ class Booking extends Component
     public function closeAddModal()
     {
         $this->showAddModal = false;
-
-        // Reset form and refresh data
-        $this->reset('addForm');
-        $this->addError = '';
-        $this->availableTimeSlots = [];
-
-        // Refresh data to ensure UI is up to date
-        $this->refreshBookingData();
     }
 
     public function updatedAddForm($field)
@@ -807,10 +767,7 @@ class Booking extends Component
         $booking->booking_reference = $booking->generateReference();
         $booking->save();
         $this->showAddModal = false;
-
-        // Refresh booking data with new booking
-        $this->refreshBookingData($booking);
-
+        $this->clearCache();
         session()->flash('message', 'Booking created successfully! Reference: #'.$booking->booking_reference);
     }
 
@@ -855,14 +812,6 @@ class Booking extends Component
         $this->isAddMode = false;
         $this->showDetailPanel = false;
         $this->panelAddError = '';
-
-        // Reset panel form
-        $this->reset('panelAddForm');
-        $this->panelAvailableCourts = [];
-        $this->panelTenants = [];
-
-        // Refresh data to ensure UI is up to date
-        $this->refreshBookingData();
     }
 
     public function createBookingFromPanel()
@@ -987,10 +936,7 @@ class Booking extends Component
         $booking->save();
         $this->isAddMode = false;
         $this->showDetailPanel = false;
-
-        // Refresh booking data with new booking
-        $this->refreshBookingData($booking);
-
+        $this->clearCache();
         session()->flash('message', 'Booking created successfully! Reference: #'.$booking->booking_reference);
     }
 
@@ -1000,84 +946,6 @@ class Booking extends Component
             $this->isAddMode = false;
         }
         $this->showDetail($bookingId);
-    }
-
-    /**
-     * Bulk update booking statuses
-     */
-    public function bulkUpdateStatus($bookingIds, $status)
-    {
-        $this->validate([
-            'status' => 'required|in:pending,confirmed,cancelled',
-        ]);
-
-        $bookings = BookingModel::whereIn('id', $bookingIds)->get();
-
-        foreach ($bookings as $booking) {
-            $booking->update([
-                'status' => $status,
-                'edited_by' => auth('admin')->id(),
-                'edited_at' => now(),
-            ]);
-        }
-
-        // Refresh booking data
-        $this->refreshBookingData();
-
-        session()->flash('message', count($bookings) . ' bookings updated successfully.');
-    }
-
-    /**
-     * Force refresh all booking data
-     */
-    public function forceRefresh()
-    {
-        $this->refreshBookingData();
-        session()->flash('message', 'Data refreshed successfully.');
-    }
-
-    /**
-     * Handle real-time booking updates
-     */
-    public function handleBookingUpdate($bookingId)
-    {
-        $booking = BookingModel::with(['tenant', 'court', 'approver', 'canceller', 'editor'])->find($bookingId);
-
-        if ($booking) {
-            // Update selected booking if it's the one being viewed
-            if ($this->selectedBooking && $this->selectedBooking->id === $bookingId) {
-                $this->selectedBooking = $booking;
-            }
-
-            // Update editing booking if it's the one being edited
-            if ($this->editingBooking && $this->editingBooking->id === $bookingId) {
-                $this->editingBooking = $booking;
-            }
-
-            // Refresh all data
-            $this->refreshBookingData();
-        }
-    }
-
-    /**
-     * Handle booking deletion
-     */
-    public function handleBookingDeletion($bookingId)
-    {
-        // Close detail panel if the deleted booking was being viewed
-        if ($this->selectedBooking && $this->selectedBooking->id === $bookingId) {
-            $this->closeDetailPanel();
-        }
-
-        // Close edit modal if the deleted booking was being edited
-        if ($this->editingBooking && $this->editingBooking->id === $bookingId) {
-            $this->closeEditModal();
-        }
-
-        // Refresh all data
-        $this->refreshBookingData();
-
-        session()->flash('message', 'Booking deleted successfully.');
     }
 
     /**
@@ -1137,14 +1005,10 @@ class Booking extends Component
      */
     public function canBookSlot($date, $startTime)
     {
+
         $bookingDate = \Carbon\Carbon::parse($date);
-        $bookingTime = \Carbon\Carbon::createFromFormat('H:i', $startTime);
 
-        // Combine date and time
-        $bookingDateTime = $bookingDate->copy()->setTime($bookingTime->hour, $bookingTime->minute);
-
-        // Check if it's in the past
-        return $bookingDateTime->isFuture();
+        return $this->canBookFree($bookingDate) || $this->canBookPremium($bookingDate);
     }
 
     /**

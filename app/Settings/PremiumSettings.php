@@ -4,7 +4,7 @@ namespace App\Settings;
 
 use Spatie\LaravelSettings\Settings;
 
-class PremiumSettings extends Settings
+class Premium extends Settings
 {
     public int $open_date;
 

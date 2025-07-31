@@ -1,4 +1,4 @@
-<div class="mx-auto max-w-7xl p-8 w-full">
+<div class="mx-auto w-full max-w-7xl p-8">
     <!-- Left Column: Dashboard, Filters, Bookings Table -->
     <div>
         <!-- Dashboard Stats -->
@@ -7,8 +7,8 @@
         <!-- Todays Bookings Section -->
         @include('livewire.admin.booking.ui.todays-bookings')
 
-        <!-- Upcoming Bookings Preview -->
-        @include('livewire.admin.booking.ui.upcoming-bookings-preview')
+        {{-- <!-- Upcoming Bookings Preview -->
+        @include('livewire.admin.booking.ui.upcoming-bookings-preview') --}}
 
         <!-- Court Filter Tabs -->
         @include('livewire.admin.booking.ui.court-filter-tabs')
@@ -16,9 +16,9 @@
         <!-- View Toggle and Export -->
         @include('livewire.admin.booking.ui.view-toggle')
 
-        <div class="flex flex-col xl:flex-row relative gap-6">
-            <div class="flex-1 min-w-0">
-                @if($viewMode === 'table')
+        <div class="relative flex flex-col gap-6 xl:flex-row">
+            <div class="min-w-0 flex-1">
+                @if ($viewMode === 'table')
                     @include('livewire.admin.booking.views.table-view')
                 @else
                     @include('livewire.admin.booking.views.calendar-view')

@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\User;
-use App\Settings\PremiumSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Volt\Volt;
@@ -67,7 +66,7 @@ test('admin can update premium booking settings', function () {
         ->call('updatePremiumSettings')
         ->assertSessionHas('status');
 
-    $settings = app(PremiumSettings::class);
+    $settings = app(Premium::class);
     expect($settings->premium_advance_days)->toBe(30);
     expect($settings->free_advance_days)->toBe(7);
     expect($settings->default_booking_limit)->toBe(5);
@@ -181,7 +180,7 @@ test('settings can be reset to defaults', function () {
         ->call('resetToDefaults')
         ->assertSessionHas('status');
 
-    $settings = app(PremiumSettings::class);
+    $settings = app(Premium::class);
     expect($settings->premium_advance_days)->toBe(30); // Default value
     expect($settings->free_advance_days)->toBe(7); // Default value
 });

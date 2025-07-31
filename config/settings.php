@@ -1,6 +1,5 @@
 <?php
 
-use App\Settings\PremiumSettings;
 use App\Settings\SiteSettings;
 
 return [
@@ -10,7 +9,7 @@ return [
      * put them (manually) here.
      */
     'settings' => [
-        PremiumSettings::class,
+        Premium::class,
         SiteSettings::class,
     ],
 

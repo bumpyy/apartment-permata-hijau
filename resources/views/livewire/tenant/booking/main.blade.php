@@ -698,7 +698,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                     'date' => $bookingDate,
                     'start_time' => $startTime,
                     'end_time' => (new DateTime($startTime))->modify('+1 hour')->format('H:i'),
-                    'status' => BookingStatusEnum::PENDING,
+                    'status' => BookingStatusEnum::CONFIRMED,
                     'booking_type' => $slotType,
                     'booking_week_start' => $bookingDate->copy()->startOfWeek()->format('Y-m-d'),
                     'price' => $slotType === 'premium' ? 150000 : 0,
@@ -968,6 +968,9 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
      */
     public function canBookPremium(Carbon $date): bool
     {
+        // ? spec change always return false, keep the logic just in case
+        return false;
+
         $nextWeekEnd = now()->addWeek()->endOfWeek();
         $premiumEnd = now()->addMonth()->endOfMonth();
 

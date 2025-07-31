@@ -1,6 +1,6 @@
 @if ($showDetailPanel)
     <div class="w-full flex-shrink-0 lg:w-[350px] xl:w-[400px]">
-        <div class="sticky top-4 flex min-h-[400px] flex-col justify-between rounded-xl border border-gray-100 bg-white p-8 shadow-xl"
+        <div class="sticky top-20 flex min-h-[400px] flex-col justify-between rounded-xl border border-gray-100 bg-white p-8 shadow-xl"
             x-data="{ showConfirm: false, showCancel: false, showEdit: false }" @close-edit-modal.window="showEdit = false">
             <button class="absolute right-3 top-3 text-xl text-gray-400 hover:text-gray-700" wire:click="closeDetailPanel"
                 title="Close">&times;</button>
@@ -26,7 +26,7 @@
                             <select class="w-full rounded border p-2" wire:model="panelAddForm.tenant_id" required>
                                 <option value="">Select Tenant</option>
                                 @foreach ($panelTenants as $tenant)
-                                    <option value="{{ $tenant->id }}">{{ $tenant->display_name }}</option>
+                                    <option value="{{ $tenant->id }}">{{ $tenant->name }}</option>
                                 @endforeach
                             </select>
                         </div>
