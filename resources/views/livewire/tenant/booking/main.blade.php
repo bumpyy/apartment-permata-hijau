@@ -3,7 +3,9 @@
 use App\Enum\BookingStatusEnum;
 use App\Models\Booking;
 use App\Models\Court;
+use App\Services\BookingValidationService;
 use App\Settings\SiteSettings;
+use App\Traits\HasBookingValidation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
@@ -13,6 +15,7 @@ use Livewire\Volt\Component;
 
 new #[Layout('components.frontend.layouts.app')] class extends Component
 {
+    use HasBookingValidation;
     // === CORE PROPERTIES ===
     public $courtNumber; // Which court we're booking (e.g., Court 2)
 
@@ -183,8 +186,8 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $this->loadBookedSlots();
         $this->loadCrossCourtBookings();
         $this->generateTimeSlots();
-        $this->generateWeekDays();
-        $this->generateMonthDays();
+        $this->generateWeekDaysForComponent();
+        $this->generateMonthDaysForComponent();
         $this->initializeDatePicker();
 
         // Mark as loaded
@@ -429,56 +432,35 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         // Use provided date or fall back to selectedDate
         $targetDate = $date ? Carbon::parse($date) : Carbon::parse($this->selectedDate);
 
-        // Court operating hours: 8am to 10pm
-        $startTime = Carbon::parse('08:00');
-        $endTime = Carbon::parse('22:00');
-        $interval = 60; // 60-minute slots
+        // Get available slots from service
+        $availableSlots = $this->getAvailableTimeSlots($this->courtNumber, $targetDate);
 
         // Reset arrays
         $this->availableTimes = [];
         $this->availableTimesForDate = [];
 
-        // Get existing bookings for this date
-        $bookedSlotsForDate = Booking::where('court_id', $this->courtNumber)
-            ->where('date', $targetDate->format('Y-m-d'))
-            ->where('status', '!=', BookingStatusEnum::CANCELLED)
-            ->get()
-            ->pluck('start_time')
-            ->map(function ($time) {
-                return $time->format('H:i');
-            })
-            ->toArray();
-
-        // Generate time slots
-        while ($startTime <= $endTime) {
-            $time = $startTime->format('H:i');
-            $slotKey = $targetDate->format('Y-m-d').'-'.$time;
-            $slotType = $this->getSlotType($slotKey);
-            $isBooked = in_array($time, $bookedSlotsForDate);
-            $isSelected = in_array($slotKey, $this->selectedSlots);
-            $isPast = $startTime->copy()->setDateFrom($targetDate)->isPast();
+        foreach ($availableSlots as $slot) {
+            $isSelected = in_array($slot['slot_key'], $this->selectedSlots);
 
             // For daily view (simple array of available times)
-            if (! $date) {
-                if (! $isBooked) {
-                    $this->availableTimes[] = $time;
+            if (!$date) {
+                if ($slot['is_available']) {
+                    $this->availableTimes[] = $slot['start_time'];
                 }
             }
 
             // For modal time selector (detailed slot information)
             $this->availableTimesForDate[] = [
-                'start_time' => $time,
-                'end_time' => $startTime->copy()->addHour()->format('H:i'),
-                'slot_key' => $slotKey,
-                'slot_type' => $slotType,
-                'is_available' => ! $isBooked && ! $isPast && $this->canBookSlot($targetDate),
-                'is_booked' => $isBooked,
+                'start_time' => $slot['start_time'],
+                'end_time' => $slot['end_time'],
+                'slot_key' => $slot['slot_key'],
+                'slot_type' => $slot['slot_type'],
+                'is_available' => $slot['is_available'],
+                'is_booked' => $slot['is_booked'],
                 'is_selected' => $isSelected,
-                'is_past' => $isPast,
-                'is_peak' => $startTime->hour >= 18, // After 6pm = peak hours
+                'is_past' => $slot['is_past'],
+                'is_peak' => $slot['is_peak'],
             ];
-
-            $startTime->addMinutes($interval);
         }
     }
 
@@ -491,85 +473,51 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     public function toggleTimeSlot($slotKey)
     {
         // Check if user is logged in
-        if ($this->isLoggedIn) {
-            if (in_array($slotKey, $this->selectedSlots)) {
-                // REMOVE SLOT: Simply remove from array
-                $this->selectedSlots = array_diff($this->selectedSlots, [$slotKey]);
-            } else {
-                // if ($this->quotaInfo['weekly_remaining'] > 0) {
-                // ADD SLOT: Check quotas first
-                $parts = explode('-', $slotKey);
-                if (count($parts) >= 3) {
-                    $date = $parts[0].'-'.$parts[1].'-'.$parts[2];
+        if (!$this->isLoggedIn) {
+            $this->showLoginReminder = true;
+            return;
+        }
 
-                    // Count currently selected slots for this date
-                    $dailySlots = array_filter($this->selectedSlots, function ($slot) use ($date) {
-                        return str_starts_with($slot, $date);
-                    });
+        if (in_array($slotKey, $this->selectedSlots)) {
+            // REMOVE SLOT: Simply remove from array
+            $this->selectedSlots = array_diff($this->selectedSlots, [$slotKey]);
+        } else {
+            // ADD SLOT: Validate before adding
+            $tenant = auth('tenant')->user();
+            $tempSlots = array_merge($this->selectedSlots, [$slotKey]);
+            $validationResult = $tenant->validateSlotSelection($tempSlots, $this->courtNumber);
 
-                    // Count existing bookings for this date by this user
-                    $existingBookingsForDate = 0;
-                    if ($this->isLoggedIn) {
-                        $existingBookingsForDate = Booking::where('court_id', $this->courtNumber)
-                            ->where('date', $date)
-                            ->where('status', '!=', BookingStatusEnum::CANCELLED)
-                            ->where('tenant_id', auth('tenant')->id())
-                            ->count();
-                    }
+            if (!$validationResult['can_book']) {
+                // Show warnings
+                if (!empty($validationResult['warnings'])) {
+                    $this->quotaWarning = implode(' ', $validationResult['warnings']);
+                    $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
+                }
 
-                    $totalSlotsForDay = count($dailySlots) + $existingBookingsForDate;
+                // Handle conflicts
+                if (!empty($validationResult['conflicts'])) {
+                    foreach ($validationResult['conflicts'] as $conflict) {
+                        if (isset($conflict['conflicting_booking'])) {
+                            // Cross-court conflict
+                            $this->crossCourtConflictDetails = $validationResult['conflicts'];
+                            $this->showCrossCourtConflictModal = true;
+                        } else {
+                            // Regular conflict - refresh data and show message
+                            $this->quotaWarning = $conflict['message'];
+                            $this->js("toast('{$this->quotaWarning}',{type:'warning',duration:5000})");
 
-                    // QUOTA CHECK: Max 2 hours (slots) per day
-                    if ($totalSlotsForDay >= 2) {
-                        $this->quotaWarning = 'Maximum 2 hours per day allowed (including existing bookings).';
-                        // Don't add the slot, just show warning
-                        $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
-                    } else {
-                        // Check if slot is already booked by someone else
-                        $parts = explode('-', $slotKey);
-                        if (count($parts) >= 4) {
-                            $date = $parts[0].'-'.$parts[1].'-'.$parts[2];
-                            $startTime = count($parts) == 4 ? $parts[3] : $parts[3].':'.$parts[4];
-                            $endTime = Carbon::createFromFormat('H:i', $startTime)->addHour()->format('H:i');
-
-                            if ($this->isSlotAlreadyBooked($date, $startTime)) {
-                                $this->quotaWarning = '⏰ This time slot was just booked by another tenant. Please select a different time.';
-                                $this->js("toast('{$this->quotaWarning}',{type:'warning',duration:5000})");
-
-                                // Refresh available times to show updated status
-                                $this->generateAvailableTimesForDate();
-                                $this->loadBookedSlots();
-
-                                return;
-                            }
-
-                            // Check for cross-court conflicts
-                            $crossCourtConflicts = $this->checkCrossCourtConflicts($date, $startTime, $endTime);
-                            if (! empty($crossCourtConflicts)) {
-                                $this->crossCourtConflictDetails = $crossCourtConflicts;
-                                $this->showCrossCourtConflictModal = true;
-
-                                return;
-                            }
+                            // Refresh available times to show updated status
+                            $this->generateAvailableTimesForDate();
+                            $this->loadBookedSlots();
                         }
-
-                        // Add the slot and clear any warnings
-                        $this->selectedSlots[] = $slotKey;
-                        $this->quotaWarning = '';
                     }
                 }
-                // } else {
-                //     $this->quotaWarning = 'You cannot book for more than 3 distinct days.';
-
-                //     $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
-
-                //     return;
-                // }
+                return;
             }
-        } else {
-            $this->showLoginReminder = true;
 
-            return;
+            // Add the slot and clear any warnings
+            $this->selectedSlots[] = $slotKey;
+            $this->quotaWarning = '';
         }
 
         // Re-validate all selections
@@ -592,63 +540,31 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             return;
         }
 
-        $tenantId = auth('tenant')->id();
+        $tenant = auth('tenant')->user();
+        $validationResult = $tenant->validateSlotSelection($this->selectedSlots, $this->courtNumber);
 
-        // Get unique dates from selected slots
-        $selectedDates = collect($this->selectedSlots)
-            ->map(function ($slot) {
-                $parts = explode('-', $slot);
-
-                return $parts[0].'-'.$parts[1].'-'.$parts[2];
-            })
-            ->unique();
-
-        // Get existing bookings for the tenant
-        $existingBookings = Booking::getBookedDaysForTenant($tenantId, Carbon::today()->format('Y-m-d'));
-
-        // Count days with existing bookings
-        $bookedDaysCount = $existingBookings->count();
-
-        // For each selected date, check daily quota first (2 hours max per day)
-        foreach ($selectedDates as $date) {
-            // Count existing bookings for this date
-            $existingBookingsForDate = $existingBookings->has($date) ? $existingBookings->get($date)->count() : 0;
-
-            // Count selected slots for this date
-            $selectedSlotsForThisDate = collect($this->selectedSlots)
-                ->filter(function ($slot) use ($date) {
-                    return str_starts_with($slot, $date);
-                })
-                ->count();
-
-            // Check if total would exceed daily limit (2 hours per day)
-            if ($existingBookingsForDate + $selectedSlotsForThisDate > 2) {
-                $this->quotaWarning = 'Maximum 2 hours per day allowed.';
+        if (!$validationResult['can_book']) {
+            $this->quotaWarning = implode(' ', $validationResult['warnings']);
+            if (!empty($this->quotaWarning)) {
                 $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
+            }
+        } else {
+            $this->quotaWarning = ''; // Clear any previous warnings
+        }
 
-                return;
+        // Handle conflicts
+        if (!empty($validationResult['conflicts'])) {
+            foreach ($validationResult['conflicts'] as $conflict) {
+                if (isset($conflict['conflicting_booking'])) {
+                    // Cross-court conflict
+                    $this->crossCourtConflictDetails = $validationResult['conflicts'];
+                    $this->showCrossCourtConflictModal = true;
+                } else {
+                    // Regular conflict
+                    $this->js("toast('{$conflict['message']}',{type:'warning',duration:5000})");
+                }
             }
         }
-
-        // Now check the 3 distinct days rule
-        // Count how many NEW distinct days we're trying to add
-        $newDaysCount = 0;
-        foreach ($selectedDates as $date) {
-            // If this date doesn't have existing bookings, it's a new day
-            if (! $existingBookings->has($date)) {
-                $newDaysCount++;
-            }
-        }
-
-        // Check if adding new days would exceed the 3-day limit
-        if ($bookedDaysCount + $newDaysCount > 3) {
-            $this->quotaWarning = 'You cannot book for more than 3 distinct days.';
-            $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
-
-            return;
-        }
-
-        $this->quotaWarning = ''; // Clear any previous warnings
     }
 
     /**
@@ -738,7 +654,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         foreach ($this->pendingBookingData as $slot) {
             try {
                 // Double-check that this specific slot is still available
-                if ($this->isSlotAlreadyBooked($slot['date']->format('Y-m-d'), $slot['start_time'])) {
+                if ($this->isSlotAlreadyBookedForComponent($slot['date']->format('Y-m-d'), $slot['start_time'])) {
                     // This slot was taken by someone else while we were processing
                     $this->quotaWarning = "⏰ Slot {$slot['date']->format('M j')} at {$slot['start_time']} was just booked by another tenant. Please refresh and try again.";
                     $this->js("toast('{$this->quotaWarning}',{type:'error',duration:6000})");
@@ -832,61 +748,23 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
      * Generate days for weekly view
      * Creates array of 7 days starting from currentWeekStart
      */
-    public function generateWeekDays()
+    public function generateWeekDaysForComponent()
     {
-        $this->weekDays = [];
-        $start = $this->currentWeekStart->copy();
-
-        for ($i = 0; $i < 7; $i++) {
-            $date = $start->copy()->addDays($i);
-            $this->weekDays[] = [
-                'date' => $date->format('Y-m-d'),
-                'day_name' => $date->format('D'), // Mon, Tue, etc.
-                'day_number' => $date->format('j'), // 1, 2, 3, etc.
-                'month_name' => $date->format('M'), // Jan, Feb, etc.
-                'is_today' => $date->isToday(),
-                'is_past' => $date->isPast(),
-                'is_bookable' => $this->canBookSlot($date),
-                'can_book_free' => $this->canBookFree($date),
-                'can_book_premium' => $this->canBookPremium($date),
-                'formatted_date' => $date->format('M j, Y'),
-            ];
-        }
+        $this->weekDays = $this->generateWeekDays($this->currentWeekStart);
     }
 
     /**
      * Generate days for monthly view
      * Creates calendar grid including days from previous/next month
      */
-    public function generateMonthDays()
+    public function generateMonthDaysForComponent()
     {
-        $this->monthDays = [];
-
-        // Start from Monday of first week, end on Sunday of last week
-        $start = $this->currentMonthStart->copy()->startOfWeek();
-        $end = $this->currentMonthStart->copy()->endOfMonth()->endOfWeek();
-
-        while ($start <= $end) {
-            // Get booking counts for this date
-            $bookingCounts = $this->getDateBookingCounts($start);
-
-            $this->monthDays[] = [
-                'date' => $start->format('Y-m-d'),
-                'day_number' => $start->format('j'),
-                'is_current_month' => $start->month === $this->currentMonthStart->month,
-                'is_today' => $start->isToday(),
-                'is_past' => $start->isPast(),
-                'is_bookable' => $this->canBookSlot($start),
-                'can_book_free' => $this->canBookFree($start),
-                'can_book_premium' => $this->canBookPremium($start),
-                'booking_type' => $this->getDateBookingType($start),
-                'booked_count' => $bookingCounts['booked'],
-                'pending_count' => $bookingCounts['pending'],
-                'selected_count' => $bookingCounts['selected'],
-                'available_count' => $bookingCounts['available'],
-            ];
-            $start->addDay();
-        }
+        $this->monthDays = $this->generateMonthDays(
+            $this->currentMonthStart,
+            $this->bookedSlots,
+            $this->preliminaryBookedSlots,
+            $this->selectedSlots
+        );
     }
 
     /**
@@ -896,119 +774,13 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
      * @param  Carbon  $date  - Date to count bookings for
      * @return array - Counts of booked, pending, selected, available slots
      */
-    public function getDateBookingCounts($date)
+    public function getDateBookingCountsForComponent($date)
     {
-        $dateStr = $date->format('Y-m-d');
-
-        // Count confirmed bookings for this date
-        $bookedCount = collect($this->bookedSlots)
-            ->filter(function ($slot) use ($dateStr) {
-                return str_starts_with($slot['key'], $dateStr);
-            })
-            ->count();
-
-        // Count pending bookings for this date
-        $pendingCount = collect($this->preliminaryBookedSlots)
-            ->filter(function ($slot) use ($dateStr) {
-                return str_starts_with($slot['key'], $dateStr);
-            })
-            ->count();
-
-        // Count currently selected slots for this date
-        $selectedCount = collect($this->selectedSlots)
-            ->filter(function ($slot) use ($dateStr) {
-                return str_starts_with($slot, $dateStr);
-            })
-            ->count();
-
-        // Calculate available slots (total 14 slots: 8am-10pm)
-        $totalSlots = 14;
-        $availableCount = $totalSlots - $bookedCount - $pendingCount;
-
-        return [
-            'booked' => $bookedCount,
-            'pending' => $pendingCount,
-            'selected' => $selectedCount,
-            'available' => max(0, $availableCount),
-        ];
+        return $this->getDateBookingCounts($date, $this->courtNumber, $this->bookedSlots, $this->preliminaryBookedSlots, $this->selectedSlots);
     }
 
     // === BOOKING RULES FUNCTIONS ===
     // These functions determine when users can book slots
-
-    /**
-     * Check if a slot can be booked on this date
-     *
-     * @param  Carbon  $date
-     * @return bool
-     */
-    public function canBookSlot($date)
-    {
-        return $this->canBookFree($date) || $this->canBookPremium($date);
-    }
-
-    /**
-     * Check if free booking is available for this date
-     * Rule: Free booking only for next week (Monday to Sunday)
-     *
-     * @param  Carbon  $date
-     * @return bool
-     */
-    public function canBookFree($date)
-    {
-        $nextWeekStart = now()->addWeek()->startOfWeek();
-        $nextWeekEnd = now()->addWeek()->endOfWeek();
-
-        return $date->between($nextWeekStart, $nextWeekEnd);
-    }
-
-    /**
-     * Check if premium booking is available for this date
-     * Rule: Premium booking for dates beyond next week, and only if premium booking is open
-     */
-    public function canBookPremium(Carbon $date): bool
-    {
-        // ? spec change always return false, keep the logic just in case
-        return false;
-
-        $nextWeekEnd = now()->addWeek()->endOfWeek();
-        $premiumEnd = now()->addMonth()->endOfMonth();
-
-        return $date->gt($nextWeekEnd) && $date->lte($premiumEnd) && $this->isPremiumBookingOpen;
-    }
-
-    /**
-     * Get the booking type for a specific date
-     *
-     * @param  Carbon  $date
-     * @return string - 'free', 'premium', or 'none'
-     */
-    public function getDateBookingType($date)
-    {
-        if ($this->canBookFree($date)) {
-            return 'free';
-        }
-        if ($this->canBookPremium($date)) {
-            return 'premium';
-        }
-
-        return 'none';
-    }
-
-    /**
-     * Get detailed booking information for a date
-     *
-     * @param  Carbon  $date
-     * @return array
-     */
-    public function getDateBookingInfo($date)
-    {
-        return [
-            'can_book_free' => $this->canBookFree($date),
-            'can_book_premium' => $this->canBookPremium($date),
-            'is_bookable' => $this->canBookSlot($date),
-        ];
-    }
 
     /**
      * Get the booking type for a specific slot key
@@ -1044,9 +816,9 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $this->loadBookedSlots();
         // Generate appropriate data for the new view
         if ($mode === 'weekly') {
-            $this->generateWeekDays();
+            $this->generateWeekDaysForComponent();
         } elseif ($mode === 'monthly') {
-            $this->generateMonthDays();
+            $this->generateMonthDaysForComponent();
         } elseif ($mode === 'daily') {
             $this->selectedDate = $this->currentDate->format('Y-m-d');
             $this->generateAvailableTimesForDate();
@@ -1064,12 +836,12 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             $this->currentWeekStart = $this->currentWeekStart->subWeek();
             $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
-            $this->generateWeekDays();
+            $this->generateWeekDaysForComponent();
         } elseif ($this->viewMode === 'monthly') {
             $this->currentMonthStart = $this->currentMonthStart->subMonth();
             $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
-            $this->generateMonthDays();
+            $this->generateMonthDaysForComponent();
         } elseif ($this->viewMode === 'daily') {
             $this->currentDate = $this->currentDate->subDay();
             $this->selectedDate = $this->currentDate->format('Y-m-d');
@@ -1088,12 +860,12 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             $this->currentWeekStart = $this->currentWeekStart->addWeek();
             $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
-            $this->generateWeekDays();
+            $this->generateWeekDaysForComponent();
         } elseif ($this->viewMode === 'monthly') {
             $this->currentMonthStart = $this->currentMonthStart->addMonth();
             $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
-            $this->generateMonthDays();
+            $this->generateMonthDaysForComponent();
         } elseif ($this->viewMode === 'daily') {
             $this->currentDate = $this->currentDate->addDay();
             $this->selectedDate = $this->currentDate->format('Y-m-d');
@@ -1117,11 +889,11 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         if ($this->viewMode === 'weekly') {
             $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
-            $this->generateWeekDays();
+            $this->generateWeekDaysForComponent();
         } elseif ($this->viewMode === 'monthly') {
             $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
-            $this->generateMonthDays();
+            $this->generateMonthDaysForComponent();
         } else {
             $this->crossCourtBookingsLoaded = false;
             $this->loadBookedSlots();
@@ -1333,10 +1105,10 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             $this->generateAvailableTimesForDate();
         } elseif ($this->viewMode === 'weekly') {
             $this->currentWeekStart = $selectedDate->startOfWeek();
-            $this->generateWeekDays();
+            $this->generateWeekDaysForComponent();
         } elseif ($this->viewMode === 'monthly') {
             $this->currentMonthStart = $selectedDate->startOfMonth();
-            $this->generateMonthDays();
+            $this->generateMonthDaysForComponent();
         }
 
         $this->loadBookedSlots();
@@ -1354,7 +1126,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $this->currentDate = $this->currentWeekStart->copy();
 
         if ($this->viewMode === 'weekly') {
-            $this->generateWeekDays();
+            $this->generateWeekDaysForComponent();
         }
 
         $this->crossCourtBookingsLoaded = false;
@@ -1373,7 +1145,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $this->currentDate = $this->currentMonthStart->copy();
 
         if ($this->viewMode === 'monthly') {
-            $this->generateMonthDays();
+            $this->generateMonthDaysForComponent();
         }
 
         $this->crossCourtBookingsLoaded = false;
@@ -1461,9 +1233,9 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         if ($this->viewMode === 'daily') {
             $this->generateAvailableTimesForDate();
         } elseif ($this->viewMode === 'weekly') {
-            $this->generateWeekDays();
+            $this->generateWeekDaysForComponent();
         } elseif ($this->viewMode === 'monthly') {
-            $this->generateMonthDays();
+            $this->generateMonthDaysForComponent();
         }
     }
 
@@ -1581,7 +1353,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
      * @param  string  $startTime  - Start time in H:i format
      * @return bool - True if slot is already booked
      */
-    public function isSlotAlreadyBooked($date, $startTime)
+    public function isSlotAlreadyBookedForComponent($date, $startTime)
     {
         return Booking::isSlotBooked($this->courtNumber, $date, $startTime);
     }
@@ -1596,7 +1368,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
      * @param  string  $endTime  - End time in H:i format
      * @return array - Array of conflicting bookings
      */
-    public function checkCrossCourtConflicts($date, $startTime, $endTime)
+    public function checkCrossCourtConflictsForComponent($date, $startTime, $endTime)
     {
         if (! $this->isLoggedIn) {
             return [];
@@ -1663,7 +1435,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                 $date = $parts[0].'-'.$parts[1].'-'.$parts[2];
                 $startTime = count($parts) == 4 ? $parts[3] : $parts[3].':'.$parts[4];
 
-                if ($this->isSlotAlreadyBooked($date, $startTime)) {
+                if ($this->isSlotAlreadyBookedForComponent($date, $startTime)) {
                     $conflicts[] = $slotKey;
                 }
             }

@@ -5,6 +5,11 @@ namespace App\Livewire\Admin;
 use App\Enum\BookingStatusEnum;
 use App\Models\Booking as BookingModel;
 use App\Models\Court;
+use App\Models\Tenant;
+use App\Models\User;
+use App\Services\BookingValidationService;
+use App\Settings\SiteSettings;
+use App\Traits\HasBookingValidation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
@@ -12,7 +17,7 @@ use Livewire\WithPagination;
 
 class Booking extends Component
 {
-    use WithPagination;
+    use WithPagination, HasBookingValidation;
 
     // Properties for filtering and search
     public $search = '';
@@ -948,88 +953,7 @@ class Booking extends Component
         $this->showDetail($bookingId);
     }
 
-    /**
-     * Check if free booking is available for this date
-     * Rule: Free booking only for next week (Monday to Sunday)
-     *
-     * @param  Carbon  $date
-     * @return bool
-     */
-    public function canBookFree($date)
-    {
-        $nextWeekStart = now()->addWeek()->startOfWeek();
-        $nextWeekEnd = now()->addWeek()->endOfWeek();
-
-        return $date->between($nextWeekStart, $nextWeekEnd);
-    }
-
-    /**
-     * Check if premium booking is available for this date
-     * Rule: Premium booking for dates beyond next week, and only if premium booking is open
-     */
-    public function canBookPremium($date): bool
-    {
-        $nextWeekEnd = now()->addWeek()->endOfWeek();
-        $premiumEnd = now()->addMonth()->endOfMonth();
-
-        // Check if premium booking is currently open
-        $isPremiumBookingOpen = $this->isPremiumBookingOpen();
-
-        return $date->gt($nextWeekEnd) && $date->lte($premiumEnd) && $isPremiumBookingOpen;
-    }
-
-    /**
-     * Get the booking type for a specific date
-     *
-     * @param  Carbon  $date
-     * @return string - 'free', 'premium', or 'none'
-     */
-    public function getDateBookingType($date)
-    {
-        if ($this->canBookFree($date)) {
-            return 'free';
-        }
-        if ($this->canBookPremium($date)) {
-            return 'premium';
-        }
-
-        return 'none';
-    }
-
-    /**
-     * Check if a slot can be booked (not past date/time)
-     *
-     * @param  string  $date  - Date in Y-m-d format
-     * @param  string  $startTime  - Start time in H:i format
-     * @return bool - True if slot can be booked
-     */
-    public function canBookSlot($date, $startTime)
-    {
-
-        $bookingDate = \Carbon\Carbon::parse($date);
-
-        return $this->canBookFree($bookingDate) || $this->canBookPremium($bookingDate);
-    }
-
-    /**
-     * Check if premium booking is currently open
-     */
-    private function isPremiumBookingOpen(): bool
-    {
-        // Set premium booking date using override if available, fallback to 25th
-        $currentDate = now();
-        $premiumBookingDate = \App\Models\PremiumDateOverride::getCurrentMonthPremiumDate();
-
-        if ($currentDate->toDateString() > $premiumBookingDate->toDateString()) {
-            $nextMonthPremiumDate = \App\Models\PremiumDateOverride::whereMonth('date', $currentDate->copy()->addMonth()->month)
-                ->whereYear('date', $currentDate->copy()->addMonth()->year)
-                ->first();
-
-            $premiumBookingDate = $nextMonthPremiumDate ? \Carbon\Carbon::parse($nextMonthPremiumDate->date) : $currentDate->copy()->addMonth()->day(25);
-        }
-
-        return now()->format('Y-m-d') === $premiumBookingDate->format('Y-m-d');
-    }
+    // Booking validation methods are now provided by the HasBookingValidation trait
 
     // Export methods
     public function openExportModal()
