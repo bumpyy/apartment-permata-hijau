@@ -15,7 +15,7 @@
                 and serene surroundings — a true sanctuary for those who value heritage, exclusivity, and enduring
                 quality.
             </p>
-            <div class="flex flex-wrap justify-center gap-8">
+            <div class="flex flex-wrap justify-center gap-16">
                 @foreach ([
         [
             'icon' => 'measure',
@@ -30,9 +30,10 @@
 
                         <x-dynamic-component class="size-12" :component="'icons.' . $item['icon']" />
 
-                        <div class="flex flex-col text-start">
-                            <h3 class="font-imbue text-3xl font-thin leading-6">{{ $item['value'] }}</h3>
-                            <p>{{ $item['label'] }}</p>
+                        <div class="flex flex-col gap-1 text-start text-black">
+                            <h3 class="font-imbue text-primary text-4xl leading-6">{{ $item['value'] }}
+                            </h3>
+                            <p class="text-xs">{{ $item['label'] }}</p>
                         </div>
                     </div>
                 @endforeach

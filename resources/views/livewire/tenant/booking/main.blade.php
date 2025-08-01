@@ -3,7 +3,6 @@
 use App\Enum\BookingStatusEnum;
 use App\Models\Booking;
 use App\Models\Court;
-use App\Services\BookingValidationService;
 use App\Settings\SiteSettings;
 use App\Traits\HasBookingValidation;
 use Carbon\Carbon;
@@ -16,6 +15,7 @@ use Livewire\Volt\Component;
 new #[Layout('components.frontend.layouts.app')] class extends Component
 {
     use HasBookingValidation;
+
     // === CORE PROPERTIES ===
     public $courtNumber; // Which court we're booking (e.g., Court 2)
 
@@ -443,7 +443,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             $isSelected = in_array($slot['slot_key'], $this->selectedSlots);
 
             // For daily view (simple array of available times)
-            if (!$date) {
+            if (! $date) {
                 if ($slot['is_available']) {
                     $this->availableTimes[] = $slot['start_time'];
                 }
@@ -473,8 +473,9 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     public function toggleTimeSlot($slotKey)
     {
         // Check if user is logged in
-        if (!$this->isLoggedIn) {
+        if (! $this->isLoggedIn) {
             $this->showLoginReminder = true;
+
             return;
         }
 
@@ -487,15 +488,15 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             $tempSlots = array_merge($this->selectedSlots, [$slotKey]);
             $validationResult = $tenant->validateSlotSelection($tempSlots, $this->courtNumber);
 
-            if (!$validationResult['can_book']) {
+            if (! $validationResult['can_book']) {
                 // Show warnings
-                if (!empty($validationResult['warnings'])) {
+                if (! empty($validationResult['warnings'])) {
                     $this->quotaWarning = implode(' ', $validationResult['warnings']);
                     $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
                 }
 
                 // Handle conflicts
-                if (!empty($validationResult['conflicts'])) {
+                if (! empty($validationResult['conflicts'])) {
                     foreach ($validationResult['conflicts'] as $conflict) {
                         if (isset($conflict['conflicting_booking'])) {
                             // Cross-court conflict
@@ -512,6 +513,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                         }
                     }
                 }
+
                 return;
             }
 
@@ -543,17 +545,18 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $tenant = auth('tenant')->user();
         $validationResult = $tenant->validateSlotSelection($this->selectedSlots, $this->courtNumber);
 
-        if (!$validationResult['can_book']) {
+        if (! $validationResult['can_book']) {
             $this->quotaWarning = implode(' ', $validationResult['warnings']);
-            if (!empty($this->quotaWarning)) {
+            if (! empty($this->quotaWarning)) {
                 $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
             }
+
         } else {
             $this->quotaWarning = ''; // Clear any previous warnings
         }
 
         // Handle conflicts
-        if (!empty($validationResult['conflicts'])) {
+        if (! empty($validationResult['conflicts'])) {
             foreach ($validationResult['conflicts'] as $conflict) {
                 if (isset($conflict['conflicting_booking'])) {
                     // Cross-court conflict
@@ -565,6 +568,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                 }
             }
         }
+
     }
 
     /**
@@ -1501,6 +1505,28 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 
         <!-- Booking Rules Component -->
         @include('livewire.tenant.booking.ui.booking-rules')
+
+        @if ($isLoggedIn)
+        <!-- Current Tenant Booking List -->
+            <div class="my-6">
+                <h2 class="text-xl font-semibold mb-4">Your Current Bookings</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                    @foreach (auth('tenant')->user()->load(['currentBookings.court'])->currentBookings as $booking)
+                        <div class="p-2 border rounded shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm">
+                                    <div class="font-medium">{{ $booking->court->name }}</div>
+                                    <div class="">{{ $booking->start_time->format('g:i A') }} <span class="text-gray-600">-</span> {{ $booking->end_time->format('g:i A') }} <span class="text-gray-600">on</span> {{ $booking->date->format('j F Y') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+
 
         <!-- Calendar Wrapper with Offline Overlay -->
         <div class="relative">

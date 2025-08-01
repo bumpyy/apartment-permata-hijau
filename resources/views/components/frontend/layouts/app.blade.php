@@ -50,7 +50,8 @@
     ] as $item => $route)
                 <li @class([
                     'py-2 px-4',
-                    'font-bold text-white bg-primary' => request()->routeIs($route),
+                    'font-bold text-white bg-primary' =>
+                        request()->routeIs($route) || request()->routeIs("{$route}.*"),
                 ])>
                     @if (Route::has($route))
                         <a href="{{ route($route) }}">{{ $item }}</a>

@@ -9,7 +9,7 @@
                 @endif
             </h3>
 
-            <div class="mb-6 space-y-4">
+            <div class="mb-6 max-h-[50dvh] space-y-4 overflow-y-auto">
                 @foreach ($pendingBookingData as $booking)
                     <div class="rounded-lg border bg-gray-50 p-4">
                         <div class="flex items-start justify-between">
@@ -29,8 +29,8 @@
                                 'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
                             ])
                                 @if ($booking['booking_type'] === 'free') 🆓
-                        @else
-                        ⭐ @endif
+                            @else
+                            ⭐ @endif
                                 {{ strtoupper($booking['booking_type']) }} </span>
                         </div>
                     </div>
@@ -39,8 +39,7 @@
 
             <div class="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-gray-600">
                 <p>💳 *Please process the payment to the Receptionist before using the tennis court</p>
-                <p>⚠️ *Please be responsible with your bookings. Failure to comply may result in being blacklisted.
-                </p>
+                <p>⚠️ *Please be responsible with your bookings. Failure to comply may result in being blacklisted.</p>
             </div>
 
             <div class="flex justify-end gap-3">

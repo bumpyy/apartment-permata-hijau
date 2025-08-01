@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\BookingStatusEnum;
 use App\Services\BookingValidationService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -49,6 +50,20 @@ class Tenant extends Authenticatable implements HasMedia
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+
+    /**
+     * Get the bookings for the tenant.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function currentBookings()
+    {
+        return $this->bookings()
+            ->where('date', '>=', Carbon::today()->format('Y-m-d'))
+            ->where('status', '!=', BookingStatusEnum::CANCELLED)
+            ->orderBy('date')
+            ->orderBy('start_time');
     }
 
     public function getDisplayNameAttribute()
@@ -252,34 +267,31 @@ class Tenant extends Authenticatable implements HasMedia
     /**
      * Validate slot selection using the BookingValidationService
      *
-     * @param array $slotKeys Array of slot keys in format "YYYY-MM-DD-HH:MM"
-     * @param int $courtId
+     * @param  array  $slotKeys  Array of slot keys in format "YYYY-MM-DD-HH:MM"
      * @return array Validation result
      */
     public function validateSlotSelection(array $slotKeys, int $courtId): array
     {
         $validationService = app(BookingValidationService::class);
+
         return $validationService->validateSlotSelection($this, $slotKeys, $courtId);
     }
 
     /**
      * Check if tenant can book a specific date and time
      *
-     * @param Carbon $date
-     * @param string $startTime
-     * @param int $courtId
      * @return array Validation result
      */
-    public function canBookSlot(Carbon $date, string $startTime = null, int $courtId = null): array
+    public function canBookSlot(Carbon $date, ?string $startTime = null, ?int $courtId = null): array
     {
         $validationService = app(BookingValidationService::class);
 
         // Check if the slot is bookable
-        if (!$validationService->canBookSlot($date, $startTime)) {
+        if (! $validationService->canBookSlot($date, $startTime)) {
             return [
                 'can_book' => false,
                 'reason' => 'This slot is not available for booking.',
-                'details' => $validationService->getDateBookingInfo($date)
+                'details' => $validationService->getDateBookingInfo($date),
             ];
         }
 
@@ -289,7 +301,7 @@ class Tenant extends Authenticatable implements HasMedia
                 return [
                     'can_book' => false,
                     'reason' => 'This time slot is already booked.',
-                    'details' => $validationService->getDateBookingInfo($date)
+                    'details' => $validationService->getDateBookingInfo($date),
                 ];
             }
         }
@@ -304,87 +316,73 @@ class Tenant extends Authenticatable implements HasMedia
     /**
      * Check if tenant can book multiple slots
      *
-     * @param array $slotKeys Array of slot keys
-     * @param int $courtId
+     * @param  array  $slotKeys  Array of slot keys
      * @return array Validation result
      */
     public function canBookMultipleSlots(array $slotKeys, int $courtId): array
     {
         $validationService = app(BookingValidationService::class);
+
         return $validationService->validateSlotSelection($this, $slotKeys, $courtId);
     }
 
     /**
      * Get available time slots for a specific date and court
-     *
-     * @param int $courtId
-     * @param Carbon $date
-     * @return array
      */
     public function getAvailableTimeSlots(int $courtId, Carbon $date): array
     {
         $validationService = app(BookingValidationService::class);
+
         return $validationService->getAvailableTimeSlots($courtId, $date);
     }
 
     /**
      * Check if tenant can book free slots on a specific date
-     *
-     * @param Carbon $date
-     * @return bool
      */
     public function canBookFree(Carbon $date): bool
     {
         $validationService = app(BookingValidationService::class);
+
         return $validationService->canBookFree($date);
     }
 
     /**
      * Check if tenant can book premium slots on a specific date
-     *
-     * @param Carbon $date
-     * @return bool
      */
     public function canBookPremium(Carbon $date): bool
     {
         $validationService = app(BookingValidationService::class);
+
         return $validationService->canBookPremium($date);
     }
 
     /**
      * Get booking type for a specific date
-     *
-     * @param Carbon $date
-     * @return string
      */
     public function getDateBookingType(Carbon $date): string
     {
         $validationService = app(BookingValidationService::class);
+
         return $validationService->getDateBookingType($date);
     }
 
     /**
      * Get detailed booking information for a date
-     *
-     * @param Carbon $date
-     * @return array
      */
     public function getDateBookingInfo(Carbon $date): array
     {
         $validationService = app(BookingValidationService::class);
+
         return $validationService->getDateBookingInfo($date);
     }
 
     /**
      * Check for cross-court conflicts
-     *
-     * @param array $slotKeys
-     * @param int $excludeCourtId
-     * @return array
      */
     public function checkCrossCourtConflicts(array $slotKeys, int $excludeCourtId): array
     {
         $validationService = app(BookingValidationService::class);
+
         return $validationService->checkCrossCourtConflicts($this, $slotKeys, $excludeCourtId);
     }
 

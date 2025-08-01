@@ -176,7 +176,7 @@
                                         $day['date'] . ' ' . $slot['start'],
                                     );
                                     $endTime = $slotDateTime->copy()->addHour()->format('H:i');
-                                    $crossCourtConflicts = $this->checkCrossCourtConflicts(
+                                    $crossCourtConflicts = $this->checkCrossCourtConflictsForComponent(
                                         $day['date'],
                                         $slot['start'],
                                         $endTime,

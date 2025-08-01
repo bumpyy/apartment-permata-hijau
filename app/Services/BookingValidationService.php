@@ -8,16 +8,13 @@ use App\Models\Court;
 use App\Models\PremiumDateOverride;
 use App\Models\Tenant;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 class BookingValidationService
 {
     /**
      * Validate if a tenant can book specific slots
      *
-     * @param Tenant $tenant
-     * @param array $slotKeys Array of slot keys in format "YYYY-MM-DD-HH:MM"
-     * @param int $courtId
+     * @param  array  $slotKeys  Array of slot keys in format "YYYY-MM-DD-HH:MM"
      * @return array Validation result with can_book, warnings, and conflicts
      */
     public function validateSlotSelection(Tenant $tenant, array $slotKeys, int $courtId): array
@@ -30,7 +27,8 @@ class BookingValidationService
         $selectedDates = collect($slotKeys)
             ->map(function ($slot) {
                 $parts = explode('-', $slot);
-                return $parts[0] . '-' . $parts[1] . '-' . $parts[2];
+
+                return $parts[0].'-'.$parts[1].'-'.$parts[2];
             })
             ->unique()
             ->values();
@@ -58,7 +56,7 @@ class BookingValidationService
         // Check 3 distinct days rule
         $newDaysCount = 0;
         foreach ($selectedDates as $date) {
-            if (!$existingBookings->has($date)) {
+            if (! $existingBookings->has($date)) {
                 $newDaysCount++;
             }
         }
@@ -72,15 +70,15 @@ class BookingValidationService
         foreach ($slotKeys as $slotKey) {
             $parts = explode('-', $slotKey);
             if (count($parts) >= 4) {
-                $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
-                $startTime = count($parts) == 4 ? $parts[3] : $parts[3] . ':' . $parts[4];
+                $date = $parts[0].'-'.$parts[1].'-'.$parts[2];
+                $startTime = count($parts) == 4 ? $parts[3] : $parts[3].':'.$parts[4];
 
                 if ($this->isSlotAlreadyBooked($courtId, $date, $startTime)) {
                     $conflicts[] = [
                         'slot_key' => $slotKey,
                         'date' => $date,
                         'start_time' => $startTime,
-                        'message' => 'This time slot was just booked by another tenant.'
+                        'message' => 'This time slot was just booked by another tenant.',
                     ];
                     $canBook = false;
                 }
@@ -89,7 +87,7 @@ class BookingValidationService
 
         // Check for cross-court conflicts
         $crossCourtConflicts = $this->checkCrossCourtConflicts($tenant, $slotKeys, $courtId);
-        if (!empty($crossCourtConflicts)) {
+        if (! empty($crossCourtConflicts)) {
             $conflicts = array_merge($conflicts, $crossCourtConflicts);
             $canBook = false;
         }
@@ -107,10 +105,8 @@ class BookingValidationService
     /**
      * Check if a specific time slot is already booked
      *
-     * @param int $courtId
-     * @param string $date Date in Y-m-d format
-     * @param string $startTime Start time in H:i format
-     * @return bool
+     * @param  string  $date  Date in Y-m-d format
+     * @param  string  $startTime  Start time in H:i format
      */
     public function isSlotAlreadyBooked(int $courtId, string $date, string $startTime): bool
     {
@@ -119,11 +115,6 @@ class BookingValidationService
 
     /**
      * Check for cross-court booking conflicts
-     *
-     * @param Tenant $tenant
-     * @param array $slotKeys
-     * @param int $excludeCourtId
-     * @return array
      */
     public function checkCrossCourtConflicts(Tenant $tenant, array $slotKeys, int $excludeCourtId): array
     {
@@ -132,8 +123,8 @@ class BookingValidationService
         foreach ($slotKeys as $slotKey) {
             $parts = explode('-', $slotKey);
             if (count($parts) >= 4) {
-                $date = $parts[0] . '-' . $parts[1] . '-' . $parts[2];
-                $startTime = count($parts) == 4 ? $parts[3] : $parts[3] . ':' . $parts[4];
+                $date = $parts[0].'-'.$parts[1].'-'.$parts[2];
+                $startTime = count($parts) == 4 ? $parts[3] : $parts[3].':'.$parts[4];
                 $endTime = Carbon::createFromFormat('H:i', $startTime)->addHour()->format('H:i');
 
                 $crossCourtBookings = Booking::getCrossCourtConflicts(
@@ -151,7 +142,7 @@ class BookingValidationService
                         'start_time' => $startTime,
                         'end_time' => $endTime,
                         'conflicting_booking' => $booking,
-                        'message' => "You have a booking on {$booking->court->name} at the same time."
+                        'message' => "You have a booking on {$booking->court->name} at the same time.",
                     ];
                 }
             }
@@ -162,9 +153,6 @@ class BookingValidationService
 
     /**
      * Check if a date can be booked for free
-     *
-     * @param Carbon $date
-     * @return bool
      */
     public function canBookFree(Carbon $date): bool
     {
@@ -176,9 +164,6 @@ class BookingValidationService
 
     /**
      * Check if a date can be booked for premium
-     *
-     * @param Carbon $date
-     * @return bool
      */
     public function canBookPremium(Carbon $date): bool
     {
@@ -193,8 +178,6 @@ class BookingValidationService
 
     /**
      * Check if premium booking is currently open
-     *
-     * @return bool
      */
     public function isPremiumBookingOpen(): bool
     {
@@ -214,12 +197,8 @@ class BookingValidationService
 
     /**
      * Check if a slot can be booked (not past date/time)
-     *
-     * @param Carbon $date
-     * @param string $startTime
-     * @return bool
      */
-    public function canBookSlot(Carbon $date, string $startTime = null): bool
+    public function canBookSlot(Carbon $date, ?string $startTime = null): bool
     {
         // Check if date is in the past
         if ($date->isPast()) {
@@ -239,9 +218,6 @@ class BookingValidationService
 
     /**
      * Get the booking type for a specific date
-     *
-     * @param Carbon $date
-     * @return string
      */
     public function getDateBookingType(Carbon $date): string
     {
@@ -257,9 +233,6 @@ class BookingValidationService
 
     /**
      * Get detailed booking information for a date
-     *
-     * @param Carbon $date
-     * @return array
      */
     public function getDateBookingInfo(Carbon $date): array
     {
@@ -273,21 +246,15 @@ class BookingValidationService
 
     /**
      * Validate if a tenant can make a booking with specific constraints
-     *
-     * @param Tenant $tenant
-     * @param Carbon $date
-     * @param string $bookingType
-     * @param int $slotsCount
-     * @return array
      */
     public function validateTenantBooking(Tenant $tenant, Carbon $date, string $bookingType = 'free', int $slotsCount = 1): array
     {
         // Check if the date is bookable
-        if (!$this->canBookSlot($date)) {
+        if (! $this->canBookSlot($date)) {
             return [
                 'can_book' => false,
                 'reason' => 'This date is not available for booking.',
-                'details' => $this->getDateBookingInfo($date)
+                'details' => $this->getDateBookingInfo($date),
             ];
         }
 
@@ -297,7 +264,7 @@ class BookingValidationService
             return [
                 'can_book' => false,
                 'reason' => "This date only allows {$allowedType} bookings.",
-                'details' => $this->getDateBookingInfo($date)
+                'details' => $this->getDateBookingInfo($date),
             ];
         }
 
@@ -307,10 +274,6 @@ class BookingValidationService
 
     /**
      * Get available time slots for a specific date and court
-     *
-     * @param int $courtId
-     * @param Carbon $date
-     * @return array
      */
     public function getAvailableTimeSlots(int $courtId, Carbon $date): array
     {
@@ -334,7 +297,7 @@ class BookingValidationService
         // Generate time slots
         while ($startTime <= $endTime) {
             $time = $startTime->format('H:i');
-            $slotKey = $date->format('Y-m-d') . '-' . $time;
+            $slotKey = $date->format('Y-m-d').'-'.$time;
             $slotType = $this->getDateBookingType($date);
             $isBooked = in_array($time, $bookedSlotsForDate);
             $isPast = $startTime->copy()->setDateFrom($date)->isPast();
@@ -344,7 +307,7 @@ class BookingValidationService
                 'end_time' => $startTime->copy()->addHour()->format('H:i'),
                 'slot_key' => $slotKey,
                 'slot_type' => $slotType,
-                'is_available' => !$isBooked && !$isPast && $this->canBookSlot($date),
+                'is_available' => ! $isBooked && ! $isPast && $this->canBookSlot($date),
                 'is_booked' => $isBooked,
                 'is_past' => $isPast,
                 'is_peak' => $startTime->hour >= 18, // After 6pm = peak hours
