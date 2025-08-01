@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <svg id="Layer_2" data-name="Layer 2" {{ $attributes->merge(['class' => '']) }} xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 47.26 69.18">
     <defs>
