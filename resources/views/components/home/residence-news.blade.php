@@ -16,8 +16,9 @@
             <ul class="glide__slides">
                 @foreach ($data as $item)
                     <li class="glide__slide">
-                        <x-news-card :image="$item['image']" :title="$item['title']" :date="$item['date']"
-                            excerpt="Lorem ipsum dolor sit amet, consectetur adipiscing elit." />
+                        <x-news-card :image="$item->getFirstMediaUrl('featured_news_image')" :title="$item->title" :date="$item->created_at" :url="route('news.show', $item->slug)"
+                            :excerpt="$item->excerpt" />
+                        :key="$item['date']" excerpt="Lorem ipsum dolor sit amet, consectetur adipiscing elit." />
                     </li>
                 @endforeach
             </ul>

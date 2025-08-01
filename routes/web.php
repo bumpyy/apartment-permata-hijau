@@ -2,12 +2,11 @@
 
 use App\Http\Controllers\CommitteeController;
 use App\Http\Controllers\FacilitiesController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::get('/', HomeController::class)->name('home');
 
 if (app()->environment('local')) {
     Route::view('/about', 'about')->name('about');
@@ -21,7 +20,7 @@ if (app()->environment('local')) {
 
             Route::get('/{slug}', function ($slug) {
                 return view('news-detail', ['slug' => $slug]);
-            })->name('detail');
+            })->name('show');
         });
 
     Route::get('/event', function () {

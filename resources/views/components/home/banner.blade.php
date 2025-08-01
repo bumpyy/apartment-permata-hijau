@@ -6,7 +6,7 @@
     <div class="bg-secondary">
         <div class="text-primary container flex flex-col items-center justify-center gap-8 py-24 text-center">
             <x-site-logo class="-mt-52 size-52 opacity-35" />
-            <h2 class="font-imbue text-5xl font-thin">Timeless Luxury, Since 1995</h2>
+            <h2 class="font-imbue text-5xl">Timeless Luxury, Since 1995</h2>
             <p class="text-black">
                 Experience timeless elegance and premium comfort in a colonial-style residence that has defined luxury
                 living in

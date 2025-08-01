@@ -15,10 +15,9 @@
     }
 }" x-id="['tab']">
 
-    <div class="text-primary container w-max">
-        <h2 class="font-imbue w-max text-center text-3xl font-thin">Facilities</h2>
-        <hr class="bg-primary mx-auto my-6 h-0.5 w-3/4 border-0" />
-    </div>
+    <x-section-title>
+        Facilities
+    </x-section-title>
 
     <!-- Tab List -->
     <ul class="font-imbue container mb-6 flex items-stretch justify-center max-sm:flex-col max-sm:items-center"
@@ -27,20 +26,48 @@
         @keydown.end.prevent.stop="$focus.last()" @keydown.page-down.prevent.stop="$focus.last()" role="tablist">
         <!-- Tab -->
 
-
         @php
-            $tabs = ['Tennis', 'Basketball', 'Swimming Pool', 'Table Tennis', 'Mini Golf', 'BBQ'];
-            $routes = [
-                'Tennis' => 'facilities.index',
-                'Basketball' => 'facilities.index',
-                'Swimming Pool' => 'facilities.index',
-                'Table Tennis' => 'facilities.index',
-                'Mini Golf' => 'facilities.index',
-                'BBQ' => 'facilities.index',
+            $tabs = [
+                'Tennis' => [
+                    'route' => 'facilities.index',
+                    'image' => asset('img/facilities/tennis-1.jpg'),
+                    'description' =>
+                        'Enjoy premium-quality tennis courts built to international standards, exclusively for residents. Featuring two well-maintained courts with night lighting available for evening play.',
+                ],
+                'Basketball' => [
+                    'route' => '',
+                    'image' => 'https://picsum.photos/id/2/1920/1080',
+                    'description' =>
+                        'Enjoy an active lifestyle with the exclusive outdoor basketball court at Permata Hijau Apartment. Designed for both casual play and serious games, it’s a great spot for residents to stay fit, socialize, and unwind - all just steps from home.',
+                ],
+                'Swimming Pool' => [
+                    'route' => '',
+                    'image' => 'https://picsum.photos/id/3/1920/1080',
+                    'description' =>
+                        'Relax and refresh in the beautifully designed swimming pool at Permata Hijau Apartment. Surrounded by lush greenery, the pool offers a serene escape for both leisure and fitness, right in the heart of the residence.',
+                ],
+                'Table Tennis' => [
+                    'route' => '',
+                    'image' => 'https://picsum.photos/id/4/1920/1080',
+                    'description' =>
+                        'Enjoy a fun and energetic game at the dedicated table tennis area in Permata Hijau Apartment - perfect for friendly matches, staying active, and building connections with fellow residents.',
+                ],
+                'Mini Golf' => [
+                    'route' => '',
+                    'image' => 'https://picsum.photos/id/5/1920/1080',
+                    'description' =>
+                        'Experience leisure and relaxation at the mini golf area in Permata Hijau Apartment - a charming outdoor space where residents can unwind, have fun, and enjoy a casual game amidst a lush and peaceful environment.',
+                ],
+                'BBQ' => [
+                    'route' => '',
+                    'image' => 'https://picsum.photos/id/6/1920/1080',
+                    'description' =>
+                        'Enjoy quality time with family and friends at the BBQ area in Permata Hijau Apartment - a cozy outdoor space perfect for gatherings, grilling, and creating memorable moments in a relaxed, open-air setting.',
+                ],
             ];
         @endphp
 
-        @foreach ($tabs as $text)
+        @foreach ($tabs as $text => $tab)
             <li>
                 <button class="inline-flex px-5 py-2.5" :id="$id('tab', whichChild($el.parentElement, $refs.tablist))"
                     @click="select($el.id)" @mousedown.prevent @focus="select($el.id)" type="button"
@@ -54,33 +81,26 @@
     <!-- Panels -->
     <div class="bg-secondary font-montserrat text-black" role="tabpanels">
         <!-- Panels -->
-        @foreach ($tabs as $index => $text)
+        @foreach ($tabs as $index => $tab)
             <section class="grid grid-cols-1 gap-4 sm:grid-cols-2"
                 x-show="isSelected($id('tab', whichChild($el, $el.parentElement)))"
                 :aria-labelledby="$id('tab', whichChild($el, $el.parentElement))" role="tabpanel">
-                <img class="h-full w-full object-cover" src="https://picsum.photos/id/{{ $index + 1 }}/1920/1080"
-                    alt="">
-                <div class="space-y-4 px-4 pb-32 pt-8">
+                <div class="max-h-80">
+                    <img class="size-full object-cover" src="{{ $tab['image'] }}" alt="">
+                </div>
+                <div class="space-y-4 px-4 pt-8">
 
                     <div class="text-primary">
-                        <h3 class="font-imbue text-4xl font-bold">{{ $text }}</h3>
+                        <h3 class="font-imbue text-4xl font-bold">{{ $index }}</h3>
                         <hr class="bg-primary my-6 h-0.5 w-1/3 border-0" />
                     </div>
 
                     <p>
-                        <strong>
-                            Enjoy premium-quality tennis courts built to international
-                            standards, exclusively for residents. Featuring two well-maintained
-                            courts with night lighting available for evening play.
-                        </strong>
+                        <strong>{{ $tab['description'] }}</strong>
                     </p>
 
-                    <p>
-                        Please note: an additional fee applies for light usage after dark. Perfect for
-                        both casual and serious players seeking convenience and performance.
-                    </p>
-                    <a class="bg-primary font-imbue mt-5 rounded-md border border-gray-200 px-4 py-2 text-sm text-white"
-                        href="{{ !empty($routes[$text]) ? route($routes[$text]) : '#' }}">Book
+                    <a class="bg-primary font-imbue mt-5 rounded-md border border-gray-200 px-4 py-2 text-white"
+                        href="{{ !empty($tab['route']) ? route($tab['route']) : '#' }}">Book
                         Now</a>
                 </div>
             </section>
