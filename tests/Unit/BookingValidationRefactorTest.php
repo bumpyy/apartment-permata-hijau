@@ -6,13 +6,12 @@ use App\Helpers\BookingHelper;
 use App\Models\Tenant;
 use App\Services\BookingValidationService;
 use App\Traits\HasBookingValidation;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class BookingValidationRefactorTest extends TestCase
 {
-    use RefreshDatabase, HasBookingValidation;
+    use HasBookingValidation, RefreshDatabase;
 
     public function test_booking_validation_service_can_be_instantiated()
     {
@@ -97,7 +96,7 @@ class BookingValidationRefactorTest extends TestCase
 
         // Test with valid slots
         $nextWeekDate = now()->addWeek()->startOfWeek()->addDays(2)->format('Y-m-d');
-        $slotKeys = [$nextWeekDate . '-10:00'];
+        $slotKeys = [$nextWeekDate.'-10:00'];
 
         $result = $service->validateSlotSelection($tenant, $slotKeys, 1);
         $this->assertTrue($result['can_book']);
@@ -113,7 +112,7 @@ class BookingValidationRefactorTest extends TestCase
 
         // Test with valid slots
         $nextWeekDate = now()->addWeek()->startOfWeek()->addDays(2)->format('Y-m-d');
-        $slotKeys = [$nextWeekDate . '-10:00'];
+        $slotKeys = [$nextWeekDate.'-10:00'];
 
         $result = $tenant->validateSlotSelection($slotKeys, 1);
         $this->assertTrue($result['can_book']);

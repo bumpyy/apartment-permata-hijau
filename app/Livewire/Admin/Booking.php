@@ -6,9 +6,6 @@ use App\Enum\BookingStatusEnum;
 use App\Models\Booking as BookingModel;
 use App\Models\Court;
 use App\Models\Tenant;
-use App\Models\User;
-use App\Services\BookingValidationService;
-use App\Settings\SiteSettings;
 use App\Traits\HasBookingValidation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +14,7 @@ use Livewire\WithPagination;
 
 class Booking extends Component
 {
-    use WithPagination, HasBookingValidation;
+    use HasBookingValidation, WithPagination;
 
     // Properties for filtering and search
     public $search = '';

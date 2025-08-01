@@ -10,26 +10,16 @@ class BookingHelper
 {
     /**
      * Example of how to validate a tenant's booking request
-     *
-     * @param Tenant $tenant
-     * @param array $slotKeys
-     * @param int $courtId
-     * @return array
      */
     public static function validateTenantBooking(Tenant $tenant, array $slotKeys, int $courtId): array
     {
         $validationService = app(BookingValidationService::class);
+
         return $validationService->validateSlotSelection($tenant, $slotKeys, $courtId);
     }
 
     /**
      * Example of how to check if a tenant can book a specific slot
-     *
-     * @param Tenant $tenant
-     * @param string $date
-     * @param string $startTime
-     * @param int $courtId
-     * @return array
      */
     public static function canTenantBookSlot(Tenant $tenant, string $date, string $startTime, int $courtId): array
     {
@@ -38,22 +28,16 @@ class BookingHelper
 
     /**
      * Example of how to get available time slots for a date and court
-     *
-     * @param int $courtId
-     * @param string $date
-     * @return array
      */
     public static function getAvailableSlots(int $courtId, string $date): array
     {
         $validationService = app(BookingValidationService::class);
+
         return $validationService->getAvailableTimeSlots($courtId, Carbon::parse($date));
     }
 
     /**
      * Example of how to check booking rules for a date
-     *
-     * @param string $date
-     * @return array
      */
     public static function getBookingRules(string $date): array
     {
@@ -72,16 +56,14 @@ class BookingHelper
     /**
      * Example of how to validate multiple bookings for a tenant
      *
-     * @param Tenant $tenant
-     * @param array $bookings Array of booking data
-     * @return array
+     * @param  array  $bookings  Array of booking data
      */
     public static function validateMultipleBookings(Tenant $tenant, array $bookings): array
     {
         $results = [];
 
         foreach ($bookings as $booking) {
-            $slotKey = $booking['date'] . '-' . $booking['start_time'];
+            $slotKey = $booking['date'].'-'.$booking['start_time'];
             $validationResult = $tenant->canBookSlot(
                 Carbon::parse($booking['date']),
                 $booking['start_time'],
@@ -101,9 +83,6 @@ class BookingHelper
 
     /**
      * Example of how to get tenant's booking quota information
-     *
-     * @param Tenant $tenant
-     * @return array
      */
     public static function getTenantQuotaInfo(Tenant $tenant): array
     {
@@ -118,11 +97,6 @@ class BookingHelper
 
     /**
      * Example of how to check cross-court conflicts for a tenant
-     *
-     * @param Tenant $tenant
-     * @param array $slotKeys
-     * @param int $excludeCourtId
-     * @return array
      */
     public static function checkCrossCourtConflicts(Tenant $tenant, array $slotKeys, int $excludeCourtId): array
     {

@@ -9,8 +9,6 @@ trait HasBookingValidation
 {
     /**
      * Get the booking validation service
-     *
-     * @return BookingValidationService
      */
     protected function getBookingValidationService(): BookingValidationService
     {
@@ -20,8 +18,7 @@ trait HasBookingValidation
     /**
      * Check if a date can be booked for free
      *
-     * @param Carbon $date
-     * @return bool
+     * @param  Carbon  $date
      */
     public function canBookFree($date): bool
     {
@@ -31,8 +28,7 @@ trait HasBookingValidation
     /**
      * Check if a date can be booked for premium
      *
-     * @param Carbon $date
-     * @return bool
+     * @param  Carbon  $date
      */
     public function canBookPremium($date): bool
     {
@@ -42,44 +38,42 @@ trait HasBookingValidation
     /**
      * Check if a slot can be booked (not past date/time)
      *
-     * @param Carbon|string $date
-     * @param string|null $startTime
-     * @return bool
+     * @param  Carbon|string  $date
+     * @param  string|null  $startTime
      */
     public function canBookSlot($date, $startTime = null): bool
     {
         $carbonDate = $date instanceof Carbon ? $date : Carbon::parse($date);
+
         return $this->getBookingValidationService()->canBookSlot($carbonDate, $startTime);
     }
 
     /**
      * Get the booking type for a specific date
      *
-     * @param Carbon|string $date
-     * @return string
+     * @param  Carbon|string  $date
      */
     public function getDateBookingType($date): string
     {
         $carbonDate = $date instanceof Carbon ? $date : Carbon::parse($date);
+
         return $this->getBookingValidationService()->getDateBookingType($carbonDate);
     }
 
     /**
      * Get detailed booking information for a date
      *
-     * @param Carbon|string $date
-     * @return array
+     * @param  Carbon|string  $date
      */
     public function getDateBookingInfo($date): array
     {
         $carbonDate = $date instanceof Carbon ? $date : Carbon::parse($date);
+
         return $this->getBookingValidationService()->getDateBookingInfo($carbonDate);
     }
 
     /**
      * Check if premium booking is currently open
-     *
-     * @return bool
      */
     public function isPremiumBookingOpen(): bool
     {
@@ -89,23 +83,20 @@ trait HasBookingValidation
     /**
      * Get available time slots for a specific date and court
      *
-     * @param int $courtId
-     * @param Carbon|string $date
-     * @return array
+     * @param  Carbon|string  $date
      */
     public function getAvailableTimeSlots(int $courtId, $date): array
     {
         $carbonDate = $date instanceof Carbon ? $date : Carbon::parse($date);
+
         return $this->getBookingValidationService()->getAvailableTimeSlots($courtId, $carbonDate);
     }
 
     /**
      * Check if a specific time slot is already booked
      *
-     * @param int $courtId
-     * @param string $date Date in Y-m-d format
-     * @param string $startTime Start time in H:i format
-     * @return bool
+     * @param  string  $date  Date in Y-m-d format
+     * @param  string  $startTime  Start time in H:i format
      */
     public function isSlotAlreadyBooked(int $courtId, string $date, string $startTime): bool
     {
@@ -115,10 +106,7 @@ trait HasBookingValidation
     /**
      * Generate time slots for a specific date
      *
-     * @param Carbon|string $date
-     * @param int $courtId
-     * @param array $selectedSlots
-     * @return array
+     * @param  Carbon|string  $date
      */
     public function generateTimeSlotsForDate($date, int $courtId, array $selectedSlots = []): array
     {
@@ -136,10 +124,7 @@ trait HasBookingValidation
     /**
      * Validate slot selection for a tenant
      *
-     * @param \App\Models\Tenant $tenant
-     * @param array $slotKeys
-     * @param int $courtId
-     * @return array
+     * @param  \App\Models\Tenant  $tenant
      */
     public function validateTenantSlotSelection($tenant, array $slotKeys, int $courtId): array
     {
@@ -149,10 +134,7 @@ trait HasBookingValidation
     /**
      * Check for cross-court conflicts for a tenant
      *
-     * @param \App\Models\Tenant $tenant
-     * @param array $slotKeys
-     * @param int $excludeCourtId
-     * @return array
+     * @param  \App\Models\Tenant  $tenant
      */
     public function checkCrossCourtConflicts($tenant, array $slotKeys, int $excludeCourtId): array
     {
@@ -162,12 +144,7 @@ trait HasBookingValidation
     /**
      * Get booking counts for a specific date
      *
-     * @param Carbon|string $date
-     * @param int $courtId
-     * @param array $bookedSlots
-     * @param array $preliminaryBookedSlots
-     * @param array $selectedSlots
-     * @return array
+     * @param  Carbon|string  $date
      */
     public function getDateBookingCounts($date, int $courtId, array $bookedSlots = [], array $preliminaryBookedSlots = [], array $selectedSlots = []): array
     {
@@ -208,9 +185,6 @@ trait HasBookingValidation
 
     /**
      * Generate days for weekly view
-     *
-     * @param Carbon $weekStart
-     * @return array
      */
     public function generateWeekDays(Carbon $weekStart): array
     {
@@ -238,12 +212,6 @@ trait HasBookingValidation
 
     /**
      * Generate days for monthly view
-     *
-     * @param Carbon $monthStart
-     * @param array $bookedSlots
-     * @param array $preliminaryBookedSlots
-     * @param array $selectedSlots
-     * @return array
      */
     public function generateMonthDays(Carbon $monthStart, array $bookedSlots = [], array $preliminaryBookedSlots = [], array $selectedSlots = []): array
     {
