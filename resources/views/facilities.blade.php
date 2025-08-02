@@ -1,5 +1,5 @@
 <x-frontend.layouts.app>
-    <x-split-grid class="!text-left" image="https://picsum.photos/seed/1/320/240">
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/tennis-1.jpg') }}">
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 Tennis Court
@@ -25,7 +25,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="https://picsum.photos/seed/1/320/240" reverse>
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/basketball.png') }}" reverse>
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 Basketball Court
@@ -47,7 +47,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="https://picsum.photos/seed/1/320/240">
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/swimming-pool.jpeg') }}">
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 Swimming Pool
@@ -112,7 +112,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="https://picsum.photos/seed/1/320/240" reverse>
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/bbq.png') }}" reverse>
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 BBQ

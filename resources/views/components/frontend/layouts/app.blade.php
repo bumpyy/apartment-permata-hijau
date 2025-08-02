@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html class="dark" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     @include('partials.head')
 </head>
 
 <body class="font-montserrat relative bg-white">
-    <header>
+    <header class="relative bg-white max-md:z-[31]">
         <div class="bg-primary">
-            <div class="container flex items-center justify-between py-1 text-gray-100">
+            <div class="container flex flex-wrap items-center justify-between py-1 text-gray-100">
                 <time x-data="{ time: new Date() }" x-init="setInterval(() => time = new Date(), 1000)"
                     x-text="time.toLocaleString([], { month: 'long', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })"></time>
                 <div class="flex flex-col items-end">
@@ -51,14 +51,87 @@
         </div>
 
         <div class="mt-4 flex flex-col items-center gap-1 text-center">
-            <x-site-logo-long class="max-w-lg" />
+            <x-site-logo-long class="max-w-lg px-4" />
             <h1 class="text-primary font-imbue sr-only text-4xl">
                 {{ config('app.name', 'Apartemen Permata Hijau') }}
             </h1>
         </div>
     </header>
 
-    <nav class="sticky top-0 z-30 flex w-full flex-col items-center justify-between gap-8 bg-white py-4 shadow-lg">
+    <nav class="border-outline sticky top-0 z-20 flex min-h-14 items-center justify-between border-b bg-white px-6 py-4"
+        x-data="{ mobileMenuIsOpen: false }" x-on:click.away="mobileMenuIsOpen = false" aria-label="penguin ui menu">
+        <!-- Desktop Menu -->
+        <ul class="text-primary font-imbue container hidden flex-wrap justify-center gap-2 text-lg uppercase md:flex">
+
+            @foreach ([
+        'home' => 'home',
+        'about' => 'about',
+        'facilities' => 'facilities.index',
+        'news' => 'news.index',
+        'event' => 'event',
+        'committee' => 'committee',
+        'contact' => 'contact',
+    ] as $item => $route)
+                <li @class([
+                    'py-2 px-4',
+                    ' text-white bg-primary' =>
+                        request()->routeIs($route) || request()->routeIs("{$route}.*"),
+                ])>
+                    @if (Route::has($route))
+                        <a href="{{ route($route) }}">{{ $item }}</a>
+                    @else
+                        <span class="text-gray-400">{{ $item }}</span>
+                    @endif
+                </li>
+            @endforeach
+
+        </ul>
+        <!-- Mobile Menu Button -->
+
+        <!-- Mobile Menu -->
+        <ul class="divide-outline rounded-b-radius border-outline bg-surface-alt absolute inset-x-0 top-0 z-30 flex max-h-svh flex-col divide-y overflow-y-auto border-b bg-white px-6 pb-6 pt-20 uppercase md:hidden"
+            id="mobileMenu" x-cloak x-show="mobileMenuIsOpen"
+            x-transition:enter="transition motion-reduce:transition-none ease-out duration-300"
+            x-transition:enter-start="-translate-y-full" x-transition:enter-end="translate-y-0"
+            x-transition:leave="transition motion-reduce:transition-none ease-out duration-300"
+            x-transition:leave-start="translate-y-0" x-transition:leave-end="-translate-y-full">
+
+            @foreach ([
+        'home' => 'home',
+        'about' => 'about',
+        'facilities' => 'facilities.index',
+        'news' => 'news.index',
+        'event' => 'event',
+        'committee' => 'committee',
+        'contact' => 'contact',
+    ] as $item => $route)
+                <li class="py-4">
+
+                    @if (Route::has($route))
+                        <a class="text-primary w-full text-lg font-bold focus:underline"
+                            href="{{ route($route) }}">{{ $item }}</a>
+                    @else
+                        <span class="text-gray-400">{{ $item }}</span>
+                    @endif
+                </li>
+            @endforeach
+
+        </ul>
+        <button class="absolute right-4 top-4 z-30 flex md:hidden" x-on:click="mobileMenuIsOpen = !mobileMenuIsOpen"
+            x-bind:aria-expanded="mobileMenuIsOpen" type="button" aria-label="mobile menu" aria-controls="mobileMenu">
+            <svg class="size-6" x-cloak x-show="!mobileMenuIsOpen" xmlns="http://www.w3.org/2000/svg" fill="none"
+                aria-hidden="true" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+            <svg class="size-6" x-cloak x-show="mobileMenuIsOpen" xmlns="http://www.w3.org/2000/svg" fill="none"
+                aria-hidden="true" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </nav>
+
+
+    {{-- <nav class="sticky top-0 z-30 flex w-full flex-col items-center justify-between gap-8 bg-white py-4 shadow-lg">
         <ul class="container flex flex-wrap justify-center gap-2 uppercase">
             @foreach ([
         'home' => 'home',
@@ -82,7 +155,7 @@
                 </li>
             @endforeach
         </ul>
-    </nav>
+    </nav> --}}
 
     {{ $slot }}
 

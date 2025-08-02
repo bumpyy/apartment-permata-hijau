@@ -1495,7 +1495,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     }
 } ?>
 
-<div>
+<div class="mb-8">
     <!-- Header Component -->
     @include('livewire.tenant.booking.ui.header')
 

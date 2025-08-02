@@ -88,7 +88,7 @@
                 <div class="max-h-80">
                     <img class="size-full object-cover" src="{{ $tab['image'] }}" alt="">
                 </div>
-                <div class="space-y-4 px-4 pt-8">
+                <div class="space-y-4 px-4 pb-4 pt-8">
 
                     <div class="text-primary">
                         <h3 class="font-imbue text-4xl font-bold">{{ $index }}</h3>
