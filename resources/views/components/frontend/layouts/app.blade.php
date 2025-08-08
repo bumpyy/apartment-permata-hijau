@@ -11,7 +11,7 @@
         <div class="bg-primary">
             <div class="container flex flex-wrap items-center justify-between py-1 text-gray-100">
                 <time datetime="{{ now()->format('Y-m-d H:i') }}" x-data="{ time: new Date() }" x-init="setInterval(() => time = new Date(), 1000)"
-                    x-text="time.toLocaleString('id-ID', { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })"></time>
+                    x-text="time.toLocaleString('default', { month: 'long', day: '2-digit', year: 'numeric' }) + ' | ' + time.toLocaleString('default', { hour: '2-digit', minute: '2-digit', hour12: false })"></time>
                 <div class="flex flex-col items-end">
                     <div class="flex items-center gap-2 py-2 text-xs">
                         @auth
