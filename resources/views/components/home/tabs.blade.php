@@ -20,7 +20,7 @@
     </x-section-title>
 
     <!-- Tab List -->
-    <ul class="font-imbue container mb-6 flex items-stretch justify-center tracking-wider max-sm:flex-col max-sm:items-center"
+    <ul class="font-imbue container mb-6 flex items-stretch justify-center text-lg tracking-wider max-sm:flex-col max-sm:items-center"
         x-ref="tablist" @keydown.right.prevent.stop="$focus.wrap().next()" @keydown.home.prevent.stop="$focus.first()"
         @keydown.page-up.prevent.stop="$focus.first()" @keydown.left.prevent.stop="$focus.wrap().prev()"
         @keydown.end.prevent.stop="$focus.last()" @keydown.page-down.prevent.stop="$focus.last()" role="tablist">

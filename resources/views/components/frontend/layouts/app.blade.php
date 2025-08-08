@@ -63,7 +63,7 @@
         x-data="{ mobileMenuIsOpen: false }" x-on:click.away="mobileMenuIsOpen = false" aria-label="penguin ui menu">
         <!-- Desktop Menu -->
         <ul
-            class="text-primary font-imbue container hidden flex-wrap justify-center gap-2 text-lg uppercase tracking-wider md:flex">
+            class="text-primary font-imbue container hidden flex-wrap justify-center gap-2 text-xl uppercase tracking-wider md:flex">
             @foreach ([
         'home' => 'home',
         'about' => 'about',
@@ -75,7 +75,7 @@
     ] as $item => $route)
                 <li @class([
                     'py-2 px-3',
-                    ' text-white bg-primary' =>
+                    'text-white bg-primary' =>
                         request()->routeIs($route) || request()->routeIs("{$route}.*"),
                 ])>
                     @if (Route::has($route))
