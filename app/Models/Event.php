@@ -7,10 +7,12 @@ use Guava\Calendar\ValueObjects\CalendarEvent;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 
 class Event extends Model implements Eventable, HasMedia
 {
-    use InteractsWithMedia;
+    use HasSlug, InteractsWithMedia;
 
     protected $fillable = [
         'title',
@@ -23,6 +25,16 @@ class Event extends Model implements Eventable, HasMedia
         'start_at' => 'datetime:H:i',
         'end_at' => 'datetime:H:i',
     ];
+
+    /**
+     * Get the options for generating the slug.
+     */
+    public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('title')
+            ->saveSlugsTo('slug');
+    }
 
     public function toCalendarEvent(): CalendarEvent|array
     {

@@ -27,8 +27,7 @@
         "spatie/laravel-medialibrary": "^11.13",
         "spatie/laravel-permission": "^6.19",
         "spatie/laravel-settings": "^3.4",
-        "spatie/livewire-filepond": "^1.5",
-        "ueberdosis/tiptap-php": "^2.0"
+        "spatie/laravel-sluggable": "^3.7"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.15",

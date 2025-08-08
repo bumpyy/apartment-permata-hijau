@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\CommitteeController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\FacilitiesController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NewsController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -14,27 +17,25 @@ if (app()->environment('local')) {
     Route::prefix('news')
         ->name('news.')
         ->group(function () {
-            Route::get('/', function () {
-                return view('news');
-            })->name('index');
+            Route::get('/', [NewsController::class, 'index'])->name('index');
 
-            Route::get('/{slug}', function ($slug) {
-                return view('news-detail', ['slug' => $slug]);
-            })->name('show');
+            Route::get('/{slug}', [NewsController::class, 'show'])->name('show');
         });
 
-    Route::get('/event', function () {
-        return view('event');
-    })->name('event');
+    Route::get('/event', [EventController::class, 'index'])->name('event');
 
     Route::get('/committee', CommitteeController::class)->name('committee');
 
-    Route::get('/contact', function () {
-        return view('contact');
-    })->name('contact');
+    Route::prefix('contact')
+        ->name('contact.')
+        ->group(function () {
+            Route::get('/', [ContactController::class, 'index'])->name('index');
+            Route::get('/{slug}', [ContactController::class, 'show'])->name('show');
+        });
 }
 
 Route::name('facilities.')
+
     ->prefix('facilities')
     ->name('facilities.')
     ->group(function () {

@@ -3,14 +3,15 @@
 
 <head>
     @include('partials.head')
+    @metadata
 </head>
 
 <body class="font-montserrat relative bg-white">
     <header class="relative bg-white max-md:z-[31]">
         <div class="bg-primary">
             <div class="container flex flex-wrap items-center justify-between py-1 text-gray-100">
-                <time x-data="{ time: new Date() }" x-init="setInterval(() => time = new Date(), 1000)"
-                    x-text="time.toLocaleString([], { month: 'long', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })"></time>
+                <time datetime="{{ now()->format('Y-m-d H:i') }}" x-data="{ time: new Date() }" x-init="setInterval(() => time = new Date(), 1000)"
+                    x-text="time.toLocaleString('id-ID', { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })"></time>
                 <div class="flex flex-col items-end">
                     <div class="flex items-center gap-2 py-2 text-xs">
                         @auth
@@ -61,8 +62,8 @@
     <nav class="border-outline sticky top-0 z-20 flex min-h-14 items-center justify-between border-b bg-white px-6 py-4"
         x-data="{ mobileMenuIsOpen: false }" x-on:click.away="mobileMenuIsOpen = false" aria-label="penguin ui menu">
         <!-- Desktop Menu -->
-        <ul class="text-primary font-imbue container hidden flex-wrap justify-center gap-2 text-lg uppercase md:flex">
-
+        <ul
+            class="text-primary font-imbue container hidden flex-wrap justify-center gap-2 text-lg uppercase tracking-wider md:flex">
             @foreach ([
         'home' => 'home',
         'about' => 'about',
@@ -73,7 +74,7 @@
         'contact' => 'contact',
     ] as $item => $route)
                 <li @class([
-                    'py-2 px-4',
+                    'py-2 px-3',
                     ' text-white bg-primary' =>
                         request()->routeIs($route) || request()->routeIs("{$route}.*"),
                 ])>
@@ -195,8 +196,11 @@
                 </li>
             </ul>
 
-            <a class="absolute -top-8 right-6 flex items-center justify-center drop-shadow-2xl transition-all duration-200 hover:scale-110"
-                href="https://wa.me/1234567890" target="_blank">
+            <a @class([
+                'absolute right-6 flex items-center justify-center drop-shadow-2xl transition-all duration-200 hover:scale-110',
+                'fixed bottom-28' => !request()->routeIs('facilities.*'),
+                '-top-8' => request()->routeIs('facilities.*'),
+            ]) href="https://wa.me/1234567890" target="_blank">
                 <span class="left-0 -mr-4 inline-block w-fit bg-white p-1 pl-3 pr-4 text-black">
                     Need Help? Chat with us
                 </span>

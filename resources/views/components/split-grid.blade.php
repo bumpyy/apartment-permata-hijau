@@ -11,7 +11,7 @@
         @if (str_starts_with($title, '<') && str_ends_with($title, '>'))
             {!! $title !!}
         @else
-            <h3 class="text-primary mb-4 text-[clamp(var(--text-xl),4vw,var(--text-5xl))] font-bold md:mb-8">
+            <h3 class="text-primary font-imbue mb-4 text-[clamp(var(--text-xl),4vw,var(--text-5xl))] font-bold md:mb-8">
                 {{ $title }}
             </h3>
         @endif

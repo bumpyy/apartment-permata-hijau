@@ -4,7 +4,7 @@
             Committee
         </x-section-title>
 
-        <div class="grid grid-cols-3 gap-8">
+        <div class="grid grid-cols-2 gap-8 md:grid-cols-3">
             @foreach ($committees as $key => $value)
                 <div class="flex flex-col items-center justify-center">
                     <div @class([

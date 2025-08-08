@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\settings;
+namespace App\Livewire\Admin\Settings;
 
 use App\Models\PremiumDateOverride;
 use Livewire\Component;

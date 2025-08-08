@@ -69,7 +69,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="https://picsum.photos/seed/1/320/240" reverse>
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/table-tennis.png') }}" reverse>
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 Table Tennis
@@ -90,7 +90,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="https://picsum.photos/seed/1/320/240">
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/golf.png') }}">
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 Mini Golf

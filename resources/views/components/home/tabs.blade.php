@@ -20,7 +20,7 @@
     </x-section-title>
 
     <!-- Tab List -->
-    <ul class="font-imbue container mb-6 flex items-stretch justify-center max-sm:flex-col max-sm:items-center"
+    <ul class="font-imbue container mb-6 flex items-stretch justify-center tracking-wider max-sm:flex-col max-sm:items-center"
         x-ref="tablist" @keydown.right.prevent.stop="$focus.wrap().next()" @keydown.home.prevent.stop="$focus.first()"
         @keydown.page-up.prevent.stop="$focus.first()" @keydown.left.prevent.stop="$focus.wrap().prev()"
         @keydown.end.prevent.stop="$focus.last()" @keydown.page-down.prevent.stop="$focus.last()" role="tablist">
@@ -31,38 +31,59 @@
                 'Tennis' => [
                     'route' => 'facilities.index',
                     'image' => asset('img/facilities/tennis-1.jpg'),
-                    'description' =>
-                        'Enjoy premium-quality tennis courts built to international standards, exclusively for residents. Featuring two well-maintained courts with night lighting available for evening play.',
+                    'description' => '
+                        <p>
+                            Enjoy premium-quality tennis courts built to international standards, exclusively for residents. Featuring two well-maintained courts with night lighting available for evening play.
+                        </p>
+                        <p class="text-xs">
+                            Please note: an additional fee applies for light usage after dark. Perfect for both casual and serious players seeking convenience and performance.
+                        </p>
+                    ',
                 ],
                 'Basketball' => [
                     'route' => '',
                     'image' => 'https://picsum.photos/id/2/1920/1080',
-                    'description' =>
-                        'Enjoy an active lifestyle with the exclusive outdoor basketball court at Permata Hijau Apartment. Designed for both casual play and serious games, it’s a great spot for residents to stay fit, socialize, and unwind - all just steps from home.',
+                    'description' => '
+                        <p>
+                            Enjoy an active lifestyle with the exclusive outdoor basketball court at Permata Hijau Apartment. Designed for both casual play and serious games, it’s a great spot for residents to stay fit, socialize, and unwind - all just steps from home.
+                        </p>
+                    ',
                 ],
                 'Swimming Pool' => [
                     'route' => '',
                     'image' => 'https://picsum.photos/id/3/1920/1080',
-                    'description' =>
-                        'Relax and refresh in the beautifully designed swimming pool at Permata Hijau Apartment. Surrounded by lush greenery, the pool offers a serene escape for both leisure and fitness, right in the heart of the residence.',
+                    'description' => '
+                        <p>
+                            Relax and refresh in the beautifully designed swimming pool at Permata Hijau Apartment. Surrounded by lush greenery, the pool offers a serene escape for both leisure and fitness, right in the heart of the residence.
+                        </p>
+                    ',
                 ],
                 'Table Tennis' => [
                     'route' => '',
                     'image' => 'https://picsum.photos/id/4/1920/1080',
-                    'description' =>
-                        'Enjoy a fun and energetic game at the dedicated table tennis area in Permata Hijau Apartment - perfect for friendly matches, staying active, and building connections with fellow residents.',
+                    'description' => '
+                        <p>
+                            Enjoy a fun and energetic game at the dedicated table tennis area in Permata Hijau Apartment - perfect for friendly matches, staying active, and building connections with fellow residents.
+                        </p>
+                    ',
                 ],
                 'Mini Golf' => [
                     'route' => '',
                     'image' => 'https://picsum.photos/id/5/1920/1080',
-                    'description' =>
-                        'Experience leisure and relaxation at the mini golf area in Permata Hijau Apartment - a charming outdoor space where residents can unwind, have fun, and enjoy a casual game amidst a lush and peaceful environment.',
+                    'description' => '
+                        <p>
+                            Experience leisure and relaxation at the mini golf area in Permata Hijau Apartment - a charming outdoor space where residents can unwind, have fun, and enjoy a casual game amidst a lush and peaceful environment.
+                        </p>
+                    ',
                 ],
                 'BBQ' => [
                     'route' => '',
                     'image' => 'https://picsum.photos/id/6/1920/1080',
-                    'description' =>
-                        'Enjoy quality time with family and friends at the BBQ area in Permata Hijau Apartment - a cozy outdoor space perfect for gatherings, grilling, and creating memorable moments in a relaxed, open-air setting.',
+                    'description' => '
+                        <p>
+                            Enjoy quality time with family and friends at the BBQ area in Permata Hijau Apartment - a cozy outdoor space perfect for gatherings, grilling, and creating memorable moments in a relaxed, open-air setting.
+                        </p>
+                    ',
                 ],
             ];
         @endphp
@@ -95,9 +116,9 @@
                         <hr class="bg-primary my-6 h-0.5 w-1/3 border-0" />
                     </div>
 
-                    <p>
-                        <strong>{{ $tab['description'] }}</strong>
-                    </p>
+                    <div class="space-y-4 text-sm">
+                        {!! $tab['description'] !!}
+                    </div>
 
                     <a class="bg-primary font-imbue mt-5 rounded-md border border-gray-200 px-4 py-2 text-white"
                         href="{{ !empty($tab['route']) ? route($tab['route']) : '#' }}">Book

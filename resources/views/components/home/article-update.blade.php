@@ -15,7 +15,8 @@
         <div class="sm:grid-cols-(--custom-columns) mx-auto mt-16 grid max-w-2xl auto-rows-fr grid-cols-1 gap-8 sm:mt-20 lg:mx-0 lg:max-w-none"
             style="--custom-columns: repeat({{ $columnNumber }}, minmax(0, 1fr))">
             @foreach ($data as $item)
-                <x-dynamic-component :component="'home.news-update.cards.' . $variant" date="{{ $item->cr }}" :image="$item->getFirstMediaUrl()" :title="$item->title" />
+                <x-dynamic-component :component="'home.news-update.cards.' . $variant" date="{{ $item->created_at->format('d M Y') }}" :image="$item->getFirstMediaUrl()"
+                    :title="$item->title" />
             @endforeach
         </div>
     </div>
