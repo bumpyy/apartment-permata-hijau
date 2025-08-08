@@ -11,21 +11,21 @@ use Livewire\Volt\Volt;
 
 Route::get('/', HomeController::class)->name('home');
 
+Route::view('/about', 'about')->name('about');
+
+Route::prefix('news')
+    ->name('news.')
+    ->group(function () {
+        Route::get('/', [NewsController::class, 'index'])->name('index');
+
+        Route::get('/{slug}', [NewsController::class, 'show'])->name('show');
+    });
+
+Route::get('/event', [EventController::class, 'index'])->name('event');
+
+Route::get('/committee', CommitteeController::class)->name('committee');
+
 if (app()->environment('local')) {
-    Route::view('/about', 'about')->name('about');
-
-    Route::prefix('news')
-        ->name('news.')
-        ->group(function () {
-            Route::get('/', [NewsController::class, 'index'])->name('index');
-
-            Route::get('/{slug}', [NewsController::class, 'show'])->name('show');
-        });
-
-    Route::get('/event', [EventController::class, 'index'])->name('event');
-
-    Route::get('/committee', CommitteeController::class)->name('committee');
-
     Route::prefix('contact')
         ->name('contact.')
         ->group(function () {
