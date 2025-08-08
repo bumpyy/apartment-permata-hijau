@@ -59,29 +59,55 @@
         </div>
     </header>
 
+    @php
+        $routeList = [
+            'home' => [
+                'route' => 'home',
+                'label' => 'Home',
+            ],
+            'about' => [
+                'route' => 'about',
+                'label' => 'About',
+            ],
+            'facilities' => [
+                'route' => 'facilities.index',
+                'label' => 'Facilities',
+            ],
+            'news' => [
+                'route' => 'news.index',
+                'label' => 'News',
+            ],
+            'event' => [
+                'route' => 'event',
+                'label' => 'Event',
+            ],
+            'committee' => [
+                'route' => 'committee',
+                'label' => 'Committee',
+            ],
+            'contact' => [
+                'route' => 'contact',
+                'label' => 'Contact',
+            ],
+        ];
+    @endphp
+
     <nav class="border-outline sticky top-0 z-20 flex min-h-14 items-center justify-between border-b bg-white px-6 py-4"
         x-data="{ mobileMenuIsOpen: false }" x-on:click.away="mobileMenuIsOpen = false" aria-label="penguin ui menu">
         <!-- Desktop Menu -->
         <ul
             class="text-primary font-imbue container hidden flex-wrap justify-center gap-2 text-xl uppercase tracking-wider md:flex">
-            @foreach ([
-        'home' => 'home',
-        'about' => 'about',
-        'facilities' => 'facilities.index',
-        'news' => 'news.index',
-        'event' => 'event',
-        'committee' => 'committee',
-        'contact' => 'contact',
-    ] as $item => $route)
+            @foreach ($routeList as $name => $routeProps)
                 <li @class([
                     'py-2 px-3',
                     'text-white bg-primary' =>
-                        request()->routeIs($route) || request()->routeIs("{$route}.*"),
+                        request()->routeIs($routeProps['route']) ||
+                        request()->routeIs("{$name}.*"),
                 ])>
-                    @if (Route::has($route))
-                        <a href="{{ route($route) }}">{{ $item }}</a>
+                    @if (Route::has($routeProps['route']))
+                        <a href="{{ route($routeProps['route']) }}">{{ $routeProps['label'] }}</a>
                     @else
-                        <span class="text-gray-400">{{ $item }}</span>
+                        <span class="text-gray-400">{{ $routeProps['label'] }}</span>
                     @endif
                 </li>
             @endforeach
@@ -97,22 +123,19 @@
             x-transition:leave="transition motion-reduce:transition-none ease-out duration-300"
             x-transition:leave-start="translate-y-0" x-transition:leave-end="-translate-y-full">
 
-            @foreach ([
-        'home' => 'home',
-        'about' => 'about',
-        'facilities' => 'facilities.index',
-        'news' => 'news.index',
-        'event' => 'event',
-        'committee' => 'committee',
-        'contact' => 'contact',
-    ] as $item => $route)
-                <li class="py-4">
+            @foreach ($routeList as $name => $routeProps)
+                <li @class([
+                    'py-4 px-2',
+                    'text-white bg-primary' =>
+                        request()->routeIs($routeProps['route']) ||
+                        request()->routeIs("{$name}.*"),
+                ])>
 
-                    @if (Route::has($route))
-                        <a class="text-primary w-full text-lg font-bold focus:underline"
-                            href="{{ route($route) }}">{{ $item }}</a>
+                    @if (Route::has($routeProps['route']))
+                        <a class="w-full text-lg font-bold focus:underline"
+                            href="{{ route($routeProps['route']) }}">{{ $routeProps['label'] }}</a>
                     @else
-                        <span class="text-gray-400">{{ $item }}</span>
+                        <span class="text-gray-400">{{ $routeProps['label'] }}</span>
                     @endif
                 </li>
             @endforeach
