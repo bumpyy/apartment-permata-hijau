@@ -11,7 +11,7 @@ use Livewire\Volt\Volt;
 
 Route::get('/', HomeController::class)->name('home');
 
-Route::get('/about', 'about')->name('about');
+Route::view('/about', 'about')->name('about');
 
 Route::prefix('news')
     ->name('news.')
