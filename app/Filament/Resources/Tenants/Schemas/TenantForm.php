@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\Tenants\Schemas;
 
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Hash;
 
 class TenantForm
 {
@@ -14,8 +14,7 @@ class TenantForm
     {
         return $schema
             ->components([
-                TextInput::make('tenant_id')
-                    ->required(),
+                TextInput::make('tenant_id'),
                 SpatieMediaLibraryFileUpload::make('profile_picture')
                     ->collection('tenant_profile_pictures')
                     ->maxFiles(1)
@@ -25,17 +24,17 @@ class TenantForm
                 TextInput::make('email')
                     ->email()
                     ->required(),
-                TextInput::make('phone')
-                    ->tel(),
-                DateTimePicker::make('email_verified_at'),
+                TextInput::make('phone'),
                 TextInput::make('password')
-                    ->password()
-                    ->required(),
-                TextInput::make('booking_limit')
-                    ->required()
-                    ->numeric()
-                    ->default(3),
+                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->required(fn (string $context): bool => $context === 'create'),
+                // TextInput::make('booking_limit')
+                //     ->required()
+                //     ->numeric()
+                //     ->default(3),
                 Toggle::make('is_active')
+                    ->default(true)
                     ->required(),
             ]);
     }

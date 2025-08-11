@@ -1,10 +1,10 @@
 <?php
 
 use App\Http\Controllers\CommitteeController;
-use App\Http\Controllers\ContactController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\FacilitiesController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NewsController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -25,14 +25,12 @@ Route::get('/event', [EventController::class, 'index'])->name('event');
 
 Route::get('/committee', CommitteeController::class)->name('committee');
 
-if (app()->environment('local')) {
-    Route::prefix('contact')
-        ->name('contact.')
-        ->group(function () {
-            Route::get('/', [ContactController::class, 'index'])->name('index');
-            Route::get('/{slug}', [ContactController::class, 'show'])->name('show');
-        });
-}
+Route::prefix('contact')
+    ->name('contact.')
+    ->group(function () {
+        Route::get('/', [MessageController::class, 'index'])->name('index');
+        Route::post('/', [MessageController::class, 'store'])->name('store');
+    });
 
 Route::name('facilities.')
 

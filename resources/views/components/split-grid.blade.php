@@ -5,7 +5,7 @@
     </div>
 
     <div @class([
-        'bg-secondary  flex flex-col items-center justify-center p-[clamp(2rem,7vw,8rem)]',
+        'bg-secondary  flex flex-col justify-center p-[clamp(2rem,7vw,8rem)]',
         'md:order-1' => $reverse,
     ])>
         @if (str_starts_with($title, '<') && str_ends_with($title, '>'))

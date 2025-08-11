@@ -1,4 +1,4 @@
-<section x-data="{
+<section class="mt-8" x-data="{
     selectedId: null,
     init() {
         // Set the first available tab on the page on page load.
@@ -36,7 +36,7 @@
                             Enjoy premium-quality tennis courts built to international standards, exclusively for residents. Featuring two well-maintained courts with night lighting available for evening play.
                         </p>
                         <p class="text-xs">
-                            Please note: an additional fee applies for light usage after dark. Perfect for both casual and serious players seeking convenience and performance.
+                            Please note: an additional fee applies for light usage after dark.
                         </p>
                     ',
                 ],

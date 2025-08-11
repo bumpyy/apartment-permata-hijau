@@ -14,11 +14,6 @@
                     courts with night lighting available for evening play.
                 </p>
 
-                <p>
-                    Please note: an additional fee applies for light usage after dark. Perfect for
-                    both casual and serious players seeking convenience and performance.
-                </p>
-
                 <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white"
                     href="{{ route('facilities.tennis') }}">Book Now</a>
             </div>

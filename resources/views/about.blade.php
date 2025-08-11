@@ -1,7 +1,7 @@
 <x-frontend.layouts.app :title="__('Welcome')">
     <section class="mb-28">
-        <div class="max-h-[550px] min-h-48 overflow-clip bg-gray-300">
-            <img class="h-full w-full object-cover" src="{{ asset('img/header.jpg') }}" alt="">
+        <div class="max-h-80 overflow-clip bg-gray-300 md:max-h-[700px] md:min-h-48">
+            <img class="h-full w-full object-cover" src="{{ asset('img/about/header.png') }}" alt="">
         </div>
 
         <div class="">

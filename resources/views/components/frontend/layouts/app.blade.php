@@ -86,7 +86,7 @@
                 'label' => 'Committee',
             ],
             'contact' => [
-                'route' => 'contact',
+                'route' => 'contact.index',
                 'label' => 'Contact',
             ],
         ];
