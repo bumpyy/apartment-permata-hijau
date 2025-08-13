@@ -12,8 +12,8 @@ use Livewire\Volt\Component;
 
 new #[Layout('components.frontend.layouts.auth')] class extends Component
 {
-    #[Validate('required|string|email')]
-    public string $email = '';
+    #[Validate('required|string')]
+    public string $emailId = '';
 
     #[Validate('required|string')]
     public string $password = '';
@@ -29,7 +29,19 @@ new #[Layout('components.frontend.layouts.auth')] class extends Component
 
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::guard('tenant')->attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+        $user = Auth::guard('tenant')->attempt([
+            'email' => $this->emailId,
+            'password' => $this->password,
+        ], $this->remember);
+
+        if (! $user) {
+            $user = Auth::guard('tenant')->attempt([
+                'tenant_id' => $this->emailId,
+                'password' => $this->password,
+            ], $this->remember);
+        }
+
+        if (! $user) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -69,7 +81,7 @@ new #[Layout('components.frontend.layouts.auth')] class extends Component
      */
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
+        return Str::transliterate(Str::lower($this->emailId).'|'.request()->ip());
     }
 }; ?>
 
@@ -81,7 +93,7 @@ new #[Layout('components.frontend.layouts.auth')] class extends Component
 
     <form class="flex flex-col gap-6" wire:submit="login">
         <!-- Email Address -->
-        <flux:input wire:model="email" :label="__('Email address')" type="email" required autofocus autocomplete="email"
+        <flux:input wire:model="emailId" :label="__('Tenant ID or Email')" required autofocus autocomplete="email"
             placeholder="email@example.com" />
 
         <!-- Password -->

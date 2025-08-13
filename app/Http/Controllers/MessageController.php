@@ -18,10 +18,10 @@ class MessageController extends Controller
     {
         // Logic to handle form submission
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:191',
             // 'phone' => 'required|regex:/^(\+?\d{1,3}[- ]?)?\d{10}$/',
             'phone' => 'required|string|max:20',
-            'email' => 'required|email|max:255',
+            'email' => 'required|email|max:191',
             'message' => 'required|string|max:5000',
         ]);
 

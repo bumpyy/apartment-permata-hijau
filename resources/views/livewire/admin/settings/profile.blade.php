@@ -34,14 +34,14 @@ new
             $user = Auth::guard('admin')->user();
 
             $validated = $this->validate([
-                'name' => ['required', 'string', 'max:255'],
+                'name' => ['required', 'string', 'max:191'],
 
                 'email' => [
                     'required',
                     'string',
                     'lowercase',
                     'email',
-                    'max:255',
+                    'max:191',
                     Rule::unique(User::class)->ignore($user->id),
                 ],
             ]);

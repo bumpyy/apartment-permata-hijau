@@ -33,7 +33,7 @@ class Premium extends Component
     {
         $this->validate([
             'date' => 'required|date',
-            'note' => 'nullable|string|max:255',
+            'note' => 'nullable|string|max:191',
         ]);
 
         $month = \Carbon\Carbon::parse($this->date)->month;

@@ -22,7 +22,7 @@ class CustomCalendarWidget extends CalendarWidget
         return $schema->components([
             TextInput::make('title')
                 ->required()
-                ->rules(['required', 'string', 'max:255']),
+                ->rules(['required', 'string', 'max:191']),
             Textarea::make('description')
                 ->columnSpanFull(),
             DatePicker::make('start_at')

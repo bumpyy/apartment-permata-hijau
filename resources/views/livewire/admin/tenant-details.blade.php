@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Livewire\Admin;
 
 use App\Models\Booking;
@@ -6,14 +7,11 @@ use App\Models\Tenant;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
-use Spatie\LivewireFilepond\WithFilePond;
 
 new
 #[Layout('components.backend.layouts.app')]
 class extends Component
 {
-    use WithFilePond;
-
     public $tenant = null;
 
     public $tenantId = '';
@@ -106,10 +104,10 @@ class extends Component
     public function saveTenantDetails()
     {
         $this->validate([
-            'editName' => 'required|string|max:255',
-            'editEmail' => 'required|email|max:255',
+            'editName' => 'required|string|max:191',
+            'editEmail' => 'required|email|max:191',
             'editPhone' => 'nullable|string|max:20',
-            'editDisplayName' => 'nullable|string|max:255',
+            'editDisplayName' => 'nullable|string|max:191',
             'profilePicture' => 'nullable',
         ]);
 
@@ -188,7 +186,7 @@ class extends Component
             <p class="mt-1 text-sm text-gray-600">Manage tenant information and bookings</p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{{ route('admin.tenant.list') }}"
+             <a href="{{ route('admin.tenant.list') }}"
                class="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200">
                 ← Back to Tenants
             </a>

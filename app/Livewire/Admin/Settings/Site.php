@@ -171,7 +171,7 @@ class Site extends Component
     public function updateSiteSettings()
     {
         $this->validate([
-            'site_name' => 'required|string|max:255',
+            'site_name' => 'required|string|max:191',
             'site_description' => 'nullable|string|max:500',
             'contact_email' => 'required|email',
             'contact_phone' => 'nullable|string|max:20',
