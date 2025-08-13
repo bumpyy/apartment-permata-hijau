@@ -261,12 +261,20 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                         <p class="text-blue-100 text-lg">{{ $tenant->display_name }} • Manage your tennis court bookings</p>
                     </div>
 
-                    <form method="POST" action="{{ route('logout') }}" class="text-right">
-                        @csrf
-                        <button type="submit" class="py-2 px-4 bg-white rounded-lg shadow-lg text-blue-600 hover:text-blue-800 transition-colors">
-                            Logout
-                        </button>
-                    </form>
+                    <div class="flex flex-col items-end gap-4">
+                        <form method="POST" action="{{ route('logout') }}" class="text-right">
+                            @csrf
+                            <button type="submit" class="py-2 px-4 bg-white rounded-lg shadow-lg text-blue-600 hover:text-blue-800 transition-colors">
+                                Logout
+                            </button>
+                        </form>
+                        <div class="text-right">
+                            <a href="{{ route('tenant.profile') }}"
+                                class="py-2 px-4 bg-white rounded-lg shadow-lg text-blue-600 hover:text-blue-800 transition-colors">
+                                Edit Profile
+                            </a>
+                        </div>
+                    </div>
                     <!-- <div class="text-right">
                         <div class="text-sm text-blue-200">{{ Carbon::now()->format('l, F j, Y') }}</div>
                         <div class="text-lg font-semibold">{{ Carbon::now()->format('g:i A') }}</div>

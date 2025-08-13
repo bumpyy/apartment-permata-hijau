@@ -45,7 +45,7 @@ new #[Layout('components.frontend.layouts.auth')] class extends Component
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'emailId' => __('auth.failed'),
             ]);
         }
 

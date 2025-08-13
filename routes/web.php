@@ -50,11 +50,16 @@ Route::name('facilities.')
             ->name('tennis.booking');
     });
 
-Volt::route('dashboard', 'tenant.dashboard')
-    ->middleware([
-        'auth:tenant',
-    ])
-    ->name('tenant.dashboard');
+Route::middleware(['auth:tenant'])
+    ->name('tenant.')
+    ->prefix('dashboard')
+    ->group(function () {
+        Volt::route('/', 'tenant.dashboard')
+            ->name('dashboard');
+
+        Volt::route('profile', 'tenant.settings.profile')
+            ->name('profile');
+    });
 
 require __DIR__.'/auth.php';
 // require __DIR__.'/admin.php';

@@ -14,13 +14,21 @@ class TenantForm
     {
         return $schema
             ->components([
-                TextInput::make('tenant_id'),
                 SpatieMediaLibraryFileUpload::make('profile_picture')
                     ->collection('tenant_profile_pictures')
                     ->maxFiles(1)
                     ->image(),
+                TextInput::make('tenant_id')
+                    ->label('Tenant ID')
+                    ->required()
+                    ->unique(ignoreRecord: true)
+                    ->maxLength(255),
                 TextInput::make('name')
                     ->required(),
+
+                TextInput::make('tower'),
+                TextInput::make('unit'),
+
                 TextInput::make('email')
                     ->email()
                     ->required(),
