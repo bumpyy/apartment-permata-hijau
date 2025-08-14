@@ -1,6 +1,5 @@
 <?php
 
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -30,54 +29,9 @@ class extends Component
 
     public $editPasswordConfirmation = '';
 
-    public $editDisplayName = '';
-
-    public $profilePicture = '';
-
     public function mount()
     {
         $this->tenant = auth('tenant')->user();
-    }
-
-    public function loadTenantDetails()
-    {
-
-        if (! $this->tenant) {
-            session()->flash('error', 'Tenant not found');
-
-            return;
-        }
-
-        $this->loadBookings();
-    }
-
-    public function loadBookings()
-    {
-        $this->freeBookings = $this->tenant->bookings()
-            ->where('booking_type', 'free')
-            ->where('status', '!=', 'cancelled')
-            ->where('date', '>=', Carbon::now())
-            ->with('court')
-            ->orderBy('date')
-            ->orderBy('start_time')
-            ->get();
-
-        $this->premiumBookings = $this->tenant->bookings()
-            ->where('booking_type', 'premium')
-            ->where('status', '!=', 'cancelled')
-            ->where('date', '>=', Carbon::now())
-            ->with('court')
-            ->orderBy('date')
-            ->orderBy('start_time')
-            ->get();
-
-        $this->pastBookings = $this->tenant->bookings()
-            ->where('date', '<', Carbon::now())
-            ->with('court')
-            ->orderBy('date', 'desc')
-            ->orderBy('start_time', 'desc')
-            ->limit(10)
-            ->get();
     }
 
     public function startEditing()
@@ -86,23 +40,22 @@ class extends Component
         $this->editName = $this->tenant->name;
         $this->editEmail = $this->tenant->email;
         $this->editPhone = $this->tenant->phone ?? '';
-        $this->editDisplayName = $this->tenant->display_name ?? '';
-        $this->profilePicture = '';
+        $this->editPassword = '';
+        $this->editPasswordConfirmation = '';
     }
 
     public function cancelEditing()
     {
         $this->isEditing = false;
-        $this->reset(['editName', 'editEmail', 'editPhone', 'editDisplayName']);
+        $this->reset(['editName', 'editEmail', 'editPhone', 'editPassword', 'editPasswordConfirmation']);
     }
 
     public function saveTenantDetails()
     {
         $this->validate([
             'editName' => 'required|string|max:191',
-            'editEmail' => 'required|email|max:191',
+            'editEmail' => 'nullable|email|max:191',
             'editPhone' => 'nullable|string|max:20',
-            'editDisplayName' => 'nullable|string|max:191',
             'editPassword' => 'nullable|string|confirmed:editPasswordConfirmation|min:8',
         ]);
 
@@ -110,7 +63,6 @@ class extends Component
             'name' => $this->editName,
             'email' => $this->editEmail,
             'phone' => $this->editPhone,
-            'display_name' => $this->editDisplayName,
         ]);
 
         if ($this->editPassword) {
@@ -118,16 +70,8 @@ class extends Component
         }
 
         $this->isEditing = false;
-        $this->loadTenantDetails();
 
         session()->flash('message', 'Tenant details updated successfully!');
-    }
-
-    public function removeProfilePicture()
-    {
-        $this->tenant->clearMediaCollection('profile_picture');
-        $this->loadTenantDetails();
-        session()->flash('message', 'Profile picture removed successfully!');
     }
 }
 
@@ -174,68 +118,57 @@ class extends Component
 
         @if ($isEditing)
         <!-- Edit Form -->
-        <form wire:submit.prevent="saveTenantDetails" class="space-y-4" x-data="{ uploading: false }">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Profile Picture</label>
-                    <div class="flex items-center gap-4">
-                        @if ($tenant && $tenant->getFirstMediaUrl('profile_picture'))
-                            <img src="{{ $tenant->getFirstMediaUrl('profile_picture') }}" alt="Profile Picture" class="h-16 w-16 rounded-full object-cover border border-gray-300" />
-                        @else
-                            <div class="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center text-2xl font-bold text-gray-500 border border-gray-300">
-                                {{ $tenant ? $tenant->initials() : '?' }}
-                            </div>
-                        @endif
+        <form wire:submit.prevent="saveTenantDetails" class="space-y-4" >
+            <div class="grid grid-cols-1 gap-4">
+
+                <div class="bg-gray-100 rounded-lg p-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <input type="text" wire:model="editName"
+                               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
+                        @error('editName') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" wire:model="editEmail"
+                               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
+                        @error('editEmail') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Phone</label>
+                        <input type="text" wire:model="editPhone"
+                               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
+                        @error('editPhone') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
                     </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Full Name</label>
-                    <input type="text" wire:model="editName"
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
-                    @error('editName') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Display Name</label>
-                    <input type="text" wire:model="editDisplayName"
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
-                    @error('editDisplayName') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" wire:model="editEmail"
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
-                    @error('editEmail') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Phone</label>
-                    <input type="text" wire:model="editPhone"
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
-                    @error('editPhone') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" wire:model="editPassword"
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
-                    @error('editPassword') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                    <input type="password" wire:model="editPasswordConfirmation"
-                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
-                    @error('editPasswordConfirmation') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
+
+                <div class="bg-gray-100 rounded-lg p-4">
+
+                    <p class="text-sm text-gray-600">
+                        Optional, Leave the password field empty if you are not changing your password.
+                    </p>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Password</label>
+                        <input type="password" wire:model="editPassword"
+                               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
+                        @error('editPassword') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                        <input type="password" wire:model="editPasswordConfirmation"
+                               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
+                        @error('editPasswordConfirmation') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
+                    </div>
                 </div>
             </div>
+
             <div class="flex items-center gap-3 pt-4">
                 <button type="submit"
-                        class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 flex items-center gap-2"
-                        :disabled="uploading"
-                        :class="{ 'opacity-50 cursor-not-allowed': uploading }">
-                    <svg x-show="uploading" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" x-cloak>
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                    </svg>
+                        class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 flex items-center gap-2">
                     <span>Save Changes</span>
                 </button>
+
                 <button type="button" wire:click="cancelEditing"
                         class="rounded-lg bg-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-400">
                     Cancel
