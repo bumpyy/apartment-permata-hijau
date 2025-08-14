@@ -223,7 +223,8 @@
                 'absolute right-6 flex items-center justify-center drop-shadow-2xl transition-all duration-200 hover:scale-110',
                 'fixed bottom-28' => !request()->routeIs('facilities.*'),
                 '-top-8' => request()->routeIs('facilities.*'),
-            ]) href="https://wa.me/1234567890" target="_blank">
+            ])
+                href="https://wa.me/{{ app(\App\Settings\SiteSettings::class)->whatsapp_number }}" target="_blank">
                 <span class="left-0 -mr-4 inline-block w-fit bg-white p-1 pl-3 pr-4 text-black">
                     Need Help? Chat with us
                 </span>

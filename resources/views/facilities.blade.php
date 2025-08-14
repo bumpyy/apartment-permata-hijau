@@ -37,7 +37,7 @@
                 </p>
 
                 <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white"
-                    href="https://wa.me/1234567890">Book Now</a>
+                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
             </div>
         </x-slot:description>
     </x-split-grid>
@@ -59,7 +59,7 @@
                 </p>
 
                 <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white"
-                    href="https://wa.me/1234567890">Book Now</a>
+                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
             </div>
         </x-slot:description>
     </x-split-grid>
@@ -80,7 +80,7 @@
                 </p>
 
                 <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white"
-                    href="https://wa.me/1234567890">Book Now</a>
+                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
             </div>
         </x-slot:description>
     </x-split-grid>
@@ -102,7 +102,7 @@
                 </p>
 
                 <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white"
-                    href="https://wa.me/1234567890">Book Now</a>
+                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
             </div>
         </x-slot:description>
     </x-split-grid>
@@ -124,7 +124,7 @@
                 </p>
 
                 <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white"
-                    href="https://wa.me/1234567890">Book Now</a>
+                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
             </div>
         </x-slot:description>
     </x-split-grid>

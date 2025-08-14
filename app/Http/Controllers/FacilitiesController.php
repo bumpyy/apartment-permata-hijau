@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Court;
+use App\Settings\SiteSettings;
 
 class FacilitiesController extends Controller
 {
-    public function index()
+    public function index(SiteSettings $siteSettings)
     {
-        return view('facilities');
+        $whatsappNumber = $siteSettings->whatsapp_number;
+
+        return view('facilities', compact('whatsappNumber'));
     }
 
     public function tennis()

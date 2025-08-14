@@ -154,7 +154,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             return redirect()->route('facilities.tennis');
         }
 
-        $whatsappNumber = preg_replace('/[^0-9]/', '', $siteSettings->whatsapp_number);
+        $whatsappNumber = $siteSettings->whatsapp_number;
 
         // Initialize dates to today
         $this->selectedDate = now()->format('Y-m-d');
