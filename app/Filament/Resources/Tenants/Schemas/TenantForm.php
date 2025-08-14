@@ -30,8 +30,7 @@ class TenantForm
                 TextInput::make('unit'),
 
                 TextInput::make('email')
-                    ->email()
-                    ->required(),
+                    ->email(),
                 TextInput::make('phone'),
                 TextInput::make('password')
                     ->dehydrateStateUsing(fn ($state) => Hash::make($state))
