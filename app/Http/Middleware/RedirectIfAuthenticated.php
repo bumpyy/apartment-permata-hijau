@@ -26,7 +26,7 @@ class RedirectIfAuthenticated extends MiddlewareRedirectIfAuthenticated
                         return redirect()->route('admin.dashboard');
                         break;
                     default:
-                        return redirect()->route('dashboard');
+                        return redirect()->route('tenant.dashboard');
                 }
             }
         }
