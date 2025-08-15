@@ -19,16 +19,7 @@ class Tenant extends Authenticatable implements HasMedia
 
     protected $guard = 'tenant';
 
-    protected $fillable = [
-        'tenant_id',
-        'name',
-        'email',
-        'phone',
-        'password',
-        'booking_limit',
-        'is_active',
-        'email_verified_at',
-    ];
+    protected $guarded = [];
 
     protected $hidden = [
         'password',

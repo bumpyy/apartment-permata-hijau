@@ -14,7 +14,6 @@ class CommitteeForm
             ->components([
                 SpatieMediaLibraryFileUpload::make('image')
                     ->collection('committee_image')
-                    ->required()
                     ->disk('public')
                     ->maxFiles(1)
                     ->image(),

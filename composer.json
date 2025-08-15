@@ -23,6 +23,7 @@
         "maatwebsite/excel": "^3.1",
         "mallardduck/blade-lucide-icons": "^1.23",
         "marcelweidum/filament-expiration-notice": "^1.0",
+        "spatie/eloquent-sortable": "^4.5",
         "spatie/laravel-data": "^4.15",
         "spatie/laravel-medialibrary": "^11.13",
         "spatie/laravel-permission": "^6.19",

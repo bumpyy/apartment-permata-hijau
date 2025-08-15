@@ -35,6 +35,8 @@ class CommitteesTable
             ->recordActions([
                 EditAction::make(),
             ])
+            ->defaultSort('order_column', 'asc')
+            ->reorderable('order_column')
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),

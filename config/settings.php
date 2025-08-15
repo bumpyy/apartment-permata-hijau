@@ -9,7 +9,6 @@ return [
      * put them (manually) here.
      */
     'settings' => [
-        Premium::class,
         SiteSettings::class,
     ],
 

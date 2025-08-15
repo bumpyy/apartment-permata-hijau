@@ -200,7 +200,7 @@ class extends Component
             <div class="space-y-4">
                 <div>
                     <span class="text-sm font-medium text-gray-500">Email</span>
-                    <p class="text-lg font-semibold text-gray-900">{{ $tenant->email }}</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ $tenant->email ?? 'Not provided' }}</p>
                 </div>
                 <div>
                     <span class="text-sm font-medium text-gray-500">Phone</span>
