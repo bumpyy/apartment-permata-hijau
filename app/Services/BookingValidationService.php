@@ -168,7 +168,9 @@ class BookingValidationService
     public function canBookPremium(Carbon $date): bool
     {
         // Premium booking is currently disabled
-        return false;
+        // if (request()->routeIs('facilities.*')) {
+        //     return false;
+        // }
 
         $nextWeekEnd = now()->addWeek()->endOfWeek();
         $premiumEnd = now()->addMonth()->endOfMonth();

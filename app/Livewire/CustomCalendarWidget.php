@@ -7,8 +7,9 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
-use Guava\Calendar\Actions\CreateAction;
-use Guava\Calendar\Widgets\CalendarWidget;
+use Guava\Calendar\Filament\CalendarWidget;
+use Guava\Calendar\ValueObjects\FetchInfo;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class CustomCalendarWidget extends CalendarWidget
@@ -36,30 +37,12 @@ class CustomCalendarWidget extends CalendarWidget
         ])->statePath('data');
     }
 
-    public function getResources(): Collection|array
+    protected function getEvents(FetchInfo $info): Collection|array|Builder
     {
-        return [
-            Event::first()->toCalendarEvent(),
-        ];
-    }
-
-    public function getEvents(array $fetchInfo = []): Collection|array
-    {
-        return [
-            Event::first()->toCalendarEvent(),
-        ];
-    }
-
-    public function getDateClickContextMenuActions(): array
-    {
-        return [
-            CreateAction::make('foo')
-                ->model(Event::class)
-                ->mountUsing(fn ($arguments, $form) => $form->fill([
-                    'start_at' => data_get($arguments, 'dateStr'),
-                    'end_at' => data_get($arguments, 'dateStr'),
-                ])),
-        ];
+        // If you need to display multiple types of models,
+        // you will need to combine the results of each
+        // query builder manually:
+        return Event::query();
     }
 
     public function getOptions(): array

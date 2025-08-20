@@ -60,7 +60,7 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 NavigationGroup::make()
                     ->label('Tenant')
-                    ->icon('heroicon-o-shopping-cart'),
+                    ->icon('heroicon-o-user-group'),
                 NavigationGroup::make()
                     ->label('Settings')
                     ->icon('heroicon-o-pencil'),

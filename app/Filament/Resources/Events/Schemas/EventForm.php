@@ -19,11 +19,9 @@ class EventForm
                     ->columnSpanFull(),
                 DateTimePicker::make('start_at')
                     ->label('Start Date')
-
                     ->required(),
                 DateTimePicker::make('end_at')
                     ->label('End Date')
-
                     ->required(),
             ]);
     }

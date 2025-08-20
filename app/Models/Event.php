@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Guava\Calendar\Contracts\Eventable;
 use Guava\Calendar\ValueObjects\CalendarEvent;
 use Illuminate\Database\Eloquent\Model;
@@ -14,16 +15,12 @@ class Event extends Model implements Eventable, HasMedia
 {
     use HasSlug, InteractsWithMedia;
 
-    protected $fillable = [
-        'title',
-        'description',
-        'start_at',
-        'end_at',
+    protected $guarded = [
     ];
 
     protected $casts = [
-        'start_at' => 'datetime:H:i',
-        'end_at' => 'datetime:H:i',
+        'start_at' => 'datetime:Y-m-d H:i:s',
+        'end_at' => 'datetime:Y-m-d H:i:s',
     ];
 
     /**
@@ -36,11 +33,12 @@ class Event extends Model implements Eventable, HasMedia
             ->saveSlugsTo('slug');
     }
 
-    public function toCalendarEvent(): CalendarEvent|array
+    public function toCalendarEvent(): CalendarEvent
     {
+        // For eloquent models, make sure to pass the model to the constructor
         return CalendarEvent::make($this)
             ->title($this->title)
-            ->start($this->start_at)
-            ->end($this->end_at);
+            ->start(Carbon::parse($this->start_at))
+            ->end(Carbon::parse($this->end_at));
     }
 }
