@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
 
         if (app()->environment('production')) {
             $this->app->bind('path.public', function () {
-                return base_path().env('PATH_TO_PUBLIC');
+                return base_path().config('app.public_path');
             });
         }
 

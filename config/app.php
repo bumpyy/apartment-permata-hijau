@@ -2,6 +2,8 @@
 
 return [
 
+    'public_path' => env('PATH_TO_PUBLIC', '../../public_html'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name
