@@ -27,6 +27,12 @@ class AppServiceProvider extends ServiceProvider
         config(['app.locale' => 'id']);
         Carbon::setLocale('id');
 
+        if (app()->environment('production')) {
+            $this->app->bind('path.public', function () {
+                return base_path().env('PATH_TO_PUBLIC');
+            });
+        }
+
         Schema::defaultStringLength(191);
 
         FilamentView::registerRenderHook(
