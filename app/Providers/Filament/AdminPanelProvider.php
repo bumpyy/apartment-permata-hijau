@@ -66,6 +66,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-pencil'),
 
             ])
+            ->profile(isSimple: false)
             // ->sidebarCollapsibleOnDesktop()
             ->defaultThemeMode(ThemeMode::Light)
             ->viteTheme('resources/css/filament/admin/theme.css');

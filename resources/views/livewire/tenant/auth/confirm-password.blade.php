@@ -5,7 +5,8 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new #[Layout('components.layouts.auth')] class extends Component {
+new #[Layout('components.frontend.layouts.auth')] class extends Component
+{
     public string $password = '';
 
     /**
@@ -17,7 +18,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             'password' => ['required', 'string'],
         ]);
 
-        if (! Auth::guard('web')->validate([
+        if (! Auth::guard('tenant')->validate([
             'email' => Auth::user()->email,
             'password' => $this->password,
         ])) {

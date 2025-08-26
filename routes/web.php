@@ -6,6 +6,7 @@ use App\Http\Controllers\FacilitiesController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\TestMailController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -63,3 +64,7 @@ Route::middleware(['auth:tenant'])
 
 require __DIR__.'/auth.php';
 // require __DIR__.'/admin.php';
+
+if (app()->environment('local', 'development')) {
+    Route::get('/test-mail', TestMailController::class);
+}
