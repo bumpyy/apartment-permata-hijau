@@ -19,12 +19,12 @@
                 @foreach ([
         [
             'icon' => 'measure',
-            'value' => '±38,179 m²',
+            'value' => '±10.377,9 m²',
             'label' => 'Square Meters',
         ],
-        ['icon' => 'car', 'value' => '890', 'label' => 'Parking Slots'],
+        ['icon' => 'car', 'value' => '232', 'label' => 'Parking Slots'],
         ['icon' => 'apt-low', 'value' => '3', 'label' => 'Towers'],
-        ['icon' => 'sofa', 'value' => '182', 'label' => 'Unit Apartments'],
+        ['icon' => 'sofa', 'value' => '164', 'label' => 'Unit Apartments'],
     ] as $item)
                     <div class="flex items-center gap-2">
 

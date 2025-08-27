@@ -28,9 +28,9 @@ class AppServiceProvider extends ServiceProvider
         Carbon::setLocale('id');
 
         // if (app()->environment('production')) {
-        $this->app->bind('path.public', function () {
-            return base_path().config('app.public_path');
-        });
+        // $this->app->bind('path.public', function () {
+        //     return base_path().config('app.public_path');
+        // });
         // }
 
         Schema::defaultStringLength(191);
