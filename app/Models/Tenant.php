@@ -194,12 +194,19 @@ class Tenant extends Authenticatable implements HasMedia
         $weekStart = $bookingDate->startOfWeek();
 
         // Check weekly quota for the target week
-        $weeklyUsed = $this->bookings()
+        $bookings = $this->bookings()
             ->where('status', '!=', 'cancelled')
             ->where('booking_week_start', $weekStart->format('Y-m-d'))
             ->get()
-            ->groupBy('date')
-            ->count();
+            ->groupBy('date');
+
+        $weeklyUsed = $bookings->count();
+
+        $currentDateBookings = $bookings->first(function ($value, $key) use ($date) {
+
+            return Carbon::parse($key)->format('Y-m-d') === Carbon::parse($date)->format('Y-m-d');
+        });
+        $currentDateUsed = count($currentDateBookings);
 
         $availableInWeek = max(0, $this->booking_limit - $weeklyUsed);
 
@@ -221,6 +228,20 @@ class Tenant extends Authenticatable implements HasMedia
                     'reason' => 'Premium booking only available up to 1 month in advance',
                 ];
             }
+        }
+
+        // Check daily quota for the target date
+        $dailyUsed = $this->bookings()
+            ->where('status', '!=', 'cancelled')
+            ->where('date', $bookingDate->format('Y-m-d'))
+            ->get()
+            ->count();
+
+        if ($dailyUsed >= 2) {
+            return [
+                'can_book' => false,
+                'reason' => 'Only 2 slots can be booked per day',
+            ];
         }
 
         return [
