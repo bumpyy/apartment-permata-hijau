@@ -63,7 +63,7 @@
             </div>
         </x-slot:description>
     </x-split-grid>
-
+    {{--
     <x-split-grid class="!text-left" image="{{ asset('img/facilities/table-tennis.png') }}" reverse>
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
@@ -106,6 +106,7 @@
             </div>
         </x-slot:description>
     </x-split-grid>
+    --}}
 
     <x-split-grid class="!text-left" image="{{ asset('img/facilities/bbq.png') }}" reverse>
         <x-slot:title>
