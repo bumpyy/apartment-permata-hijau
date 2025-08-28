@@ -289,8 +289,12 @@ class BookingValidationService
         $bookedSlotsForDate = Booking::where('court_id', $courtId)
             ->where('date', $date->format('Y-m-d'))
             ->where('status', '!=', BookingStatusEnum::CANCELLED)
-            ->get()
-            ->pluck('start_time')
+            ->with(['tenant:id,name,tenant_id'])
+            ->get();
+
+        $bookedBySlotsForDate = $bookedSlotsForDate;
+
+        $bookedSlotsForDate = $bookedSlotsForDate->pluck('start_time')
             ->map(function ($time) {
                 return $time->format('H:i');
             })
@@ -311,6 +315,7 @@ class BookingValidationService
                 'slot_type' => $slotType,
                 'is_available' => ! $isBooked && ! $isPast && $this->canBookSlot($date),
                 'is_booked' => $isBooked,
+                'booked_by' => $isBooked ? ($bookedBySlotsForDate->firstWhere('start_time', $startTime)->tenant->tenant_id ?? '') : null,
                 'is_past' => $isPast,
                 'is_peak' => $startTime->hour >= 18, // After 6pm = peak hours
             ];

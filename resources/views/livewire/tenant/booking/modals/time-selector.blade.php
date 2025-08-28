@@ -39,7 +39,7 @@
 
             <!-- Time Slots Grid -->
             <div @class(['max-h-96 overflow-y-auto', 'p-4'])>
-                <div @class(['grid gap-2', 'sm:grid-cols-2 lg:grid-cols-3'])>
+                <div @class(['grid gap-2 sm:grid-cols-2 lg:grid-cols-3'])>
                     @foreach ($availableTimesForDate as $timeSlot)
                         <div @class([
                             'rounded-lg border text-center transition-all duration-200',
@@ -87,6 +87,8 @@
                                     <div class="text-xs text-orange-600">💡 Lights required</div>
                                 @endif
                             @endif
+                            {{ $timeSlot['booked_by'] }}
+
                         </div>
                     @endforeach
                 </div>

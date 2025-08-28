@@ -134,14 +134,17 @@
                                 </div>
                             @elseif($isBooked)
                                 <div @class([
-                                    'font-bold text-blue-700 flex items-center justify-center',
+                                    'font-bold  flex-col gap-2 text-blue-700 flex items-center justify-center',
                                     'text-xs',
                                 ])>
                                     @if ($bookedSlot['is_own_booking'] ?? false)
                                         Your Booking
                                     @else
-                                        Booked
+                                        <span>Booked by</span>
                                     @endif
+
+                                    <span>{{ $bookedSlot['tenant_id'] ?? '' }}</span>
+
                                 </div>
                             @elseif($isPreliminary)
                                 <div @class([

@@ -362,7 +362,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         // Get all bookings for this court in the date range with eager loading
         $bookings = Booking::where('court_id', $this->courtNumber)
             ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-            ->with(['tenant:id,name'])
+            ->with(['tenant:id,name,tenant_id'])
             ->where('status', '!=', BookingStatusEnum::CANCELLED)
             ->get(['id', 'tenant_id', 'date', 'start_time', 'status']);
 
@@ -379,6 +379,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             $slotData = [
                 'key' => $slotKey,
                 'tenant_name' => $booking->tenant->name ?? 'Unknown',
+                'tenant_id' => $booking->tenant->tenant_id,
                 'is_own_booking' => $this->isLoggedIn && $booking->tenant_id === auth('tenant')->id(),
             ];
 
@@ -457,6 +458,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                 'slot_type' => $slot['slot_type'],
                 'is_available' => $slot['is_available'],
                 'is_booked' => $slot['is_booked'],
+                'booked_by' => $slot['booked_by'] ?? null,
                 'is_selected' => $isSelected,
                 'is_past' => $slot['is_past'],
                 'is_peak' => $slot['is_peak'],
