@@ -275,7 +275,16 @@ class Tenant extends Authenticatable implements HasMedia
      */
     public function canBookSlot(Carbon $date, ?string $startTime = null, ?int $courtId = null): array
     {
+        $enable_booking_system = app(\App\Settings\SiteSettings::class)->enable_booking_system;
         $validationService = app(BookingValidationService::class);
+
+        if (! $enable_booking_system) {
+            return [
+                'can_book' => false,
+                'reason' => 'Tenant booking is currently disabled.',
+                'details' => $validationService->getDateBookingInfo($date),
+            ];
+        }
 
         // Check if the slot is bookable
         if (! $validationService->canBookSlot($date, $startTime)) {
