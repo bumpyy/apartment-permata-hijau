@@ -479,6 +479,13 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             return;
         }
 
+        $enable_booking_system = app(\App\Settings\SiteSettings::class)->enable_booking_system;
+        if (! $enable_booking_system) {
+            $this->js("toast('Tenant booking is currently disabled.',{type:'warning'})");
+
+            return;
+        }
+
         if (in_array($slotKey, $this->selectedSlots)) {
             // REMOVE SLOT: Simply remove from array
             $this->selectedSlots = array_diff($this->selectedSlots, [$slotKey]);
