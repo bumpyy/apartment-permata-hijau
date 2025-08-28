@@ -203,8 +203,6 @@ class Tenant extends Authenticatable implements HasMedia
 
         $availableInWeek = max(0, $this->booking_limit - $weeklyUsed);
 
-        dd($weeklyUsed);
-
         if ($bookingType === 'free') {
             // Free booking: check if date is within 7 days
             $maxFreeDate = Carbon::now()->addDays(7);
