@@ -120,7 +120,18 @@
                             @endif>
 
                             @if ($isPastSlot && !$showBookingInfo)
-                                <div class="text-xs text-gray-400">-</div>
+                                <div class="flex flex-col gap-2 text-xs">
+                                    @if ($isBooked)
+                                        @if ($bookedSlot['is_own_booking'] ?? false)
+                                            Your Booking
+                                        @else
+                                            <span>Booked by</span>
+                                        @endif
+                                        <span>{{ $bookedSlot['tenant_id'] ?? '' }}</span>
+                                    @else
+                                        -
+                                    @endif
+                                </div>
                             @elseif(!$day['is_bookable'] && !$isPastSlot && !$showBookingInfo)
                                 <div class="text-xs text-gray-400">🔒</div>
                             @elseif($isSelected)
@@ -134,7 +145,7 @@
                                 </div>
                             @elseif($isBooked)
                                 <div @class([
-                                    'font-bold  flex-col gap-2 text-blue-700 flex items-center justify-center',
+                                    'font-bold flex-col gap-2 text-blue-700 flex items-center justify-center',
                                     'text-xs',
                                 ])>
                                     @if ($bookedSlot['is_own_booking'] ?? false)
