@@ -205,16 +205,16 @@ class Tenant extends Authenticatable implements HasMedia
 
         if ($bookingType === 'free') {
             // Free booking: check if date is within 7 days
-            $maxFreeDate = Carbon::now()->addDays(7);
+            $maxFreeDate = Carbon::now()->startOfWeek()->addDays(7);
             if ($bookingDate->gt($maxFreeDate)) {
                 return [
                     'can_book' => false,
-                    'reason' => 'Free booking only available up to 7 days in advance',
+                    'reason' => 'Free booking only available up to 7 days in advance for this week',
                 ];
             }
         } else {
             // Premium booking: check if date is within 1 month
-            $maxPremiumDate = Carbon::now()->addMonth();
+            $maxPremiumDate = Carbon::now()->addMonth()->endOfMonth();
             if ($bookingDate->gt($maxPremiumDate)) {
                 return [
                     'can_book' => false,

@@ -279,7 +279,7 @@ class BookingValidationService
      */
     public function getAvailableTimeSlots(int $courtId, Carbon $date): array
     {
-        $startTime = Carbon::parse('08:00');
+        $startTime = Carbon::parse('06:00');
         $endTime = Carbon::parse('22:00');
         $interval = 60; // 60-minute slots
 

@@ -40,19 +40,38 @@
                                 $isToday = $selectedDate->isToday();
                                 $isPast = $selectedDate->isPast();
                             @endphp
-                            <div class="mt-1 text-xs">
-                                @if ($isPast)
-                                    <span class="text-red-600">⚠️ Past date - booking not allowed</span>
-                                @elseif($isToday)
-                                    <span class="text-orange-600">⚠️ Today - only future time slots available</span>
-                                @elseif($bookingType === 'free')
-                                    <span class="text-green-600">🆓 Free booking</span>
-                                @elseif($bookingType === 'premium')
-                                    <span class="text-purple-600">⭐ Premium booking</span>
-                                @else
-                                    <span class="text-gray-600">🔒 No booking available for this date</span>
-                                @endif
+
+                            <div class="mt-2">
+                                <label class="inline-flex items-center text-sm">
+                                    <input class="rounded border-gray-300" type="checkbox"
+                                        wire:model.live="panelAddForm.override_booking_type" />
+                                    <span class="ml-2">Override booking type</span>
+                                </label>
                             </div>
+
+                            @if (!$panelAddForm['override_booking_type'])
+                                <div class="mt-1 text-xs">
+                                    @if ($isPast)
+                                        <span class="text-red-600">⚠️ Past date - booking not allowed</span>
+                                    @elseif($isToday)
+                                        <span class="text-orange-600">⚠️ Today - only future time slots available</span>
+                                    @elseif($bookingType === 'free')
+                                        <span class="text-green-600">🆓 Free booking</span>
+                                    @elseif($bookingType === 'premium')
+                                        <span class="text-purple-600">⭐ Premium booking</span>
+                                    @else
+                                        <span class="text-gray-600">🔒 No booking available for this date</span>
+                                    @endif
+                                </div>
+                            @else
+                                <div class="mt-1 text-xs">
+                                    <label class="block text-sm font-medium">Booking type</label>
+                                    <select class="w-full rounded border bg-gray-100 p-2"
+                                        wire:model="panelAddForm.booking_type">
+                                        <option value="free">🆓 Free booking</option>
+                                        <option value="premium">⭐ Premium booking</option>
+                                    </select>
+                            @endif
                         </div>
                         <div>
                             <label class="block text-sm font-medium">Time</label>
@@ -219,7 +238,8 @@
                         <button
                             class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
                             wire:click="edit({{ $selectedBooking->id }})">
-                            <svg class="mr-2 inline h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="mr-2 inline h-4 w-4" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
                                 </path>

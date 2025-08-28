@@ -746,7 +746,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     public function generateTimeSlots()
     {
         $this->timeSlots = [];
-        $start = Carbon::parse('08:00');
+        $start = Carbon::parse('06:00');
         $end = Carbon::parse('22:00');
 
         while ($start < $end) {

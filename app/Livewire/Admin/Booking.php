@@ -83,6 +83,8 @@ class Booking extends Component
         'date' => '',
         'start_time' => '',
         'end_time' => '',
+        'override_booking_type' => false,
+        'booking_type' => 'free',
         'tenant_id' => '',
         'notes' => '',
     ];
@@ -506,7 +508,7 @@ class Booking extends Component
     private function generateTimeSlots()
     {
         $slots = [];
-        for ($hour = 8; $hour <= 22; $hour++) {
+        for ($hour = 6; $hour <= 22; $hour++) {
             $start = sprintf('%02d:00', $hour);
             $end = sprintf('%02d:00', $hour + 1);
             $slots[] = [$start, $end];
@@ -784,13 +786,12 @@ class Booking extends Component
 
         $this->isAddMode = true;
         $this->showDetailPanel = true;
+        $this->reset('panelAddForm');
         $this->panelAddForm = [
-            'court_id' => '',
+            ...$this->panelAddForm,
             'date' => $date,
             'start_time' => $startTime,
             'end_time' => $endTime,
-            'tenant_id' => '',
-            'notes' => '',
         ];
         $this->panelAvailableCourts = \App\Models\Court::orderBy('name')->get()->map(function ($court) use ($date, $startTime) {
             $isBooked = BookingModel::where('court_id', $court->id)
@@ -825,7 +826,14 @@ class Booking extends Component
             'panelAddForm.date' => 'required|date|after_or_equal:today',
             'panelAddForm.start_time' => 'required',
             'panelAddForm.end_time' => 'required',
+
         ]);
+
+        if ($this->panelAddForm['override_booking_type']) {
+            $this->validate([
+                'panelAddForm.booking_type' => 'in:premium,free',
+            ]);
+        }
 
         $tenant = \App\Models\Tenant::find($this->panelAddForm['tenant_id']);
         if (! $tenant) {
@@ -883,7 +891,7 @@ class Booking extends Component
             return;
         }
         // Determine booking type
-        $bookingType = $this->getDateBookingType($bookingDate);
+        $bookingType = $this->panelAddForm['override_booking_type'] ? $this->panelAddForm['booking_type'] : $this->getDateBookingType($bookingDate);
         if ($bookingType === 'none') {
             $this->panelAddError = 'Booking is not allowed for this date.';
 
