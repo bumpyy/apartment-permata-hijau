@@ -154,7 +154,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             return redirect()->route('facilities.tennis');
         }
 
-        $whatsappNumber = $siteSettings->whatsapp_number;
+        $this->whatsappNumber = $siteSettings->contact_phone;
 
         // Initialize dates to today
         $this->selectedDate = now()->format('Y-m-d');
@@ -472,8 +472,8 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
      */
     public function toggleTimeSlot($slotKey)
     {
-
         $enable_booking_system = app(\App\Settings\SiteSettings::class)->enable_booking_system;
+
         if (! $enable_booking_system) {
             $this->js("toast('Tenant booking is currently disabled.',{type:'warning'})");
 
