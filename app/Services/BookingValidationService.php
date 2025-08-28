@@ -203,7 +203,8 @@ class BookingValidationService
     public function canBookSlot(Carbon $date, ?string $startTime = null): bool
     {
         $enable_booking_system = app(\App\Settings\SiteSettings::class)->enable_booking_system;
-        if (! $enable_booking_system) {
+
+        if (! $enable_booking_system && request()->routeIs('facilities.*')) {
             return false;
         }
 
