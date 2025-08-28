@@ -557,7 +557,6 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             if (! empty($this->quotaWarning)) {
                 $this->js("toast('{$this->quotaWarning}',{type:'warning'})");
             }
-
         } else {
             $this->quotaWarning = ''; // Clear any previous warnings
         }
@@ -575,7 +574,6 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                 }
             }
         }
-
     }
 
     /**
@@ -1518,22 +1516,22 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 
         @if ($isLoggedIn)
         <!-- Current Tenant Booking List -->
-            <div class="my-6">
-                <h2 class="text-xl font-semibold mb-4">Your Current Bookings</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="my-6">
+            <h2 class="text-xl font-semibold mb-4">Your Current Bookings</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                    @foreach (auth('tenant')->user()->load(['currentBookings.court'])->currentBookings as $booking)
-                        <div class="p-2 border rounded shadow-sm">
-                            <div class="flex items-center justify-between">
-                                <div class="text-sm">
-                                    <div class="font-medium">{{ $booking->court->name }}</div>
-                                    <div class="">{{ $booking->start_time->format('g:i A') }} <span class="text-gray-600">-</span> {{ $booking->end_time->format('g:i A') }} <span class="text-gray-600">on</span> {{ $booking->date->format('j F Y') }}</div>
-                                </div>
-                            </div>
+                @foreach (auth('tenant')->user()->load(['currentBookings.court'])->currentBookings as $booking)
+                <div class="p-2 border rounded shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm">
+                            <div class="font-medium">{{ $booking->court->name }}</div>
+                            <div class="">{{ $booking->start_time->format('g:i A') }} <span class="text-gray-600">-</span> {{ $booking->end_time->format('g:i A') }} <span class="text-gray-600">on</span> {{ $booking->date->format('j F Y') }}</div>
                         </div>
-                    @endforeach
+                    </div>
                 </div>
+                @endforeach
             </div>
+        </div>
         @endif
 
 
@@ -1542,26 +1540,27 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         <div class="relative">
             <!-- Weekly View -->
             @if ($viewMode === 'weekly')
-                @include('livewire.tenant.booking.views.weekly-view')
+            @include('livewire.tenant.booking.views.weekly-view')
             @endif
 
             <!-- Monthly View -->
             @if ($viewMode === 'monthly')
-                @include('livewire.tenant.booking.views.monthly-view')
+            @include('livewire.tenant.booking.views.monthly-view')
             @endif
 
+            {{--
             <!-- Daily View -->
             @if ($viewMode === 'daily')
                 @include('livewire.tenant.booking.views.daily-view')
             @endif
+            --}}
 
             <!-- Offline Overlay on Calendar -->
             <div
                 wire:offline
                 id="offline-calendar-overlay"
                 class="absolute inset-0 z-10 min-h-[300px] w-full bg-white/80 backdrop-blur-sm rounded-lg shadow-lg transition-opacity duration-300 pointer-events-auto"
-                role="alertdialog" aria-live="assertive"
-            >
+                role="alertdialog" aria-live="assertive">
                 <div class="size-full flex items-center justify-center">
                     <div class="flex flex-col items-center justify-center w-full max-w-md p-6">
                         <x-lucide-wifi-off id="offline-icon" class="w-14 h-14 text-red-500 mb-4" />
@@ -1609,129 +1608,129 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 </div>
 
 @script
-    <script>
-        $js('showToast', (value) => {
-            toast(value);
-        })
+<script>
+    $js('showToast', (value) => {
+        toast(value);
+    })
 
-        // Dynamic polling system based on site settings
-        let pollingInterval;
-        let userActivityTimeout;
-        let isPollingEnabled = true;
-        let currentInterval = 30000; // Default 30 seconds
-        let inactivityTimeout = 300000; // Default 5 minutes
+    // Dynamic polling system based on site settings
+    let pollingInterval;
+    let userActivityTimeout;
+    let isPollingEnabled = true;
+    let currentInterval = 30000; // Default 30 seconds
+    let inactivityTimeout = 300000; // Default 5 minutes
 
-        // Start polling
-        function startPolling() {
-            if (!isPollingEnabled) return;
+    // Start polling
+    function startPolling() {
+        if (!isPollingEnabled) return;
 
-            pollingInterval = setInterval(() => {
-                $wire.refreshBookingData();
-            }, currentInterval);
+        pollingInterval = setInterval(() => {
+            $wire.refreshBookingData();
+        }, currentInterval);
+    }
+
+    // Stop polling
+    function stopPolling() {
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
         }
+    }
 
-        // Stop polling
-        function stopPolling() {
-            if (pollingInterval) {
-                clearInterval(pollingInterval);
-                pollingInterval = null;
-            }
-        }
-
-        // Update polling interval
-        function updatePollingInterval(interval) {
-            currentInterval = interval;
-            if (isPollingEnabled) {
-                stopPolling();
-                startPolling();
-            }
-        }
-
-        // Handle user activity
-        function resetUserActivity() {
-            clearTimeout(userActivityTimeout);
-            userActivityTimeout = setTimeout(() => {
-                // Reduce polling frequency when user is inactive
-                if (isPollingEnabled) {
-                    updatePollingInterval(60000); // 1 minute when inactive
-                }
-            }, inactivityTimeout);
-        }
-
-        function setActivePolling() {
-            clearTimeout(userActivityTimeout);
-            if (isPollingEnabled) {
-                updatePollingInterval(30000); // 30 seconds when active
-            }
-            resetUserActivity();
-        }
-
-        // Listen for Livewire events
-        $wire.$on('start-polling', (data) => {
-            isPollingEnabled = true;
-            currentInterval = data.interval || 30000;
-            inactivityTimeout = data.inactivity_timeout || 300000;
-            startPolling();
-            resetUserActivity();
-        });
-
-        $wire.$on('stop-polling', () => {
-            isPollingEnabled = false;
+    // Update polling interval
+    function updatePollingInterval(interval) {
+        currentInterval = interval;
+        if (isPollingEnabled) {
             stopPolling();
-            clearTimeout(userActivityTimeout);
-        });
+            startPolling();
+        }
+    }
 
-        // Track user activity
-        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-            document.addEventListener(event, setActivePolling, true);
-        });
+    // Handle user activity
+    function resetUserActivity() {
+        clearTimeout(userActivityTimeout);
+        userActivityTimeout = setTimeout(() => {
+            // Reduce polling frequency when user is inactive
+            if (isPollingEnabled) {
+                updatePollingInterval(60000); // 1 minute when inactive
+            }
+        }, inactivityTimeout);
+    }
 
-        // Initialize when component loads
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check if polling should be enabled
-            if ($wire.isPollingEnabled()) {
-                $wire.dispatch('start-polling', {
-                    interval: currentInterval,
-                    inactivity_timeout: inactivityTimeout
+    function setActivePolling() {
+        clearTimeout(userActivityTimeout);
+        if (isPollingEnabled) {
+            updatePollingInterval(30000); // 30 seconds when active
+        }
+        resetUserActivity();
+    }
+
+    // Listen for Livewire events
+    $wire.$on('start-polling', (data) => {
+        isPollingEnabled = true;
+        currentInterval = data.interval || 30000;
+        inactivityTimeout = data.inactivity_timeout || 300000;
+        startPolling();
+        resetUserActivity();
+    });
+
+    $wire.$on('stop-polling', () => {
+        isPollingEnabled = false;
+        stopPolling();
+        clearTimeout(userActivityTimeout);
+    });
+
+    // Track user activity
+    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+        document.addEventListener(event, setActivePolling, true);
+    });
+
+    // Initialize when component loads
+    document.addEventListener('DOMContentLoaded', () => {
+        // Check if polling should be enabled
+        if ($wire.isPollingEnabled()) {
+            $wire.dispatch('start-polling', {
+                interval: currentInterval,
+                inactivity_timeout: inactivityTimeout
+            });
+        }
+    });
+
+    // Handle page visibility changes
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopPolling();
+        } else if (isPollingEnabled) {
+            startPolling();
+        }
+    });
+
+    // Animate the offline overlay and icon if anime.js is available
+    document.addEventListener('livewire:offline', () => {
+        const overlay = document.getElementById('offline-calendar-overlay');
+        if (overlay && window.anime && window.anime.animate) {
+            window.anime.animate(overlay, {
+                opacity: [0, 1],
+                duration: 500,
+                easing: 'easeOutQuad',
+            });
+            const icon = document.getElementById('offline-icon');
+            if (icon) {
+                window.anime.animate(icon, {
+                    scale: [0.8, 1.1, 1],
+                    duration: 900,
+                    direction: 'alternate',
+                    loop: 2,
+                    easing: 'easeInOutSine',
                 });
             }
-        });
-
-        // Handle page visibility changes
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                stopPolling();
-            } else if (isPollingEnabled) {
-                startPolling();
-            }
-        });
-
-        // Animate the offline overlay and icon if anime.js is available
-        document.addEventListener('livewire:offline', () => {
-            const overlay = document.getElementById('offline-calendar-overlay');
-            if (overlay && window.anime && window.anime.animate) {
-                window.anime.animate(overlay, {
-                    opacity: [0, 1],
-                    duration: 500,
-                    easing: 'easeOutQuad',
-                });
-                const icon = document.getElementById('offline-icon');
-                if (icon) {
-                    window.anime.animate(icon, {
-                        scale: [0.8, 1.1, 1],
-                        duration: 900,
-                        direction: 'alternate',
-                        loop: 2,
-                        easing: 'easeInOutSine',
-                    });
-                }
-            } else if (overlay) {
-                overlay.style.opacity = 1;
-            }
-        });
-        document.addEventListener('livewire:online', () => {
-            const overlay = document.getElementById('offline-calendar-overlay');
-            if (overlay) overlay.style.opacity = 0;
-        });
-    </script>
+        } else if (overlay) {
+            overlay.style.opacity = 1;
+        }
+    });
+    document.addEventListener('livewire:online', () => {
+        const overlay = document.getElementById('offline-calendar-overlay');
+        if (overlay) overlay.style.opacity = 0;
+    });
+</script>
 @endscript
