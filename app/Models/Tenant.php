@@ -197,9 +197,13 @@ class Tenant extends Authenticatable implements HasMedia
         $weeklyUsed = $this->bookings()
             ->where('status', '!=', 'cancelled')
             ->where('booking_week_start', $weekStart->format('Y-m-d'))
+            ->get()
+            ->groupBy('date')
             ->count();
 
         $availableInWeek = max(0, $this->booking_limit - $weeklyUsed);
+
+        dd($weeklyUsed);
 
         if ($bookingType === 'free') {
             // Free booking: check if date is within 7 days
