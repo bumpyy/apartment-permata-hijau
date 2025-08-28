@@ -701,9 +701,12 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         // Show success notification
         $bookingCount = count($this->pendingBookingData);
         $successMessage = "🎾 Successfully created {$bookingCount} booking(s)! Reference: #{$this->bookingReference}";
+        $this->manualRefresh();
+
         $this->js("toast('{$successMessage}',{type:'success',duration:8000})");
 
         // Flash success message
+
         session()->flash('message', 'Booking request sent successfully!');
 
         // Show thank you modal
