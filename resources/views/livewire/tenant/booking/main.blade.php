@@ -750,7 +750,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $end = Carbon::parse('22:00');
 
         while ($start < $end) {
-            if ($this->courtNumber == 1 && $start->hour >= 15 && $start->hour < 18) {
+            if ($this->courtNumber == 1 && $start->hour >= 15 && $start->hour <= 18) {
                 $available = false;
             } else {
                 $available = true;
