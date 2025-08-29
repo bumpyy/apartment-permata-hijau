@@ -202,11 +202,11 @@ class Tenant extends Authenticatable implements HasMedia
 
         $weeklyUsed = $bookings->count();
 
-        $currentDateBookings = $bookings->first(function ($value, $key) use ($date) {
+        // $currentDateBookings = $bookings->first(function ($value, $key) use ($date) {
 
-            return Carbon::parse($key)->format('Y-m-d') === Carbon::parse($date)->format('Y-m-d');
-        });
-        $currentDateUsed = count($currentDateBookings);
+        //     return Carbon::parse($key)->format('Y-m-d') === Carbon::parse($date)->format('Y-m-d');
+        // });
+        // $currentDateUsed = count($currentDateBookings);
 
         $availableInWeek = max(0, $this->booking_limit - $weeklyUsed);
 
