@@ -308,7 +308,7 @@ class BookingValidationService
             $isBooked = in_array($time, $bookedSlotsForDate);
             $isPast = $startTime->copy()->setDateFrom($date)->isPast();
 
-            if ($courtId == 1 && $startTime->hour >= 15 && $startTime->hour < 18) {
+            if ($courtId == 1 && $startTime->hour >= 15 && $startTime->hour <= 18) {
                 $available = false;
             } else {
                 $available = true;
