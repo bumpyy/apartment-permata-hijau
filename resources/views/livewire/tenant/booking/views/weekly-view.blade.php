@@ -127,7 +127,6 @@
                                             @else
                                                 <span>Booked by</span>
                                             @endif
-                                            <span>{{ $bookedSlot['tenant_id'] ?? '' }}</span>
                                         @else
                                             -
                                         @endif
@@ -140,7 +139,6 @@
                                             @else
                                                 <span>Booked by</span>
                                             @endif
-                                            <span>{{ $bookedSlot['tenant_id'] ?? '' }}</span>
                                         @else
                                         @endif
                                     </div>
@@ -164,7 +162,6 @@
                                             <span>Booked by</span>
                                         @endif
 
-                                        <span>{{ $bookedSlot['tenant_id'] ?? '' }}</span>
 
                                     </div>
                                 @elseif($isPreliminary)
@@ -193,6 +190,8 @@
                                     🚫 Unavailable
                                 </div>
                             @endif
+
+                            <span>{{ $bookedSlot['tenant_id'] ?? '' }}</span>
 
                             @if ($slot['is_peak'] && $canBookFree)
                                 <div class="mt-1 text-xs text-orange-600">Need light 💡</div>
