@@ -245,7 +245,7 @@ class Tenant extends Authenticatable implements HasMedia
         }
 
         return [
-            'can_book' => $availableInWeek >= $slotsCount,
+            'can_book' => ($dailyUsed === null || $dailyUsed === 0) || $dailyUsed >= 2 ? $availableInWeek >= $slotsCount : true,
             'available_slots' => $availableInWeek,
             'reason' => $availableInWeek < $slotsCount ? "Only {$availableInWeek} slots available for this week" : null,
         ];
