@@ -308,16 +308,23 @@ class BookingValidationService
             $isBooked = in_array($time, $bookedSlotsForDate);
             $isPast = $startTime->copy()->setDateFrom($date)->isPast();
 
+            if ($courtId == 1 && $startTime->hour >= 15 && $startTime->hour < 18) {
+                $available = false;
+            } else {
+                $available = true;
+            }
+
             $availableSlots[] = [
                 'start_time' => $time,
                 'end_time' => $startTime->copy()->addHour()->format('H:i'),
                 'slot_key' => $slotKey,
                 'slot_type' => $slotType,
-                'is_available' => ! $isBooked && ! $isPast && $this->canBookSlot($date),
+                'is_available' => $available && ! $isBooked && ! $isPast && $this->canBookSlot($date),
                 'is_booked' => $isBooked,
                 'booked_by' => $isBooked ? ($bookedBySlotsForDate->firstWhere('start_time', $startTime)->tenant->tenant_id ?? '') : null,
                 'is_past' => $isPast,
                 'is_peak' => $startTime->hour >= 18, // After 6pm = peak hours
+
             ];
 
             $startTime->addMinutes($interval);

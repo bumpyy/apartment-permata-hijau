@@ -60,15 +60,19 @@
                             'bg-purple-200 text-purple-900 border-purple-400 shadow-inner' =>
                                 $timeSlot['is_selected'] && $timeSlot['slot_type'] === 'premium',
                         ])
-                            @if ($timeSlot['is_available']) wire:click="toggleTimeSlot('{{ $timeSlot['slot_key'] }}')" @endif
+                            @if ($timeSlot['is_available'] && $timeSlot['is_available']) wire:click="toggleTimeSlot('{{ $timeSlot['slot_key'] }}')" @endif
                             title="{{ $timeSlot['is_booked'] ? 'Booked by another tenant' : ($timeSlot['is_past'] ? 'Past time slot' : 'Click to select') }}">
+
                             <div @class(['font-semibold', ''])>{{ $timeSlot['start_time'] }} -
                                 {{ $timeSlot['end_time'] }}
                             </div>
+
                             @if ($timeSlot['is_past'])
                                 <div class="text-xs">
                                     Past
                                 </div>
+                            @elseif(!$timeSlot['is_available'] && !$timeSlot['is_booked'])
+                                <div class="text-xs">🚫 Unavailable</div>
                             @elseif($timeSlot['is_booked'])
                                 <div class="text-xs">Booked</div>
                             @elseif($timeSlot['is_selected'])
@@ -88,6 +92,7 @@
                                 @endif
                             @endif
                             {{ $timeSlot['booked_by'] }}
+
 
                         </div>
                     @endforeach

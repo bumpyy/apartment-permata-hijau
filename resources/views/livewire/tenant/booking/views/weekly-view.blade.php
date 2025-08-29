@@ -112,82 +112,86 @@
                             'hover:bg-purple-50 hover:shadow-md transform hover:scale-105 cursor-pointer' =>
                                 $canBook && $slotType === 'premium' && !$isSelected,
                         ])
-                            @if ($canBookFree) wire:click="toggleTimeSlot('{{ $slotKey }}')" @endif
+                            @if ($canBookFree && $slot['is_available']) wire:click="toggleTimeSlot('{{ $slotKey }}')" @endif
                             @if ($showBookingInfo) title="@if ($isBooked)Booked by: {{ $bookedSlot['tenant_name'] ?? 'Unknown' }}
                             @else Pending booking @endif"
                         @else
                             title="@if ($isPastSlot) Past slot @elseif(!$day['is_bookable']) Not available for booking @else {{ $day['formatted_date'] ?? $day['date'] }} {{ $slot['start'] }}-{{ $slot['end'] }} ({{ ucfirst($slotType) }}) @endif"
                             @endif>
-
-                            @if ($isPastSlot && !$showBookingInfo)
-                                <div class="flex flex-col gap-2 text-xs">
-                                    @if ($isBooked)
+                            @if ($slot['is_available'])
+                                @if ($isPastSlot && !$showBookingInfo)
+                                    <div class="flex flex-col gap-2 text-xs">
+                                        @if ($isBooked)
+                                            @if ($bookedSlot['is_own_booking'] ?? false)
+                                                Your Booking
+                                            @else
+                                                <span>Booked by</span>
+                                            @endif
+                                            <span>{{ $bookedSlot['tenant_id'] ?? '' }}</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </div>
+                                @elseif(!$day['is_bookable'] && !$isPastSlot && !$showBookingInfo)
+                                    <div class="flex flex-col gap-2 text-xs">
+                                        @if ($isBooked)
+                                            @if ($bookedSlot['is_own_booking'] ?? false)
+                                                Your Booking
+                                            @else
+                                                <span>Booked by</span>
+                                            @endif
+                                            <span>{{ $bookedSlot['tenant_id'] ?? '' }}</span>
+                                        @else
+                                        @endif
+                                    </div>
+                                @elseif($isSelected)
+                                    <div @class([
+                                        'font-bold flex items-center justify-center',
+                                        'text-xs',
+                                        'text-green-700' => $slotType === 'free',
+                                        'text-purple-700' => $slotType === 'premium',
+                                    ])>
+                                        Selected
+                                    </div>
+                                @elseif($isBooked)
+                                    <div @class([
+                                        'font-bold flex-col gap-2 text-blue-700 flex items-center justify-center',
+                                        'text-xs',
+                                    ])>
                                         @if ($bookedSlot['is_own_booking'] ?? false)
                                             Your Booking
                                         @else
                                             <span>Booked by</span>
                                         @endif
+
                                         <span>{{ $bookedSlot['tenant_id'] ?? '' }}</span>
-                                    @else
-                                        -
-                                    @endif
-                                </div>
-                            @elseif(!$day['is_bookable'] && !$isPastSlot && !$showBookingInfo)
-                                <div class="flex flex-col gap-2 text-xs">
-                                    @if ($isBooked)
-                                        @if ($bookedSlot['is_own_booking'] ?? false)
-                                            Your Booking
+
+                                    </div>
+                                @elseif($isPreliminary)
+                                    <div @class([
+                                        'font-bold text-yellow-700 flex items-center justify-center',
+                                        'text-xs',
+                                    ])>
+                                        @if ($preliminarySlot['is_own_booking'] ?? false)
+                                            Your Pending
                                         @else
-                                            <span>Booked by</span>
+                                            Pending
                                         @endif
-                                        <span>{{ $bookedSlot['tenant_id'] ?? '' }}</span>
-                                    @else
-                                        🔒
-                                    @endif
-                                </div>
-                            @elseif($isSelected)
-                                <div @class([
-                                    'font-bold flex items-center justify-center',
-                                    'text-xs',
-                                    'text-green-700' => $slotType === 'free',
-                                    'text-purple-700' => $slotType === 'premium',
-                                ])>
-                                    ✓ Selected
-                                </div>
-                            @elseif($isBooked)
-                                <div @class([
-                                    'font-bold flex-col gap-2 text-blue-700 flex items-center justify-center',
-                                    'text-xs',
-                                ])>
-                                    @if ($bookedSlot['is_own_booking'] ?? false)
-                                        Your Booking
-                                    @else
-                                        <span>Booked by</span>
-                                    @endif
-
-                                    <span>{{ $bookedSlot['tenant_id'] ?? '' }}</span>
-
-                                </div>
-                            @elseif($isPreliminary)
-                                <div @class([
-                                    'font-bold text-yellow-700 flex items-center justify-center',
-                                    'text-xs',
-                                ])>
-                                    @if ($preliminarySlot['is_own_booking'] ?? false)
-                                        Your Pending
-                                    @else
-                                        Pending
-                                    @endif
-                                </div>
-                            @elseif($canBookFree)
+                                    </div>
+                                @elseif($canBookFree)
+                                    <div @class(['opacity-60 flex items-center justify-center text-xs'])>
+                                        Click to book
+                                    </div>
+                                @elseif($canBookPremium)
+                                    <a class="flex size-full items-center justify-center text-xs opacity-60"
+                                        href="https://wa.me/{{ $whatsappNumber }}" target="_blank">
+                                        Chat to book
+                                    </a>
+                                @endif
+                            @else
                                 <div @class(['opacity-60 flex items-center justify-center text-xs'])>
-                                    Click to book
+                                    🚫 Unavailable
                                 </div>
-                            @elseif($canBookPremium)
-                                <a class="flex size-full items-center justify-center text-xs opacity-60"
-                                    href="https://wa.me/{{ $whatsappNumber }}" target="_blank">
-                                    Chat to book
-                                </a>
                             @endif
 
                             @if ($slot['is_peak'] && $canBookFree)
