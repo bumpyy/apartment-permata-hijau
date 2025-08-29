@@ -202,11 +202,11 @@ class Tenant extends Authenticatable implements HasMedia
 
         $weeklyUsed = $bookings->count();
 
-        // $currentDateBookings = $bookings->first(function ($value, $key) use ($date) {
+        $currentDateBookings = $bookings->first(function ($value, $key) use ($date) {
 
-        //     return Carbon::parse($key)->format('Y-m-d') === Carbon::parse($date)->format('Y-m-d');
-        // });
-        // $currentDateUsed = count($currentDateBookings);
+            return Carbon::parse($key)->format('Y-m-d') === Carbon::parse($date)->format('Y-m-d');
+        });
+        $currentDateUsed = $currentDateBookings ? count($currentDateBookings) : 0;
 
         $availableInWeek = max(0, $this->booking_limit - $weeklyUsed);
 
@@ -231,13 +231,7 @@ class Tenant extends Authenticatable implements HasMedia
         }
 
         // Check daily quota for the target date
-        $dailyUsed = $this->bookings()
-            ->where('status', '!=', 'cancelled')
-            ->where('date', $bookingDate->format('Y-m-d'))
-            ->get()
-            ->count();
-
-        if ($dailyUsed >= 2) {
+        if ($currentDateUsed >= 2) {
             return [
                 'can_book' => false,
                 'reason' => 'Only 2 slots can be booked per day',
@@ -245,7 +239,7 @@ class Tenant extends Authenticatable implements HasMedia
         }
 
         return [
-            'can_book' => ($dailyUsed === null || $dailyUsed === 0) || $dailyUsed >= 2 ? $availableInWeek >= $slotsCount : true,
+            'can_book' => ($currentDateUsed === null || $currentDateUsed === 0) ? ($availableInWeek >= $slotsCount) : ($currentDateUsed >= 2 ? false : true),
             'available_slots' => $availableInWeek,
             'reason' => $availableInWeek < $slotsCount ? "Only {$availableInWeek} slots available for this week" : null,
         ];
