@@ -159,7 +159,7 @@ class BookingValidationService
         $nextWeekStart = now()->addWeek()->startOfWeek();
         $nextWeekEnd = now()->addWeek()->endOfWeek();
 
-        return $date->between($nextWeekStart, $nextWeekEnd);
+        return $date->betweenIncluded($nextWeekStart, $nextWeekEnd);
     }
 
     /**
