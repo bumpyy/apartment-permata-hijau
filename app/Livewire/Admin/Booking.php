@@ -921,7 +921,7 @@ class Booking extends Component
         // ? distinct date from today
         $distinctDays = BookingModel::getBookedDaysForTenant($tenant->id, Carbon::today()->format('Y-m-d'));
         if ($distinctDays->count() >= 3 && ! $distinctDays->contains(fn ($v, $k) => $k == $this->panelAddForm['date'])) {
-            $this->panelAddError = 'Tenant cannot book for more than 3 distinct days in a week.';
+            $this->panelAddError = 'Tenant cannot book for more than 3 distinct day.';
 
             return;
         }
