@@ -139,6 +139,7 @@ class Booking extends Component
 
     public function showDetail($bookingId)
     {
+        $this->closeEditModal();
         // Use cached booking if available, otherwise fetch with eager loading
         if ($this->cachedBookings) {
             $this->selectedBooking = $this->cachedBookings->firstWhere('id', $bookingId);
@@ -337,7 +338,9 @@ class Booking extends Component
 
     public function getActiveBookingsCountProperty()
     {
-        return BookingModel::where('date', '>=', now()->startOfDay())->count();
+
+        return BookingModel::where('date', '>=', now()->startOfDay())->where('status', '!=', BookingStatusEnum::CANCELLED)->count();
+
     }
 
     public function getCourtsProperty()
@@ -660,7 +663,7 @@ class Booking extends Component
         }
 
         $bookingDate = \Carbon\Carbon::parse($this->addForm['date']);
-        if ($bookingDate->isPast()) {
+        if ($bookingDate->isPast() && ! $bookingDate->isToday()) {
             $this->addError = 'Cannot book on a past date.';
 
             return;
@@ -712,7 +715,7 @@ class Booking extends Component
         }
 
         // Determine booking type
-        $bookingType = $this->getDateBookingType($bookingDate);
+        $bookingType = $this->getDateBookingType($bookingDate, canBookCurrentWeek: true);
         if ($bookingType === 'none') {
             $this->addError = 'Booking is not allowed for this date.';
 
@@ -778,7 +781,7 @@ class Booking extends Component
     public function startAddBooking($date, $startTime, $endTime)
     {
         // Prevent booking for past dates/times
-        if (! $this->canBookSlot($date, $startTime)) {
+        if (! $this->canBookSlot($date, $startTime, canBookCurrentWeek: true)) {
             $this->panelAddError = 'Cannot book past dates or times.';
 
             return;
@@ -842,7 +845,7 @@ class Booking extends Component
             return;
         }
         $bookingDate = \Carbon\Carbon::parse($this->panelAddForm['date']);
-        if ($bookingDate->isPast()) {
+        if ($bookingDate->isPast() && ! $bookingDate->isToday()) {
             $this->panelAddError = 'Cannot book on a past date.';
 
             return;
@@ -891,7 +894,7 @@ class Booking extends Component
             return;
         }
         // Determine booking type
-        $bookingType = $this->panelAddForm['override_booking_type'] ? $this->panelAddForm['booking_type'] : $this->getDateBookingType($bookingDate);
+        $bookingType = $this->panelAddForm['override_booking_type'] ? $this->panelAddForm['booking_type'] : $this->getDateBookingType($bookingDate, canBookCurrentWeek: true);
         if ($bookingType === 'none') {
             $this->panelAddError = 'Booking is not allowed for this date.';
 

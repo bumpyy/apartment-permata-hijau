@@ -5,7 +5,7 @@
             wire:click="setViewMode('table')">Table View</button>
         <button
             class="{{ $viewMode === 'weekly' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700' }} rounded px-4 py-2 font-medium focus:outline-none"
-            wire:click="setViewMode('weekly')">Weekly View</button>
+            wire:click="setViewMode('weekly')">Booking View</button>
     </div>
 
     <!-- Export Button -->

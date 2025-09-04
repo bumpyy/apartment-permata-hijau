@@ -63,50 +63,6 @@
             </div>
         </x-slot:description>
     </x-split-grid>
-    {{--
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/table-tennis.png') }}" reverse>
-        <x-slot:title>
-            <x-section-title class="!mx-0 w-full !text-left" position="left">
-                Table Tennis
-            </x-section-title>
-        </x-slot:title>
-
-        <x-slot:description>
-            <div class="flex flex-col gap-8">
-                <p>
-                    Enjoy a fun and energetic game at the dedicated table tennis area
-                    in Permata Hijau Apartment—perfect for friendly matches, staying
-                    active, and building connections with fellow residents.
-                </p>
-
-                <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white"
-                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
-            </div>
-        </x-slot:description>
-    </x-split-grid>
-
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/golf.png') }}">
-        <x-slot:title>
-            <x-section-title class="!mx-0 w-full !text-left" position="left">
-                Mini Golf
-            </x-section-title>
-        </x-slot:title>
-
-        <x-slot:description>
-            <div class="flex flex-col gap-8">
-                <p>
-                    Experience leisure and relaxation at the mini golf area in Permata
-                    Hijau Apartment — a charming outdoor space where residents can
-                    unwind, have fun, and enjoy a casual game amidst a lush and
-                    peaceful environment.
-                </p>
-
-                <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white"
-                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
-            </div>
-        </x-slot:description>
-    </x-split-grid>
-    --}}
 
     <x-split-grid class="!text-left" image="{{ asset('img/facilities/bbq.png') }}" reverse>
         <x-slot:title>

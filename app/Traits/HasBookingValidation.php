@@ -41,11 +41,11 @@ trait HasBookingValidation
      * @param  Carbon|string  $date
      * @param  string|null  $startTime
      */
-    public function canBookSlot($date, $startTime = null): bool
+    public function canBookSlot($date, $startTime = null, $canBookCurrentWeek = false): bool
     {
         $carbonDate = $date instanceof Carbon ? $date : Carbon::parse($date);
 
-        return $this->getBookingValidationService()->canBookSlot($carbonDate, $startTime);
+        return $this->getBookingValidationService()->canBookSlot($carbonDate, $startTime, canBookCurrentWeek: $canBookCurrentWeek);
     }
 
     /**
@@ -53,11 +53,11 @@ trait HasBookingValidation
      *
      * @param  Carbon|string  $date
      */
-    public function getDateBookingType($date): string
+    public function getDateBookingType($date, $canBookCurrentWeek = false): string
     {
         $carbonDate = $date instanceof Carbon ? $date : Carbon::parse($date);
 
-        return $this->getBookingValidationService()->getDateBookingType($carbonDate);
+        return $this->getBookingValidationService()->getDateBookingType($carbonDate, canBookCurrentWeek: $canBookCurrentWeek);
     }
 
     /**

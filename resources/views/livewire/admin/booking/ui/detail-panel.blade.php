@@ -36,7 +36,7 @@
                                 value="{{ $panelAddForm['date'] }}" readonly>
                             @php
                                 $selectedDate = \Carbon\Carbon::parse($panelAddForm['date']);
-                                $bookingType = $this->getDateBookingType($selectedDate);
+                                $bookingType = $this->getDateBookingType($selectedDate, canBookCurrentWeek: true);
                                 $isToday = $selectedDate->isToday();
                                 $isPast = $selectedDate->isPast();
                             @endphp
@@ -51,10 +51,10 @@
 
                             @if (!$panelAddForm['override_booking_type'])
                                 <div class="mt-1 text-xs">
-                                    @if ($isPast)
+                                    @if ($isPast && !$isToday)
                                         <span class="text-red-600">⚠️ Past date - booking not allowed</span>
-                                    @elseif($isToday)
-                                        <span class="text-orange-600">⚠️ Today - only future time slots available</span>
+                                        {{-- @elseif($isToday)
+                                        <span class="text-orange-600">⚠️ Today - only future time slots available</span> --}}
                                     @elseif($bookingType === 'free')
                                         <span class="text-green-600">🆓 Free booking</span>
                                     @elseif($bookingType === 'premium')

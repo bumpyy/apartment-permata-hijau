@@ -1,0 +1,74 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-BRBjDQA2.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/css/filament/admin/theme.css": {
+    "file": "assets/theme-VXE62ggK.css",
+    "src": "resources/css/filament/admin/theme.css",
+    "isEntry": true,
+    "names": [
+      "theme.css"
+    ]
+  },
+  "resources/css/fonts/Gotham-Bold.woff": {
+    "file": "assets/Gotham-Bold-CdIPr0hm.woff",
+    "src": "resources/css/fonts/Gotham-Bold.woff"
+  },
+  "resources/css/fonts/Gotham-Bold.woff2": {
+    "file": "assets/Gotham-Bold-BpLDu5Uv.woff2",
+    "src": "resources/css/fonts/Gotham-Bold.woff2"
+  },
+  "resources/css/fonts/Gotham-Book.woff": {
+    "file": "assets/Gotham-Book-Dr4G4g0b.woff",
+    "src": "resources/css/fonts/Gotham-Book.woff"
+  },
+  "resources/css/fonts/Gotham-Book.woff2": {
+    "file": "assets/Gotham-Book-Cx9gIKPD.woff2",
+    "src": "resources/css/fonts/Gotham-Book.woff2"
+  },
+  "resources/css/fonts/MyriadPro-Bold.woff": {
+    "file": "assets/MyriadPro-Bold-BxlJrvcc.woff",
+    "src": "resources/css/fonts/MyriadPro-Bold.woff"
+  },
+  "resources/css/fonts/MyriadPro-Bold.woff2": {
+    "file": "assets/MyriadPro-Bold-Cggq_n4C.woff2",
+    "src": "resources/css/fonts/MyriadPro-Bold.woff2"
+  },
+  "resources/css/fonts/MyriadPro-Regular.woff": {
+    "file": "assets/MyriadPro-Regular-GsQDaLHh.woff",
+    "src": "resources/css/fonts/MyriadPro-Regular.woff"
+  },
+  "resources/css/fonts/MyriadPro-Regular.woff2": {
+    "file": "assets/MyriadPro-Regular-BT6253om.woff2",
+    "src": "resources/css/fonts/MyriadPro-Regular.woff2"
+  },
+  "resources/css/fonts/MyriadPro-SemiboldIt.woff": {
+    "file": "assets/MyriadPro-SemiboldIt-Dz8Gqyhv.woff",
+    "src": "resources/css/fonts/MyriadPro-SemiboldIt.woff"
+  },
+  "resources/css/fonts/MyriadPro-SemiboldIt.woff2": {
+    "file": "assets/MyriadPro-SemiboldIt-DgTo0LDi.woff2",
+    "src": "resources/css/fonts/MyriadPro-SemiboldIt.woff2"
+  },
+  "resources/img/slider-bg.png": {
+    "file": "assets/slider-bg-CWajbZrn.png",
+    "src": "resources/img/slider-bg.png"
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-DA-lBEYX.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/home.js": {
+    "file": "assets/home-CfCRR4dm.js",
+    "name": "home",
+    "src": "resources/js/home.js",
+    "isEntry": true
+  }
+}

@@ -120,7 +120,11 @@
                                 </div>
                             @empty
                                 @php
-                                    $canBook = $this->canBookSlot($date, $slotLabel['start_time']);
+                                    $canBook = $this->canBookSlot(
+                                        $date,
+                                        $slotLabel['start_time'],
+                                        canBookCurrentWeek: true,
+                                    );
                                     $isPast = !$canBook;
                                     $isToday = \Carbon\Carbon::parse($date)->isToday();
                                     $isPastTime =

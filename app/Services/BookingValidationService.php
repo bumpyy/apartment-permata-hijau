@@ -154,12 +154,18 @@ class BookingValidationService
     /**
      * Check if a date can be booked for free
      */
-    public function canBookFree(Carbon $date): bool
+    public function canBookFree(Carbon $date, bool $canBookCurrentWeek = false): bool
     {
-        $nextWeekStart = now()->addWeek()->startOfWeek();
-        $nextWeekEnd = now()->addWeek()->endOfWeek();
 
-        return $date->betweenIncluded($nextWeekStart, $nextWeekEnd);
+        if ($canBookCurrentWeek) {
+            $weekStart = now()->startOfWeek();
+        } else {
+            $weekStart = now()->addWeek()->startOfWeek();
+        }
+
+        $weekEnd = now()->addWeek()->endOfWeek();
+
+        return $date->betweenIncluded($weekStart, $weekEnd);
     }
 
     /**
@@ -200,11 +206,17 @@ class BookingValidationService
     /**
      * Check if a slot can be booked (not past date/time)
      */
-    public function canBookSlot(Carbon $date, ?string $startTime = null): bool
+    public function canBookSlot(Carbon $date, ?string $startTime = null, bool $canBookCurrentWeek = false): bool
     {
         // Check if date is in the past
-        if ($date->isPast()) {
-            return false;
+        if ($canBookCurrentWeek) {
+            if ($date->isPast() && ! $date->isToday()) {
+                return false;
+            }
+        } else {
+            if ($date->isPast()) {
+                return false;
+            }
         }
 
         // If time is provided, check if the specific time slot is in the past
@@ -215,15 +227,15 @@ class BookingValidationService
             }
         }
 
-        return $this->canBookFree($date) || $this->canBookPremium($date);
+        return $this->canBookFree($date, canBookCurrentWeek: $canBookCurrentWeek) || $this->canBookPremium($date);
     }
 
     /**
      * Get the booking type for a specific date
      */
-    public function getDateBookingType(Carbon $date): string
+    public function getDateBookingType(Carbon $date, bool $canBookCurrentWeek = false): string
     {
-        if ($this->canBookFree($date)) {
+        if ($this->canBookFree($date, canBookCurrentWeek: $canBookCurrentWeek)) {
             return 'free';
         }
         if ($this->canBookPremium($date)) {
