@@ -197,11 +197,10 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 
             return;
         }
-
         // Update the booking status
         $this->bookingToCancel->update([
             'status' => BookingStatusEnum::CANCELLED,
-            'cancelled_by' => $this->tenant->id,
+            // 'cancelled_by' => $this->tenant->id ?? null,
             'cancelled_at' => Carbon::now(),
             'cancellation_reason' => $this->cancellationReason ?: 'Cancelled by tenant',
         ]);

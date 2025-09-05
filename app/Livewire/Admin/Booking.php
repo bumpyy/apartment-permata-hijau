@@ -915,19 +915,24 @@ class Booking extends Component
         $weekStart = $bookingDate->copy()->startOfWeek()->format('Y-m-d');
 
         // ? distinct date from next week start
-        // $distinctDays = BookingModel::where('tenant_id', $tenant->id)
-        //     ->where('booking_week_start', $weekStart)
-        //     ->where('status', '!=', 'cancelled')
-        //     ->distinct('date')
-        //     ->count('date');
-
-        // ? distinct date from today
-        $distinctDays = BookingModel::getBookedDaysForTenant($tenant->id, Carbon::today()->format('Y-m-d'));
-        if ($distinctDays->count() >= 3 && ! $distinctDays->contains(fn ($v, $k) => $k == $this->panelAddForm['date'])) {
-            $this->panelAddError = 'Tenant cannot book for more than 3 distinct day.';
+        $distinctDays = BookingModel::where('tenant_id', $tenant->id)
+            ->where('booking_week_start', $weekStart)
+            ->where('status', '!=', 'cancelled')
+            ->distinct('date')
+            ->count('date');
+        if ($distinctDays >= 3 && ! BookingModel::where('tenant_id', $tenant->id)->where('date', $this->panelAddForm['date'])->exists()) {
+            $this->panelAddError = 'Tenant cannot book for more than 3 distinct days in a week.';
 
             return;
         }
+
+        // ? distinct date from today
+        // $distinctDays = BookingModel::getBookedDaysForTenant($tenant->id, Carbon::today()->format('Y-m-d'));
+        // if ($distinctDays->count() >= 3 && ! $distinctDays->contains(fn ($v, $k) => $k == $this->panelAddForm['date'])) {
+        //     $this->panelAddError = 'Tenant cannot book for more than 3 distinct day.';
+
+        //     return;
+        // }
 
         $existingBookingsForDate = BookingModel::where('tenant_id', $tenant->id)
             ->where('date', $this->panelAddForm['date'])

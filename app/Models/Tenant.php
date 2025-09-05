@@ -160,8 +160,10 @@ class Tenant extends Authenticatable implements HasMedia
     {
         $used = $this->bookings()
             ->where('status', '!=', 'cancelled')
-            ->where('date', '>=', Carbon::today()->format('Y-m-d'))
+            ->where('date', '>=', Carbon::today()->startOfWeek()->addWeek()->format('Y-m-d'))
             ->get();
+
+        // dd(Carbon::today()->startOfWeek()->addWeek()->format('Y-m-d'), $used->groupBy('date'));
 
         return [
             'used' => $used->groupBy('date')->count(),
@@ -200,7 +202,11 @@ class Tenant extends Authenticatable implements HasMedia
             ->get()
             ->groupBy('date');
 
+        // dd($weekStart->format('Y-m-d'), $bookingDate->format('Y-m-d'), $bookings);
+
         $weeklyUsed = $bookings->count();
+
+        // dd($weeklyUsed);
 
         $currentDateBookings = $bookings->first(function ($value, $key) use ($date) {
 
