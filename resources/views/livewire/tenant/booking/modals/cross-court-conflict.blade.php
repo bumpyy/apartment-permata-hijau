@@ -43,28 +43,33 @@
                 <div class="space-y-3">
                     <h4 class="font-medium text-gray-900">Your Existing Bookings:</h4>
                     @foreach ($crossCourtConflictDetails as $conflict)
+                        {{-- @dd($conflict) --}}
                         <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
                                     <div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
                                         <span
-                                            class="text-sm font-semibold text-blue-600">{{ substr($conflict['court_name'], -1) }}</span>
+                                            class="text-sm font-semibold text-blue-600">{{ substr($conflict['conflicting_booking']['court_name'], -1) }}</span>
                                     </div>
                                     <div>
-                                        <div class="font-medium text-gray-900">{{ $conflict['court_name'] }}</div>
+                                        <div class="font-medium text-gray-900">
+                                            {{ $conflict['conflicting_booking']['court_name'] }}</div>
                                         <div class="text-sm text-gray-600">{{ $conflict['start_time'] }} -
                                             {{ $conflict['end_time'] }}</div>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <div class="text-xs text-gray-500">Ref: #{{ $conflict['booking_reference'] }}</div>
+                                    <div class="text-xs text-gray-500">Ref:
+                                        #{{ $conflict['conflicting_booking']['booking_reference'] }}</div>
                                     <div class="text-xs">
                                         <span @class([
                                             'inline-flex items-center rounded-full px-2 py-1 text-xs font-medium',
-                                            'bg-green-100 text-green-800' => $conflict['status'] === 'confirmed',
-                                            'bg-yellow-100 text-yellow-800' => $conflict['status'] === 'pending',
+                                            'bg-green-100 text-green-800' =>
+                                                $conflict['conflicting_booking']['status'] === 'confirmed',
+                                            'bg-yellow-100 text-yellow-800' =>
+                                                $conflict['conflicting_booking']['status'] === 'pending',
                                         ])>
-                                            {{ ucfirst($conflict['status']) }}
+                                            {{ ucfirst($conflict['conflicting_booking']['status']) }}
                                         </span>
                                     </div>
                                 </div>
