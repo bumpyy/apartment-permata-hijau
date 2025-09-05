@@ -43,36 +43,38 @@
                             </div>
                         @endif
                     </div>
+                    <div class="flex flex-col gap-1 text-sm">
 
-                    @if ($day['is_past'] && !$day['is_today'])
-                        <div class="mt-1 text-gray-400">
-                            Past
-                        </div>
-                    @elseif($day['is_bookable'] && $day['is_current_month'])
-                        <div class="mt-1 flex-1 space-y-1">
-                            <!-- Booking counts at bottom -->
-                            @if ($day['booked_count'] > 0 || $day['pending_count'] > 0 || $day['selected_count'] > 0 || $day['available_count'] < 14)
-                                <div class="mt-auto text-xs text-gray-600">
-                                    {{-- @if ($day['available_count'] > 0)
+                        @if ($day['is_past'] && !$day['is_today'])
+                            <div class="mt-1 text-gray-400">
+                                Past
+                            </div>
+                        @elseif($day['is_bookable'] && $day['is_current_month'])
+                            <div class="mt-1 flex-1 space-y-1">
+                                <!-- Booking counts at bottom -->
+                                @if ($day['booked_count'] > 0 || $day['pending_count'] > 0 || $day['selected_count'] > 0 || $day['available_count'] < 14)
+                                    <div class="mt-auto text-xs text-gray-600">
+                                        {{-- @if ($day['available_count'] > 0)
                                         <span class="text-green-600">{{ $day['available_count'] }} free</span>
                                     @endif --}}
-                                    @if ($day['booked_count'] > 0)
-                                        <span class="text-red-600">{{ $day['booked_count'] }} booked</span>
-                                    @endif
-                                    @if ($day['pending_count'] > 0)
-                                        <span class="text-yellow-600">{{ $day['pending_count'] }} pending</span>
-                                    @endif
-                                </div>
-                            @endif
+                                        @if ($day['booked_count'] > 0)
+                                            <span class="text-red-600">{{ $day['booked_count'] }} booked</span>
+                                        @endif
+                                        @if ($day['pending_count'] > 0)
+                                            <span class="text-yellow-600">{{ $day['pending_count'] }} pending</span>
+                                        @endif
+                                    </div>
+                                @endif
 
-                            <div class="text-xs font-medium text-blue-600">Click to book</div>
-                        </div>
-                    @elseif($day['is_current_month'])
-                        <div class="mt-1 text-gray-400">🔒</div>
-                    @endif
-                    @if ($day['is_today'])
-                        <div>Today</div>
-                    @endif
+                                <div class="text-xs font-medium text-blue-600">Click to book</div>
+                            </div>
+                        @elseif($day['is_current_month'])
+                            <div class="mt-1 text-gray-400">🔒</div>
+                        @endif
+                        @if ($day['is_today'])
+                            <div>Today</div>
+                        @endif
+                    </div>
                 </div>
             </div>
 
