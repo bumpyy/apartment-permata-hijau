@@ -142,7 +142,7 @@ class BookingValidationService
                         'start_time' => $startTime,
                         'end_time' => $endTime,
                         'conflicting_booking' => $booking,
-                        'message' => "You have a booking on {$booking->court->name} at the same time.",
+                        'message' => 'You have a booking on '.($booking->court ? $booking->court->name : 'other court').' at the same time.',
                     ];
                 }
             }
