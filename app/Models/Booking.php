@@ -186,29 +186,34 @@ class Booking extends Model
      */
     public static function getCrossCourtConflicts($tenantId, $date, $startTime, $endTime, $excludeCourtId = null)
     {
+        // dd($tenantId, $date, $startTime, $endTime, $excludeCourtId);
         $query = self::where('tenant_id', $tenantId)
             ->where('date', $date)
-            ->where('status', '!=', BookingStatusEnum::CANCELLED)
-            ->where(function ($q) use ($startTime, $endTime) {
-                // Check for overlapping time slots
-                $q->where(function ($subQ) use ($startTime) {
-                    // New booking starts during existing booking
-                    $subQ->where('start_time', '<=', $startTime)
-                        ->where('end_time', '>', $startTime);
-                })->orWhere(function ($subQ) use ($endTime) {
-                    // New booking ends during existing booking
-                    $subQ->where('start_time', '<', $endTime)
-                        ->where('end_time', '>=', $endTime);
-                })->orWhere(function ($subQ) use ($startTime, $endTime) {
-                    // New booking completely contains existing booking
-                    $subQ->where('start_time', '>=', $startTime)
-                        ->where('end_time', '<=', $endTime);
-                });
-            });
+            ->where('start_time', '=', Carbon::parse($startTime)->format('H:i:s'))
+            ->where('end_time', Carbon::parse($endTime)->format('H:i:s'))
+            ->where('status', '!=', BookingStatusEnum::CANCELLED);
+        // ->where(function ($q) use ($startTime, $endTime) {
+        //     // Check for overlapping time slots
+        //     $q->where(function ($subQ) use ($startTime) {
+        //         // New booking starts during existing booking
+        //         $subQ->where('start_time', '<=', $startTime)
+        //             ->where('end_time', '>', $startTime);
+        //     })->orWhere(function ($subQ) use ($endTime) {
+        //         // New booking ends during existing booking
+        //         $subQ->where('start_time', '<', $endTime)
+        //             ->where('end_time', '>=', $endTime);
+        //     })->orWhere(function ($subQ) use ($startTime, $endTime) {
+        //         // New booking completely contains existing booking
+        //         $subQ->where('start_time', '>=', $startTime)
+        //             ->where('end_time', '<=', $endTime);
+        //     });
+        // });
 
         if ($excludeCourtId) {
             $query->where('court_id', '!=', $excludeCourtId);
         }
+
+        // dd($query->get());
 
         return $query->with('court:id,name')
             ->get()
