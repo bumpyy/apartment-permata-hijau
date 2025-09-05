@@ -920,6 +920,7 @@ class Booking extends Component
             ->where('status', '!=', 'cancelled')
             ->distinct('date')
             ->count('date');
+
         if ($distinctDays >= 3 && ! BookingModel::where('tenant_id', $tenant->id)->where('date', $this->panelAddForm['date'])->exists()) {
             $this->panelAddError = 'Tenant cannot book for more than 3 distinct days in a week.';
 

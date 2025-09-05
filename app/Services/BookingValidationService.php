@@ -34,7 +34,9 @@ class BookingValidationService
             ->values();
 
         // Get existing bookings for the tenant
-        $existingBookings = Booking::getBookedDaysForTenant($tenant->id, Carbon::today()->startOfWeek()->addWeek()->format('Y-m-d'));
+        $existingBookings = Booking::getBookedDaysForTenant($tenant->id,
+            Carbon::today()->startOfWeek()->addWeek()->format('Y-m-d'),
+            Carbon::today()->startOfWeek()->addWeek(2)->format('Y-m-d'));
         $bookedDaysCount = $existingBookings->count();
 
         // Check daily quota (2 hours max per day)
