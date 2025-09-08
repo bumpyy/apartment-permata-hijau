@@ -352,7 +352,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                     <p class="text-4xl font-bold text-blue-600 mb-3">
                         {{ $quotaInfo['free']['used'] }}
                     </p>
-                    <p class="text-sm text-blue-600 mb-4">Up to 7 days ahead</p>
+                    <p class="text-sm text-blue-600 mb-4">Up to next week</p>
                 </div>
 
                 <div class="quota-card bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
@@ -363,7 +363,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                     <p class="text-4xl font-bold text-purple-600 mb-3">
                         {{ $quotaInfo['premium']['used'] }}
                     </p>
-                    <p class="text-sm text-purple-600 mb-4">Up to 1 month ahead</p>
+                    <p class="text-sm text-purple-600 mb-4">Up to end of the month</p>
                 </div>
 
                 <div class="quota-card bg-gradient-to-br from-green-50 to-green-100 border border-green-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
@@ -465,8 +465,8 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                             <div class="mt-2 text-sm text-green-700">
                                 <p>• Maximum <strong>{{ $this->getSiteSettings()->max_bookings_per_tenant }} bookings</strong> per tenant</p>
                                 <p>• Bookings can be made up to <strong>{{ $this->getSiteSettings()->booking_advance_days }} days</strong> in advance</p>
-                                <p>• Free bookings: up to 7 days ahead</p>
-                                <p>• Premium bookings: up to 1 month ahead</p>
+                                <p>• Free bookings: until the end of next week</p>
+                                <p>• Premium bookings: up to the end of the following month</p>
                             </div>
                         </div>
                     </div>
