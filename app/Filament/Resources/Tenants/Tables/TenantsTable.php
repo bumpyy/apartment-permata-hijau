@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\Tenants\Tables;
 
+use App\Filament\Resources\Tenants\TenantResource;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class TenantsTable
 {
@@ -50,6 +52,7 @@ class TenantsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->recordUrl(fn (Model $record): string => TenantResource::getUrl('view', ['record' => $record]));
     }
 }

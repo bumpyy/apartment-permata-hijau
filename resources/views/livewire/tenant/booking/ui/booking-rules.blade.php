@@ -18,8 +18,10 @@
         </div>
     </div>
 
-    <div class="mt-2 text-xs text-purple-700">
-        ⭐ To book premium slots, please <a class="text-purple-800 underline hover:text-purple-900"
-            href="https://wa.me/{{ $whatsappNumber }}" target="_blank">chat admin via WhatsApp</a>.
-    </div>
+    @if ($isPremiumBookingOpen)
+        <div class="mt-2 text-xs text-purple-700">
+            ⭐ To book premium slots, please <a class="text-purple-800 underline hover:text-purple-900"
+                href="https://wa.me/{{ $whatsappNumber }}" target="_blank">chat admin via WhatsApp</a>.
+        </div>
+    @endif
 </div>

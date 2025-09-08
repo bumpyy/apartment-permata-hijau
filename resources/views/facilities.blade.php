@@ -57,14 +57,11 @@
                     offers a serene escape for both leisure and fitness, right in the heart
                     of the residence.
                 </p>
-
-                <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white"
-                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
             </div>
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/bbq.png') }}" reverse>
+    {{-- <x-split-grid class="!text-left" image="{{ asset('img/facilities/bbq.png') }}" reverse>
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 BBQ
@@ -84,5 +81,5 @@
                     href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
             </div>
         </x-slot:description>
-    </x-split-grid>
+    </x-split-grid> --}}
 </x-frontend.layouts.app>

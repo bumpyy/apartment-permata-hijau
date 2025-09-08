@@ -128,6 +128,18 @@ class Booking extends Component
         $this->weekPicker = $this->weekStart;
     }
 
+    public function canBookSlot($date, $startTime = null, $canBookCurrentWeek = false): bool
+    {
+
+        if (($this->courtFilter == 1 || $this->courtFilter == '') && Carbon::parse($startTime)->hour >= 15 && Carbon::parse($startTime)->hour <= 18) {
+            return false;
+        }
+
+        $carbonDate = $date instanceof Carbon ? $date : Carbon::parse($date);
+
+        return $this->getBookingValidationService()->canBookSlot($carbonDate, $startTime, canBookCurrentWeek: $canBookCurrentWeek);
+    }
+
     public function updated($property)
     {
         // Reset pagination when any filter changes

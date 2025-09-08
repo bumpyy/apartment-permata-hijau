@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Events\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -13,6 +14,12 @@ class EventForm
     {
         return $schema
             ->components([
+                SpatieMediaLibraryFileUpload::make('image')
+                    ->collection('event_image')
+                    ->disk('public')
+                    ->maxFiles(1)
+                    ->image()
+                    ->columnSpanFull(),
                 TextInput::make('title')
                     ->required(),
                 Textarea::make('description')

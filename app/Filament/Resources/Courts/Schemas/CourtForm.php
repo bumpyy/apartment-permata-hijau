@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Courts\Schemas;
 
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -13,6 +14,11 @@ class CourtForm
     {
         return $schema
             ->components([
+                SpatieMediaLibraryFileUpload::make('court_image')
+                    ->collection('court_images')
+                    ->image()
+                    ->disk('public')
+                    ->columnSpanFull(),
                 TextInput::make('name')
                     ->required(),
                 Textarea::make('description')
