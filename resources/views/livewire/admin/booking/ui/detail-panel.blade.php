@@ -9,9 +9,10 @@
                     <form class="space-y-4" wire:submit.prevent="createBookingFromPanel">
                         <div>
                             <label class="block text-sm font-medium">Court</label>
+
                             <select class="w-full rounded border p-2" wire:model="panelAddForm.court_id" required>
                                 <option value="">Select Court</option>
-                                @foreach ($panelAvailableCourts as $court)
+                                @foreach ($panelAvailableCourts->when(!empty($courtFilter), fn($query) => $query->where('id', $courtFilter)) as $court)
                                     <option value="{{ $court['id'] }}"
                                         @if ($court['is_booked']) disabled @endif>
                                         {{ $court['name'] }} @if ($court['is_booked'])
@@ -21,6 +22,7 @@
                                 @endforeach
                             </select>
                         </div>
+
                         <div>
                             <label class="block text-sm font-medium">Tenant</label>
                             <select class="w-full rounded border p-2" wire:model="panelAddForm.tenant_id" required>
