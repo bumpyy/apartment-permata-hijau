@@ -61,7 +61,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    {{-- <x-split-grid class="!text-left" image="{{ asset('img/facilities/bbq.png') }}" reverse>
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/bbq.jpg') }}" reverse>
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 BBQ
@@ -77,9 +77,54 @@
                     open-air setting
                 </p>
 
-                <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white"
+                <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white" target="_blank"
                     href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
             </div>
         </x-slot:description>
-    </x-split-grid> --}}
+    </x-split-grid>
+
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/diamond_room/1.jpg') }}">
+        <x-slot:title>
+            <x-section-title class="!mx-0 w-full !text-left" position="left">
+                Diamond Room
+            </x-section-title>
+        </x-slot:title>
+
+        <x-slot:description>
+            <div class="flex flex-col gap-8">
+                <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white" target="_blank"
+                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
+            </div>
+        </x-slot:description>
+    </x-split-grid>
+
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/emerald_room/1.jpg') }}" reverse>
+        <x-slot:title>
+            <x-section-title class="!mx-0 w-full !text-left" position="left">
+                Emerald Room
+            </x-section-title>
+        </x-slot:title>
+
+        <x-slot:description>
+            <div class="flex flex-col gap-8">
+                <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white" target="_blank"
+                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
+            </div>
+        </x-slot:description>
+    </x-split-grid>
+
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/jade_room/1.jpg') }}">
+        <x-slot:title>
+            <x-section-title class="!mx-0 w-full !text-left" position="left">
+                Jade Room
+            </x-section-title>
+        </x-slot:title>
+
+        <x-slot:description>
+            <div class="flex flex-col gap-8">
+                <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white" target="_blank"
+                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
+            </div>
+        </x-slot:description>
+    </x-split-grid>
 </x-frontend.layouts.app>

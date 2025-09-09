@@ -1,6 +1,6 @@
 @props(['title' => '', 'description' => '', 'image' => '', 'reverse' => false])
 <div {{ $attributes->merge(['class' => 'grid text-center md:grid-cols-2']) }}>
-    <div @class(['md:order-2' => $reverse])>
+    <div @class(['aspect-[6/5]', 'md:order-2' => $reverse])>
         <img class="h-full w-full object-cover" src="{{ $image }}" alt="">
     </div>
 
