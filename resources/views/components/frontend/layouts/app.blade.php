@@ -51,7 +51,7 @@
             </div>
         </div>
 
-        <div class="mt-4 flex flex-col items-center gap-1 text-center">
+        <div class="mt-4 flex flex-col items-center gap-1 text-center max-md:hidden">
             <x-site-logo-long class="max-w-lg px-4" />
             <h1 class="text-primary font-imbue sr-only text-4xl">
                 {{ config('app.name', 'Apartemen Permata Hijau') }}
@@ -113,7 +113,15 @@
             @endforeach
 
         </ul>
-        <!-- Mobile Menu Button -->
+
+        <!-- Mobile Menu logo -->
+        <div class="flex items-center gap-1 text-center md:hidden">
+            <x-site-logo class="max-w-10 shrink" />
+            <x-site-logo-text class="mt-0.5 max-w-lg pr-4" />
+            <h1 class="text-primary font-imbue sr-only text-4xl">
+                {{ config('app.name', 'Apartemen Permata Hijau') }}
+            </h1>
+        </div>
 
         <!-- Mobile Menu -->
         <ul class="divide-outline rounded-b-radius border-outline bg-surface-alt absolute inset-x-0 top-0 z-30 flex max-h-svh flex-col divide-y overflow-y-auto border-b bg-white px-6 pb-6 pt-20 uppercase md:hidden"
@@ -125,14 +133,13 @@
 
             @foreach ($routeList as $name => $routeProps)
                 <li @class([
-                    'py-4 px-2',
                     'text-white bg-primary' =>
                         request()->routeIs($routeProps['route']) ||
                         request()->routeIs("{$name}.*"),
                 ])>
 
                     @if (Route::has($routeProps['route']))
-                        <a class="w-full text-lg font-bold focus:underline"
+                        <a class="inline-block w-full px-2 py-4 text-lg font-bold focus:underline"
                             href="{{ route($routeProps['route']) }}">{{ $routeProps['label'] }}</a>
                     @else
                         <span class="text-gray-400">{{ $routeProps['label'] }}</span>
@@ -141,7 +148,9 @@
             @endforeach
 
         </ul>
-        <button class="absolute right-4 top-4 z-30 flex md:hidden" x-on:click="mobileMenuIsOpen = !mobileMenuIsOpen"
+
+        <!-- Mobile Menu Button -->
+        <button class="absolute right-3 top-5 z-30 flex md:hidden" x-on:click="mobileMenuIsOpen = !mobileMenuIsOpen"
             x-bind:aria-expanded="mobileMenuIsOpen" type="button" aria-label="mobile menu" aria-controls="mobileMenu">
             <svg class="size-6" x-cloak x-show="!mobileMenuIsOpen" xmlns="http://www.w3.org/2000/svg" fill="none"
                 aria-hidden="true" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
