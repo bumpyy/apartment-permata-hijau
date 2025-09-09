@@ -9,7 +9,7 @@ class FacilitiesController extends Controller
 {
     public function index(SiteSettings $siteSettings)
     {
-        $whatsappNumber = $siteSettings->whatsapp_number;
+        $whatsappNumber = $siteSettings->contact_phone;
 
         return view('facilities', compact('whatsappNumber'));
     }
