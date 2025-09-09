@@ -29,7 +29,8 @@
         @php
             $tabs = [
                 'Tennis' => [
-                    'route' => 'facilities.index',
+                    'route' => 'facilities.tennis',
+                    'showButton' => true,
                     'image' => asset('img/facilities/tennis-1.jpg'),
                     'description' => '
                         <p>
@@ -41,8 +42,9 @@
                     ',
                 ],
                 'Basketball' => [
-                    'route' => '',
-                    'image' => 'https://picsum.photos/id/2/1920/1080',
+                    'route' => 'facilities.index',
+                    'showButton' => true,
+                    'image' => asset('img/facilities/basketball.png'),
                     'description' => '
                         <p>
                             Enjoy an active lifestyle with the exclusive outdoor basketball court at Permata Hijau Apartment. Designed for both casual play and serious games, it’s a great spot for residents to stay fit, socialize, and unwind - all just steps from home.
@@ -50,35 +52,19 @@
                     ',
                 ],
                 'Swimming Pool' => [
-                    'route' => '',
-                    'image' => 'https://picsum.photos/id/3/1920/1080',
+                    'route' => 'facilities.index',
+                    'showButton' => false,
+                    'image' => asset('img/facilities/swimming-pool.jpeg'),
                     'description' => '
                         <p>
                             Relax and refresh in the beautifully designed swimming pool at Permata Hijau Apartment. Surrounded by lush greenery, the pool offers a serene escape for both leisure and fitness, right in the heart of the residence.
                         </p>
                     ',
                 ],
-                'Table Tennis' => [
-                    'route' => '',
-                    'image' => 'https://picsum.photos/id/4/1920/1080',
-                    'description' => '
-                        <p>
-                            Enjoy a fun and energetic game at the dedicated table tennis area in Permata Hijau Apartment - perfect for friendly matches, staying active, and building connections with fellow residents.
-                        </p>
-                    ',
-                ],
-                'Mini Golf' => [
-                    'route' => '',
-                    'image' => 'https://picsum.photos/id/5/1920/1080',
-                    'description' => '
-                        <p>
-                            Experience leisure and relaxation at the mini golf area in Permata Hijau Apartment - a charming outdoor space where residents can unwind, have fun, and enjoy a casual game amidst a lush and peaceful environment.
-                        </p>
-                    ',
-                ],
                 'BBQ' => [
-                    'route' => '',
-                    'image' => 'https://picsum.photos/id/6/1920/1080',
+                    'route' => 'facilities.index',
+                    'showButton' => false,
+                    'image' => asset('img/facilities/bbq.jpg'),
                     'description' => '
                         <p>
                             Enjoy quality time with family and friends at the BBQ area in Permata Hijau Apartment - a cozy outdoor space perfect for gatherings, grilling, and creating memorable moments in a relaxed, open-air setting.
@@ -120,9 +106,11 @@
                         {!! $tab['description'] !!}
                     </div>
 
-                    <a class="bg-primary font-imbue mt-5 rounded-md border border-gray-200 px-4 py-2 text-white"
-                        href="{{ !empty($tab['route']) ? route($tab['route']) : '#' }}">Book
-                        Now</a>
+                    @if ($tab['showButton'] === true)
+                        <a class="bg-primary font-imbue mt-5 rounded-md border border-gray-200 px-4 py-2 text-white"
+                            href="{{ !empty($tab['route']) ? route($tab['route']) : '#' }}">Book
+                            Now</a>
+                    @endif
                 </div>
             </section>
         @endforeach
