@@ -63,7 +63,7 @@
                 ],
                 'BBQ' => [
                     'route' => 'facilities.index',
-                    'showButton' => false,
+                    'showButton' => true,
                     'image' => asset('img/facilities/bbq.jpg'),
                     'description' => '
                         <p>

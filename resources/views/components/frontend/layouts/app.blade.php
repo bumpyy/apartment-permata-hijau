@@ -202,8 +202,6 @@
             </button>
         @endunless
 
-
-
         <div class="container flex flex-col gap-4 py-8 text-white">
             <div class="flex flex-wrap gap-6">
                 <x-site-logo class="basis-12 brightness-0 invert" />
