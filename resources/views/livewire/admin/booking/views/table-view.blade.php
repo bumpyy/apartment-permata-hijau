@@ -96,6 +96,7 @@
                     <td class="border-b border-t border-gray-200 bg-gray-100 px-6 py-2 text-base font-bold"
                         colspan="7">{{ \Carbon\Carbon::parse($date)->format('l, d M Y') }}</td>
                 </tr>
+
                 @foreach ($courts as $courtName => $bookings)
                     <tr>
                         <td class="border-b border-t border-blue-200 bg-blue-50 px-6 py-2 text-sm font-semibold"

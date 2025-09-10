@@ -455,7 +455,7 @@ class Booking extends Component
     private function buildBookingsQuery()
     {
         $query = BookingModel::with(['tenant', 'court'])
-            ->orderBy('date', 'desc')
+            ->orderBy('date')
             ->orderBy('start_time', 'asc');
 
         // Apply search filter
