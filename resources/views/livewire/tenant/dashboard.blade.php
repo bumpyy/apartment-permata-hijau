@@ -599,7 +599,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     <!-- Cancellation Confirmation Modal -->
     @if($showCancelModal && $bookingToCancel)
     <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" id="cancelModal">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="relative top-20 mx-auto p-5 border max-w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3">
                 <!-- Header -->
                 <div class="flex items-center justify-between mb-4">
@@ -612,9 +612,9 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
                 </div>
 
                 <!-- Booking Details -->
-                <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                <div class="bg-gray-50 rounded-lg p-3 mb-4">
                     <div class="flex items-center space-x-3 mb-3">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+                        <div class="w-auto px-1 py-0.5 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
                             {{ $bookingToCancel->court->name }}
                         </div>
                         <div>

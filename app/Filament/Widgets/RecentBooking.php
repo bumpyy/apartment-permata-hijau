@@ -19,7 +19,7 @@ class RecentBooking extends TableWidget
     {
         return $table
             ->query(Booking::whereDate('created_at', Carbon::today()))
-            ->defaultPaginationPageOption(5)
+            // ->defaultPaginationPageOption(5)
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('created_at')

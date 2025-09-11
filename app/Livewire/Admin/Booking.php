@@ -102,9 +102,6 @@ class Booking extends Component
 
     public $cancellationReason = '';
 
-    // Today's bookings properties
-    public $showTodaysBookings = true;
-
     // Export properties
     public $showExportModal = false;
 

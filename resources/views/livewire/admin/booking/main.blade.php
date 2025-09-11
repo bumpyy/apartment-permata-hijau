@@ -1,4 +1,4 @@
-<div class="mx-auto w-full max-w-7xl p-8">
+<div class="mx-auto w-full max-w-7xl p-4 md:p-8">
     <!-- Left Column: Dashboard, Filters, Bookings Table -->
     <div>
         <!-- Dashboard Stats -->
