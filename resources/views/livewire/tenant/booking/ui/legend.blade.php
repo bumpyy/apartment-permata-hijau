@@ -2,6 +2,10 @@
     class="mb-8 flex flex-wrap items-center gap-6 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 p-6 text-sm">
     <div class="flex items-center gap-2">
         <div class="h-4 w-4 rounded border-l-4 border-blue-400 bg-blue-100"></div>
+        <span class="font-medium">Your Booking</span>
+    </div>
+    <div class="flex items-center gap-2">
+        <div class="h-4 w-4 rounded border-l-4 border-red-400 bg-red-100"></div>
         <span class="font-medium">Booked</span>
     </div>
     {{-- <div class="flex items-center gap-2">
