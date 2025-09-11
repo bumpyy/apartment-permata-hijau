@@ -15,7 +15,6 @@ class EventForm
         return $schema
             ->components([
                 SpatieMediaLibraryFileUpload::make('image')
-                    ->collection('event_image')
                     ->disk('public')
                     ->maxFiles(1)
                     ->image()

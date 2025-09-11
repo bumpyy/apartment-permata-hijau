@@ -34,7 +34,6 @@ Route::prefix('contact')
     });
 
 Route::name('facilities.')
-
     ->prefix('facilities')
     ->name('facilities.')
     ->group(function () {

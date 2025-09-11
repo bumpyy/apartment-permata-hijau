@@ -17,7 +17,6 @@ class NewsForm
                 TextInput::make('title')
                     ->required(),
                 SpatieMediaLibraryFileUpload::make('featured_image')
-                    ->collection('news_images')
                     ->image()
                     ->required(),
                 RichEditor::make('content')
