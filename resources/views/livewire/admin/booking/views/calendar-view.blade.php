@@ -53,6 +53,7 @@
             @php
                 $dateObj = \Carbon\Carbon::parse($date);
                 $isPast = $dateObj->isPast();
+                $isPastDate = $dateObj->startOfDay()->gte(\Carbon\Carbon::now()->startOfDay());
                 $isToday = $dateObj->isToday();
             @endphp
             <div class="min-w-[180px] flex-1">
@@ -75,8 +76,8 @@
                             @forelse($slots[$slotLabel['label']] as $booking)
                                 <div wire:click="handleBookingCardClick({{ $booking->id }})"
                                     @class([
-                                        'rounded-lg border p-2 shadow-sm mb-1 transition-colors',
-                                        'bg-gray-50 hover:bg-gray-100 cursor-pointer' => true,
+                                        'rounded-lg border p-2 shadow-sm mb-1 transition-colors bg-gray-50 hover:bg-gray-100 cursor-pointer',
+                                        // 'opacity-50' => $isPast,
                                     ])>
                                     <div class="mb-1 flex items-center gap-2">
                                         <span
@@ -116,6 +117,16 @@
                                         ])>
                                             {{ ucfirst($booking->status->value) }}
                                         </span>
+
+
+
+                                        @if (!\Carbon\Carbon::parse($date)->isToday() && $isPast)
+                                            <span class="ml-2 text-[10px] text-gray-400">📅 Past Date</span>
+                                        @elseif(
+                                            \Carbon\Carbon::parse($date)->isToday() &&
+                                                \Carbon\Carbon::createFromFormat('H:i', $slotLabel['start_time'])->isPast())
+                                            <span class="ml-2 text-[10px] text-gray-400">🕔 Past Time</span>
+                                        @endif
                                     </div>
                                 </div>
                             @empty

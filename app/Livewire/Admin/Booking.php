@@ -489,12 +489,14 @@ class Booking extends Component
         }
 
         // Apply tab filter (active vs past bookings)
-        if ($this->tableTab === 'active') {
-            // Show future and today's bookings
-            $query->where('date', '>=', now()->startOfDay());
-        } else {
-            // Show past bookings
-            $query->where('date', '<', now()->startOfDay());
+        if ($this->viewMode === 'table') {
+            if ($this->tableTab === 'active') {
+                // Show future and today's bookings
+                $query->where('date', '>=', now()->startOfDay());
+            } else {
+                // Show past bookings
+                $query->where('date', '<', now()->startOfDay());
+            }
         }
 
         return $query;

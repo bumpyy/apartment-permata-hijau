@@ -101,7 +101,8 @@
                                 ($isPastSlot || !$day['is_bookable']) &&
                                 !$showBookingInfo &&
                                 !$isBooked,
-                            'bg-blue-100 text-blue-800 cursor-pointer border-l-4 border-blue-400' => $isBooked,
+                            'bg-red-100 text-red-800 cursor-pointer border-l-4 border-red-400' =>
+                                $isBooked && !($bookedSlot['is_own_booking'] ?? false),
                             'bg-yellow-100 text-yellow-800 cursor-pointer border-l-4 border-yellow-400' => $isPreliminary,
                             'bg-green-100 text-green-800 border-l-4 border-green-500 transform scale-95 shadow-inner' =>
                                 $isSelected && $slotType === 'free',
@@ -111,6 +112,8 @@
                                 $canBook && $slotType === 'free' && !$isSelected,
                             'hover:bg-purple-50 hover:shadow-md transform hover:scale-105 cursor-pointer' =>
                                 $canBook && $slotType === 'premium' && !$isSelected,
+                            'bg-blue-100 text-blue-800 cursor-pointer border-l-4 border-blue-400' =>
+                                $bookedSlot['is_own_booking'] ?? false,
                         ])
                             @if ($canBookFree && $slot['is_available']) wire:click="toggleTimeSlot('{{ $slotKey }}')" @endif
                             @if ($showBookingInfo) title="@if ($isBooked)Booked by: {{ $bookedSlot['tenant_name'] ?? 'Unknown' }}
@@ -153,8 +156,9 @@
                                     </div>
                                 @elseif($isBooked)
                                     <div @class([
-                                        'font-bold flex-col gap-2 text-blue-700 flex items-center justify-center',
-                                        'text-xs',
+                                        'font-bold flex-col gap-2  flex items-center justify-center text-xs',
+                                        'text-red-700' => !($bookedSlot['is_own_booking'] ?? false),
+                                        'text-blue-700' => $bookedSlot['is_own_booking'] ?? false,
                                     ])>
                                         @if ($bookedSlot['is_own_booking'] ?? false)
                                             Your Booking
