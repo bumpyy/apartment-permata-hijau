@@ -54,6 +54,7 @@
                 $dateObj = \Carbon\Carbon::parse($date);
                 $isPast = $dateObj->isPast();
                 $isPastDate = $dateObj->startOfDay()->gte(\Carbon\Carbon::now()->startOfDay());
+                $isFuture = $dateObj->isFuture();
                 $isToday = $dateObj->isToday();
             @endphp
             <div class="min-w-[180px] flex-1">
@@ -120,7 +121,7 @@
 
 
 
-                                        @if (!\Carbon\Carbon::parse($date)->isToday() && $isPast)
+                                        @if (!\Carbon\Carbon::parse($date)->isToday() && $isPast && !$isFuture)
                                             <span class="ml-2 text-[10px] text-gray-400">📅 Past Date</span>
                                         @elseif(
                                             \Carbon\Carbon::parse($date)->isToday() &&
