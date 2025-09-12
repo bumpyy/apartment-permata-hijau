@@ -1,24 +1,6 @@
-<div class="mb-6 flex flex-col items-center justify-center gap-4 sm:flex-row">
-    <div class="inline-flex rounded-lg border border-gray-300 bg-white p-1 shadow-sm">
-        <button
-            class="{{ $viewMode === 'monthly' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100' }} rounded-md px-4 py-2 text-sm font-medium transition-all duration-200"
-            wire:click="switchView('monthly')">
-            📆 Monthly
-        </button>
-        <button
-            class="{{ $viewMode === 'weekly' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100' }} rounded-md px-4 py-2 text-sm font-medium transition-all duration-200"
-            wire:click="switchView('weekly')">
-            📅 Weekly
-        </button>
-        {{-- <button wire:click="switchView('daily')" class="rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 {{ $viewMode === 'daily' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100' }}">
-            🕐 Daily
-        </button> --}}
-    </div>
-</div>
-
 <!-- Navigation Controls -->
-<div
-    class="top-[3.7rem] z-[11] mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 p-2 shadow-sm max-lg:text-sm md:top-20 md:mb-6 md:p-4">
+<div class="z-[11] mb-2 flex flex-wrap items-center justify-center gap-2 rounded-xl border bg-gradient-to-r from-gray-50 to-gray-100 p-2 shadow-sm max-lg:text-sm md:mb-6 md:justify-between md:p-4"
+    x-data="{ sticky: true }" :class="{ 'md:sticky top-[4.4rem] md:top-20 ': sticky }">
     <div class="flex items-center gap-2 max-[600px]:w-full max-[600px]:justify-between">
 
         <div class="text-center max-[600px]:w-full">
@@ -39,6 +21,24 @@
             wire:click="openDatePicker">
             📅 Jump to Week
         </button>
+    </div>
+
+    <div class="flex flex-col items-center justify-center gap-4 max-md:-order-1 sm:flex-row">
+        <div class="inline-flex rounded-lg border border-gray-300 bg-white p-1 shadow-sm">
+            <button
+                class="{{ $viewMode === 'monthly' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100' }} rounded-md px-4 py-2 text-sm font-medium transition-all duration-200"
+                wire:click="switchView('monthly')">
+                📆 Monthly
+            </button>
+            <button
+                class="{{ $viewMode === 'weekly' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100' }} rounded-md px-4 py-2 text-sm font-medium transition-all duration-200"
+                wire:click="switchView('weekly')">
+                📅 Weekly
+            </button>
+            {{-- <button wire:click="switchView('daily')" class="rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 {{ $viewMode === 'daily' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100' }}">
+            🕐 Daily
+        </button> --}}
+        </div>
     </div>
 
     <div class="grid grid-cols-2 flex-wrap items-center gap-2 max-[600px]:w-full max-[600px]:text-sm sm:flex">

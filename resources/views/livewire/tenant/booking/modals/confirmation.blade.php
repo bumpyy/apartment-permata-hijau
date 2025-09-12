@@ -7,6 +7,8 @@
                 @else
                     🎾 {{ ucfirst($bookingType) }} Booking Confirmation
                 @endif
+
+                for Court {{ $courtNumber }}
             </h3>
 
             <div class="mb-6 max-h-[50dvh] space-y-4 overflow-y-auto">

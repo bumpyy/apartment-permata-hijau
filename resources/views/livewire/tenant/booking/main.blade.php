@@ -16,6 +16,8 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 {
     use HasBookingValidation;
 
+    public $courtList;
+
     // === CORE PROPERTIES ===
     public $courtNumber; // Which court we're booking (e.g., Court 2)
 
@@ -146,6 +148,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
      */
     public function mount(SiteSettings $siteSettings)
     {
+        $this->courtList = Court::all();
 
         // Set default court (hardcoded to Court 2 for now)
         $this->courtNumber = request()->route('id');
@@ -1520,6 +1523,7 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
     @include('livewire.tenant.booking.ui.header')
 
     <div class="container mx-auto min-h-screen bg-white px-4 py-6">
+
         <!-- Navigation Component -->
         @include('livewire.tenant.booking.ui.navigation')
 
@@ -1528,9 +1532,16 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
 
         @if ($isLoggedIn)
         <!-- Current Tenant Booking List -->
-        <div class="my-6">
-            <h2 class="text-xl font-semibold mb-4">Your Current Bookings</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="my-6" x-data="{ isOpen: false }">
+            <div class="flex items-center justify-between mb-2 cursor-pointer" @click="isOpen = !isOpen">
+                <h2 class="text-xl font-semibold mb-4">Your Current Bookings</h2>
+
+                <button class="text-sm text-blue-600 hover:underline focus:outline-none">
+                    <span x-show="isOpen">Hide</span>
+                    <span x-cloak x-show="!isOpen">Show</span>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" x-show="isOpen" x-cloak x-transition>
 
                 @foreach (auth('tenant')->user()->load(['currentBookings.court'])->currentBookings as $booking)
                 <div class="p-2 border rounded shadow-sm">
@@ -1545,8 +1556,6 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
             </div>
         </div>
         @endif
-
-
 
         <!-- Calendar Wrapper with Offline Overlay -->
         <div class="relative">
