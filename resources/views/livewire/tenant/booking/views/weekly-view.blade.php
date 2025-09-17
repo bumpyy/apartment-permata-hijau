@@ -119,8 +119,21 @@
                             @if ($showBookingInfo) title="@if ($isBooked)Booked by: {{ $bookedSlot['tenant_name'] ?? 'Unknown' }}
                             @else Pending booking @endif"
                         @else
-                            title="@if ($isPastSlot) Past slot @elseif(!$day['is_bookable']) Not available for booking @else {{ $day['formatted_date'] ?? $day['date'] }} {{ $slot['start'] }}-{{ $slot['end'] }} ({{ ucfirst($slotType) }}) @endif"
-                            @endif>
+                            @php
+$titleParts = [];
+                                if ($isPastSlot) {
+                                    $titleParts[] = 'Past slot';
+                                } elseif (!$day['is_bookable']) {
+                                    $titleParts[] = 'Not available for booking';
+                                } elseif (!$slot['is_available']) {
+                                    $titleParts[] = 'Not available';
+                                } else {
+                                    $titleParts[] = $day['formatted_date'] ?? $day['date'];
+                                    $titleParts[] = $slot['start'] . '-' . $slot['end'];
+                                    $titleParts[] = ucfirst($slotType);
+                                } @endphp
+                            title="{{ implode(' (', $titleParts) }}" @endif
+                            >
                             @if ($slot['is_available'])
                                 @if ($isPastSlot && !$showBookingInfo)
                                     <div class="flex flex-col gap-2 text-xs">
@@ -131,7 +144,7 @@
                                                 <span>Booked by</span>
                                             @endif
                                         @else
-                                            -
+                                            🔒
                                         @endif
                                     </div>
                                 @elseif(!$day['is_bookable'] && !$isPastSlot && !$showBookingInfo)
@@ -197,7 +210,7 @@
 
                             <span>{{ $bookedSlot['tenant_id'] ?? '' }}</span>
 
-                            @if ($slot['is_peak'] && $canBookFree)
+                            @if ($slot['is_peak'] && $canBookFree && $slot['is_available'])
                                 <div class="mt-1 text-xs text-orange-600">Need light 💡</div>
                             @endif
 

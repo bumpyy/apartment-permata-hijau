@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enum\BookingStatusEnum;
+use App\Helpers\BookingHelper;
 use App\Models\Booking;
 use App\Models\Court;
 use App\Models\PremiumDateOverride;
@@ -68,12 +69,17 @@ class BookingValidationService
             $canBook = false;
         }
 
-        // Check for booking conflicts
+        // Check for booking conflicts and restriction
         foreach ($slotKeys as $slotKey) {
             $parts = explode('-', $slotKey);
             if (count($parts) >= 4) {
                 $date = $parts[0].'-'.$parts[1].'-'.$parts[2];
                 $startTime = count($parts) == 4 ? $parts[3] : $parts[3].':'.$parts[4];
+
+                if (BookingHelper::isRestrictedBookingSlot($courtId, Carbon::parse($startTime))) {
+                    $warnings[] = "Slot $startTime is restricted on court $courtId";
+                    $canBook = false;
+                }
 
                 if ($this->isSlotAlreadyBooked($courtId, $date, $startTime)) {
                     $conflicts[] = [
@@ -322,11 +328,7 @@ class BookingValidationService
             $isBooked = in_array($time, $bookedSlotsForDate);
             $isPast = $startTime->copy()->setDateFrom($date)->isPast();
 
-            if ($courtId == 1 && $startTime->hour >= 15 && $startTime->hour <= 18) {
-                $available = false;
-            } else {
-                $available = true;
-            }
+            $available = ! BookingHelper::isRestrictedBookingSlot($courtId, $startTime);
 
             $availableSlots[] = [
                 'start_time' => $time,

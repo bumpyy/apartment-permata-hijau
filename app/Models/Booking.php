@@ -112,10 +112,10 @@ class Booking extends Model
 
     public function getStatusDisplayAttribute()
     {
-        return match ($this->status->value) {
-            'pending' => 'PENDING',
-            'confirmed' => $this->total_price > 0 ? 'PAID' : 'FREE',
-            'cancelled' => 'CANCELLED',
+        return match ($this->status) {
+            BookingStatusEnum::PENDING => 'PENDING',
+            BookingStatusEnum::CONFIRMED => $this->total_price > 0 ? 'PAID' : 'FREE',
+            BookingStatusEnum::CANCELLED => 'CANCELLED',
             default => strtoupper($this->status->value)
         };
     }

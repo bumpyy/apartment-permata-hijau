@@ -24,4 +24,25 @@
         </div>
     </div>
 
+    <div class="mt-6 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        {{-- <p class="text-2xl font-bold">Change Court</p> --}}
+        <div class="inline-flex rounded-lg border border-gray-300 bg-white p-1 shadow-sm">
+            @foreach ($courtList ?? [] as $lapangan)
+                @if ($lapangan->id == $courtNumber)
+                    <p @class([
+                        'bg-primary text-white shadow-sm rounded-md px-4 py-2 text-sm font-medium transition-all duration-200',
+                    ])>
+                        {{ $lapangan->name }}
+                    </p>
+                @else
+                    <a @class([
+                        'rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-all duration-200',
+                    ]) href="{{ route('facilities.tennis.booking', $lapangan->id) }}">
+                        {{ $lapangan->name }}
+                    </a>
+                @endif
+            @endforeach
+        </div>
+    </div>
+
 </div>

@@ -9,6 +9,27 @@ use Carbon\Carbon;
 class BookingHelper
 {
     /**
+     * Check if a booking slot is restricted based on court ID and start time.
+     * Currently, only court 1 has restricted hours from 15:00 to 18:00.
+     * Improve this code as needed for more complex rules.
+     *
+     * @param  int  $courtId  The ID of the court.
+     * @param  Carbon  $startTime  The start time of the booking slot.
+     * @param  Carbon|null  $date  The date of the booking slot, or null if not
+     *                             provided (Currently not used).
+     * @return bool True if the booking slot is restricted, false otherwise.
+     */
+    public static function isRestrictedBookingSlot(int $courtId, Carbon $startTime, ?Carbon $date = null): bool
+    {
+        // Court 1 has restricted hours from 15:00 to 18:00
+        // improve code as needed for more complex rules
+        return $courtId === 1 && $startTime->betweenIncluded(
+            Carbon::createFromFormat('H:i', '15:00'),
+            Carbon::createFromFormat('H:i', '18:00')
+        );
+    }
+
+    /**
      * Example of how to validate a tenant's booking request
      */
     public static function validateTenantBooking(Tenant $tenant, array $slotKeys, int $courtId): array
