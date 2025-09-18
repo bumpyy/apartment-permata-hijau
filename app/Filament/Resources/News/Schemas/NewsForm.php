@@ -5,6 +5,7 @@ namespace App\Filament\Resources\News\Schemas;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
@@ -19,10 +20,12 @@ class NewsForm
                 SpatieMediaLibraryFileUpload::make('featured_image')
                     ->image()
                     ->required(),
+                Textarea::make('excerpt')
+                    ->rows(3)
+                    ->columnSpanFull(),
                 RichEditor::make('content')
                     ->required()
                     ->columnSpanFull(),
-
                 TextInput::make('author'),
                 DateTimePicker::make('published_at')
                     ->default(now())

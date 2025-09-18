@@ -13,6 +13,8 @@ class News extends Model implements HasMedia
     use HasSlug;
     use InteractsWithMedia;
 
+    protected $guarded = [];
+
     /**
      * Get the options for generating the slug.
      */
@@ -21,5 +23,13 @@ class News extends Model implements HasMedia
         return SlugOptions::create()
             ->generateSlugsFrom('title')
             ->saveSlugsTo('slug');
+    }
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
     }
 }

@@ -7,7 +7,7 @@
         <div class="container">
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 @foreach ($news as $item)
-                    <x-news-card :image="$item->getFirstMediaUrl('featured_news_image')" :title="$item->title" :date="$item->created_at" :url="route('news.show', $item->slug)"
+                    <x-news-card :image="$item->getFirstMediaUrl()" :title="$item->title" :date="$item->created_at" :url="route('news.show', $item->slug)"
                         :excerpt="$item->excerpt" />
                 @endforeach
             </div>

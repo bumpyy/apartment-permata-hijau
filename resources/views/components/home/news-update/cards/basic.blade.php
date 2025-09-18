@@ -11,13 +11,14 @@
             <time class="text-gray-500" datetime="{{ $date }}">{{ $date }}</time>
             <x-button class="text-5xl" variant="secondary">Event</x-button>
         </div> --}}
-        <div class="group relative">
+        <div class="group relative flex flex-col gap-2">
             <h3 class="text-primary font-imbue mt-6 text-center text-2xl/6 font-thin">
-                <a href="#">
-                    <span class="absolute inset-0"></span>
-                    {{ $title }}
-                </a>
+                {{-- <a href=""> --}}
+                <span class="absolute inset-0"></span>
+                {{ $title }}
+                {{-- </a> --}}
             </h3>
+            <time class="text-gray-500" datetime="{{ $date }}">{{ $date }}</time>
             {{-- <p class="mt-5 line-clamp-3 text-sm/6 text-gray-600">Illo sint voluptas. Error voluptates culpa eligendi.
                 Hic vel totam vitae illo. Non aliquid explicabo necessitatibus unde. Sed exercitationem placeat
                 consectetur nulla deserunt vel. Iusto corrupti dicta.</p> --}}

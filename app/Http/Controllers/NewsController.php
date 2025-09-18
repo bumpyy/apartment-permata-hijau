@@ -8,14 +8,13 @@ class NewsController extends Controller
 {
     public function index()
     {
-        $news = News::all();
+        $news = News::all()->sortByDesc('published_at');
 
         return view('news.index', compact('news'));
     }
 
-    public function show($slug)
+    public function show(News $news)
     {
-
-        return view('news.show', compact('newsItem'));
+        return view('news.show', compact('news'));
     }
 }
