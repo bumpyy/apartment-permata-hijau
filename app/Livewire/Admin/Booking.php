@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Enum\BookingStatusEnum;
+use App\Helpers\BookingHelper;
 use App\Models\Booking as BookingModel;
 use App\Models\Court;
 use App\Models\Tenant;
@@ -127,7 +128,6 @@ class Booking extends Component
 
     public function canBookSlot($date, $startTime = null, $canBookCurrentWeek = false): bool
     {
-
         if (($this->courtFilter == 1 || $this->courtFilter == '') && Carbon::parse($startTime)->hour >= 15 && Carbon::parse($startTime)->hour <= 18) {
             return false;
         }
@@ -522,7 +522,7 @@ class Booking extends Component
     private function generateTimeSlots()
     {
         $slots = [];
-        for ($hour = 6; $hour <= 22; $hour++) {
+        for ($hour = 6; $hour <= 21; $hour++) {
             $start = sprintf('%02d:00', $hour);
             $end = sprintf('%02d:00', $hour + 1);
             $slots[] = [$start, $end];
