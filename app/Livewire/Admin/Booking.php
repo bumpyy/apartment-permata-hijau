@@ -127,7 +127,7 @@ class Booking extends Component
 
     public function canBookSlot($date, $startTime = null, $canBookCurrentWeek = false): bool
     {
-        if (($this->courtFilter == 1 || $this->courtFilter == '') && Carbon::parse($startTime)->hour >= 15 && Carbon::parse($startTime)->hour <= 18) {
+        if (($this->courtFilter == 1 || $this->courtFilter == '') && Carbon::parse($startTime)->hour >= 15 && Carbon::parse($startTime)->hour <= 17) {
             return false;
         }
 

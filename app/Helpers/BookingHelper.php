@@ -25,7 +25,7 @@ class BookingHelper
         // improve code as needed for more complex rules
         return $courtId === 1 && $startTime->betweenIncluded(
             Carbon::createFromFormat('H:i', '15:00'),
-            Carbon::createFromFormat('H:i', '18:00')
+            Carbon::createFromFormat('H:i', '17:00')
         );
     }
 
