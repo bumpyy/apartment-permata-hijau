@@ -1,7 +1,13 @@
 <div class="mb-8 overflow-hidden rounded-xl border border-gray-300 shadow-lg">
     <div class="grid grid-cols-7 gap-0">
         <!-- Day headers -->
-        @foreach (\Carbon\Carbon::getDays() as $dayName)
+        @php
+            $days = \Carbon\Carbon::getDays();
+            $firstDay = array_shift($days);
+            array_push($days, $firstDay);
+        @endphp
+
+        @foreach ($days as $dayName)
             <div class="bg-gray-100 p-2 text-center text-xs font-semibold text-gray-700">{{ $dayName }}</div>
         @endforeach
 
