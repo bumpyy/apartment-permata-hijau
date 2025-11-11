@@ -20,28 +20,6 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/basketball.png') }}" reverse>
-        <x-slot:title>
-            <x-section-title class="!mx-0 w-full !text-left" position="left">
-                Basketball Court
-            </x-section-title>
-        </x-slot:title>
-
-        <x-slot:description>
-            <div class="flex flex-col gap-8">
-                <p>
-                    Enjoy an active lifestyle with the exclusive outdoor basketball court
-                    at Permata Hijau Apartment. Designed for both casual play and
-                    serious games, it’s a great spot for residents to stay fit, socialize, and
-                    unwind—all just steps from home
-                </p>
-
-                <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white"
-                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
-            </div>
-        </x-slot:description>
-    </x-split-grid>
-
     <x-split-grid class="!text-left" image="{{ asset('img/facilities/swimming-pool.jpeg') }}">
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
