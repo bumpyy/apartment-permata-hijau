@@ -20,7 +20,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/swimming-pool.jpeg') }}">
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/swimming-pool.jpeg') }}" reverse>
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 Swimming Pool
@@ -39,7 +39,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/bbq.jpg') }}" reverse>
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/bbq.jpg') }}">
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 BBQ
@@ -61,7 +61,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/diamond_room/1.jpg') }}">
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/diamond_room/1.jpg') }}" reverse>
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 Diamond Room
@@ -76,7 +76,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/emerald_room/1.jpg') }}" reverse>
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/emerald_room/1.jpg') }}">
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 Emerald Room
@@ -91,7 +91,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/jade_room/1.jpg') }}">
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/jade_room/1.jpg') }}" reverse>
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 Jade Room
