@@ -16,7 +16,7 @@
                 {{ $title }}
                 {{-- </a> --}}
             </h3>
-            <time class="text-gray-500" datetime="{{ $date }}">{{ $date }}</time>
+            <time class="text-center text-gray-500" datetime="{{ $date }}">{{ $date }}</time>
             {{-- <p class="mt-5 line-clamp-3 text-sm/6 text-gray-600">Illo sint voluptas. Error voluptates culpa eligendi.
                 Hic vel totam vitae illo. Non aliquid explicabo necessitatibus unde. Sed exercitationem placeat
                 consectetur nulla deserunt vel. Iusto corrupti dicta.</p> --}}
