@@ -15,9 +15,10 @@ class HomeController extends Controller
             ->description('Selamat datang di Permata Hijau.');
 
         $events = Event::take(10)
-            // ->whereDate('start_at', '>=', Carbon::today())
-            ->orderBy('start_at', 'asc')
+            ->whereDate('end_at', '>=', Carbon::today())
+            ->orderBy('end_at', 'asc')
             ->get();
+
         $news = News::take(10)
             ->orderBy('published_at', 'desc')
             ->get();
