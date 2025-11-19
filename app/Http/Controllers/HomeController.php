@@ -16,7 +16,7 @@ class HomeController extends Controller
 
         $events = Event::take(2)
             // ->whereDate('end_at', '>=', Carbon::today())
-            ->orderBy('end_at', 'desc')
+            ->orderBy('end_at', 'asc')
             ->get();
 
         $news = News::take(10)
