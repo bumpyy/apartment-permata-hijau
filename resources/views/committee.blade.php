@@ -16,7 +16,7 @@
                                 alt="">
                         @endif
                     </div>
-                    <h3 class="text-lg font-semibold">{{ $value->name }}</h3>
+                    <h3 class="text-center text-lg font-semibold">{{ $value->name }}</h3>
                     <p class="text-sm text-gray-600">{{ $value->position }}</p>
                 </div>
             @endforeach
