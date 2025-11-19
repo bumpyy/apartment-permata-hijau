@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\News;
+use Carbon\Carbon;
 
 class HomeController extends Controller
 {
@@ -14,7 +15,7 @@ class HomeController extends Controller
             ->description('Selamat datang di Permata Hijau.');
 
         $events = Event::take(10)
-            ->whereDate('start_at', '>', now())
+            ->whereDate('start_at', '>=', Carbon::today())
             ->orderBy('start_at', 'asc')
             ->get();
         $news = News::take(10)
