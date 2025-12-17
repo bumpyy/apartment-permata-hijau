@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\News;
+use Carbon\Carbon;
 
 class HomeController extends Controller
 {
@@ -13,8 +14,14 @@ class HomeController extends Controller
             ->title(env('APP_NAME', 'Permata Hijau'), template: false)
             ->description('Selamat datang di Permata Hijau.');
 
-        $events = Event::take(10)->orderBy('end_at', 'desc')->get();
-        $news = News::take(10)->orderBy('published_at', 'desc')->get();
+        $events = Event::take(2)
+            // ->whereDate('end_at', '>=', Carbon::today())
+            ->orderBy('end_at', 'asc')
+            ->get();
+
+        $news = News::take(10)
+            ->orderBy('published_at', 'desc')
+            ->get();
 
         return view('welcome', compact('events', 'news'));
     }

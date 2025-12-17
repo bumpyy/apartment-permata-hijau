@@ -20,29 +20,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/basketball.png') }}" reverse>
-        <x-slot:title>
-            <x-section-title class="!mx-0 w-full !text-left" position="left">
-                Basketball Court
-            </x-section-title>
-        </x-slot:title>
-
-        <x-slot:description>
-            <div class="flex flex-col gap-8">
-                <p>
-                    Enjoy an active lifestyle with the exclusive outdoor basketball court
-                    at Permata Hijau Apartment. Designed for both casual play and
-                    serious games, it’s a great spot for residents to stay fit, socialize, and
-                    unwind—all just steps from home
-                </p>
-
-                <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white"
-                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
-            </div>
-        </x-slot:description>
-    </x-split-grid>
-
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/swimming-pool.jpeg') }}">
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/swimming-pool.jpeg') }}" reverse>
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 Swimming Pool
@@ -61,7 +39,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/bbq.jpg') }}" reverse>
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/bbq.jpg') }}">
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 BBQ
@@ -83,7 +61,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/diamond_room/1.jpg') }}">
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/diamond_room/1.jpg') }}" reverse>
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 Diamond Room
@@ -98,7 +76,7 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/emerald_room/1.jpg') }}" reverse>
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/emerald_room/1.jpg') }}">
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 Emerald Room
@@ -113,10 +91,25 @@
         </x-slot:description>
     </x-split-grid>
 
-    <x-split-grid class="!text-left" image="{{ asset('img/facilities/jade_room/1.jpg') }}">
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/jade_room/1.jpg') }}" reverse>
         <x-slot:title>
             <x-section-title class="!mx-0 w-full !text-left" position="left">
                 Jade Room
+            </x-section-title>
+        </x-slot:title>
+
+        <x-slot:description>
+            <div class="flex flex-col gap-8">
+                <a class="bg-primary w-fit border border-gray-200 px-4 py-2 text-sm text-white" target="_blank"
+                    href="https://wa.me/{{ $whatsappNumber }}">Book Now</a>
+            </div>
+        </x-slot:description>
+    </x-split-grid>
+
+    <x-split-grid class="!text-left" image="{{ asset('img/facilities/ruby_room/1.jpg') }}">
+        <x-slot:title>
+            <x-section-title class="!mx-0 w-full !text-left" position="left">
+                Ruby Room
             </x-section-title>
         </x-slot:title>
 
