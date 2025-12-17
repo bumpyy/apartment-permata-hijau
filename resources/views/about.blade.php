@@ -81,7 +81,7 @@
             Key Highlight
         </x-section-title>
 
-        <x-split-grid title="Developer" image="{{ asset('img/about/about-1.png') }}">
+        <x-split-grid title="Developer" image="{{ asset('img/about/about-1.jpeg') }}">
             <x-slot:description>
                 Permata Hijau Apartment is a prestigious residential project
                 developed by PT Masato Prima. Construction for Towers 1 & 2

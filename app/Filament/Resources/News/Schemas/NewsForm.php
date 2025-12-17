@@ -30,6 +30,7 @@ class NewsForm
                 DateTimePicker::make('published_at')
                     ->default(now())
                     ->required(),
-            ]);
+            ])
+            ->columns(1);
     }
 }

@@ -8,6 +8,8 @@
     </div>
 
     <section class="prose mx-auto">
+        <img class="aspect-video object-cover" src="{{ $news->getFirstMediaUrl() }}" alt="">
+
         <div class="text-center">
             <h1 class="font-imbue text-primary mb-0 mt-2 text-4xl font-bold">
                 {{ $news->title }}
