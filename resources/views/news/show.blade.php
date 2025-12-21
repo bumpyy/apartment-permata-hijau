@@ -7,19 +7,19 @@
         </a>
     </div>
 
-    <article class="prose container mx-auto">
+    <article class="container mx-auto px-4">
         <img class="aspect-video object-cover" src="{{ $news->getFirstMediaUrl() }}" alt="">
 
         <div class="text-center">
             <h1 class="font-imbue text-primary mb-0 mt-2 text-4xl font-bold">
                 {{ $news->title }}
             </h1>
-
+            re
             <p class="mt-0 text-sm text-gray-500">{{ $news->created_at->format('F j, Y') }}</p>
 
             <hr class="border-primary mx-auto w-1/6 border-t-2 py-8" />
         </div>
 
-        <div>{!! $news->content !!}</div>
+        <div class="prose">{!! $news->content !!}</div>
     </article>
 </x-frontend.layouts.app>
