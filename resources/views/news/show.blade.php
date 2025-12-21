@@ -20,6 +20,6 @@
             <hr class="border-primary mx-auto w-1/6 border-t-2 py-8" />
         </div>
 
-        <div>{!! $news->content !!}</div>
+        <div class="container">{!! $news->content !!}</div>
     </section>
 </x-frontend.layouts.app>
