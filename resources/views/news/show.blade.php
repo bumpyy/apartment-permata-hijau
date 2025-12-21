@@ -7,7 +7,7 @@
         </a>
     </div>
 
-    <section class="prose mx-auto">
+    <article class="prose container mx-auto">
         <img class="aspect-video object-cover" src="{{ $news->getFirstMediaUrl() }}" alt="">
 
         <div class="text-center">
@@ -20,6 +20,6 @@
             <hr class="border-primary mx-auto w-1/6 border-t-2 py-8" />
         </div>
 
-        <div class="container">{!! $news->content !!}</div>
-    </section>
+        <div>{!! $news->content !!}</div>
+    </article>
 </x-frontend.layouts.app>
