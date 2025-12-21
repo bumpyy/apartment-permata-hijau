@@ -8,7 +8,7 @@ class EventController extends Controller
 {
     public function index()
     {
-        $events = Event::orderBy('start_at')->paginate(3);
+        $events = Event::orderByDesc('start_at')->paginate(3);
 
         return view('event.index', compact('events'));
     }

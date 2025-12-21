@@ -14,9 +14,9 @@ class HomeController extends Controller
             ->title(env('APP_NAME', 'Permata Hijau'), template: false)
             ->description('Selamat datang di Permata Hijau.');
 
-        $events = Event::take(2)
+        $events = Event::orderByDesc('start_at')
             // ->whereDate('end_at', '>=', Carbon::today())
-            ->orderBy('end_at', 'asc')
+            ->take(2)
             ->get();
 
         $news = News::take(10)
