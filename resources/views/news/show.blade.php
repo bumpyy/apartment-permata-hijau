@@ -7,7 +7,7 @@
         </a>
     </div>
 
-    <article class="container mx-auto px-4">
+    <article class="prose mx-auto px-4">
         <img class="aspect-video object-cover" src="{{ $news->getFirstMediaUrl() }}" alt="">
 
         <div class="text-center">
