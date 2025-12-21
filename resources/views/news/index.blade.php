@@ -11,6 +11,9 @@
                         :excerpt="$item->excerpt" />
                 @endforeach
             </div>
+        </div>
+
+        {{ $news->links() }}
 
     </section>
 
