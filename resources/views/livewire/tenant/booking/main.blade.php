@@ -1166,8 +1166,6 @@ new #[Layout('components.frontend.layouts.app')] class extends Component
         $this->currentMonthStart = Carbon::parse($monthStart);
         $this->currentDate = $this->currentMonthStart->copy();
 
-        @dd($this->currentMonthStart);
-
         if ($this->viewMode === 'monthly') {
             $this->generateMonthDaysForComponent();
         }
